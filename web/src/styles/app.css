@@ -63,6 +63,36 @@ input, textarea, button { font-family: inherit; }
     border-radius: 0;
     padding-top: env(safe-area-inset-top);
   }
+  /* iOS Home Screen can report a shorter JS/CSS height than the physical
+     screen. These overrides make the shell obey inset:0 instead of that cap. */
+  #root {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: hidden;
+  }
+  .mf-stage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .mf-phone {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+  .mf-screenwrap {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+  }
   /* Real iOS chrome replaces these mocks */
   .mf-statusbar { display: none; }
   .mf-homeind { display: none; }

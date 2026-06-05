@@ -10,7 +10,12 @@ window.lucide = { createIcons: (opts = {}) => createIcons({ icons, ...opts }) };
 
 function syncAppViewportHeight() {
   const visual = window.visualViewport && window.visualViewport.height;
-  const h = Math.max(window.innerHeight || 0, visual || 0);
+  const standalone =
+    window.matchMedia?.('(display-mode: standalone)').matches ||
+    window.matchMedia?.('(display-mode: fullscreen)').matches ||
+    window.navigator.standalone === true;
+  const screenHeight = standalone && window.screen ? window.screen.height : 0;
+  const h = Math.max(window.innerHeight || 0, visual || 0, screenHeight || 0);
   if (h) document.documentElement.style.setProperty('--mf-app-height', `${h}px`);
 }
 
