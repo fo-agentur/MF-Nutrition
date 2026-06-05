@@ -27,8 +27,13 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,woff2,woff,ttf}'],
+        globPatterns: ['**/*.{js,css,png,svg,woff2,woff,ttf}'],
+        navigateFallback: null,
         navigateFallbackDenylist: [/^\/api/],
+        importScripts: ['sw-force-update.js'],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
