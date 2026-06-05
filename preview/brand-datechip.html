@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--mf-bg);color:var(--mf-fg);font-family:var(--mf-font-body);
+       padding:24px 22px;box-sizing:border-box}
+  .strip{display:flex;gap:10px;justify-content:space-between}
+  .day{position:relative;flex:1;height:84px;border-radius:999px;border:2px solid var(--mf-surface-4);
+       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .day .d{font-size:15px;color:var(--mf-fg-3)}
+  .day .n{font-size:20px;font-weight:600}
+  .today{border-color:transparent;background:var(--mf-surface-3)}
+  .sel{border-color:var(--mf-energy)}
+  .dot{position:absolute;bottom:9px;width:5px;height:5px;border-radius:50%;background:#fff}
+</style></head><body>
+  <div class="strip">
+    <div class="day sel"><span class="d">M</span><span class="n">1</span></div>
+    <div class="day today"><span class="d">T</span><span class="n">2</span><span class="dot"></span></div>
+    <div class="day"><span class="d">W</span><span class="n">3</span></div>
+    <div class="day"><span class="d">T</span><span class="n">4</span></div>
+    <div class="day"><span class="d">F</span><span class="n">5</span></div>
+    <div class="day"><span class="d">S</span><span class="n">6</span></div>
+    <div class="day"><span class="d">S</span><span class="n">7</span></div>
+  </div>
+</body></html>

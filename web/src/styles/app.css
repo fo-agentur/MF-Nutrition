@@ -1,0 +1,316 @@
+/* ============================================================
+   PWA / iOS device overrides + auth & loading screens.
+   Loaded AFTER kit.css so these win.
+   ============================================================ */
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--mf-bg);
+  color: var(--mf-fg);
+  font-family: var(--mf-font-body);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+#root { height: 100%; }
+
+input, textarea, button { font-family: inherit; }
+
+/* On a phone (or installed PWA): fill the screen, drop the mock frame. */
+@media (max-width: 600px), (display-mode: standalone), (display-mode: fullscreen) {
+  html, body {
+    overflow: hidden;
+    overscroll-behavior: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: var(--mf-app-height, 100dvh);
+    min-height: -webkit-fill-available;
+    background: var(--mf-bg);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Fill the visual viewport directly via the React root. position:fixed+inset:0
+     does NOT depend on a percentage-height chain (which iOS collapses when the
+     body is fixed/inset:0 with no explicit height) — so the shell always reaches
+     the bottom edge. Avoids both the thin "weird border" and the big black gap
+     below the nav that appears when height:100%/100dvh fails to resolve on iOS. */
+  #root {
+    position: fixed;
+    inset: 0;
+    height: var(--mf-app-height, 100dvh);
+    min-height: -webkit-fill-available;
+    max-height: var(--mf-app-height, 100dvh);
+    background: var(--mf-bg);
+  }
+  .mf-stage {
+    padding: 0;
+    background: var(--mf-bg);
+    display: block;
+    height: var(--mf-app-height, 100dvh);
+    min-height: -webkit-fill-available;
+  }
+  .mf-phone {
+    width: 100%;
+    height: var(--mf-app-height, 100dvh);
+    min-height: -webkit-fill-available;
+    max-height: var(--mf-app-height, 100dvh);
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  .mf-screenwrap {
+    border-radius: 0;
+    padding-top: env(safe-area-inset-top);
+  }
+  /* Real iOS chrome replaces these mocks */
+  .mf-statusbar { display: none; }
+  .mf-homeind { display: none; }
+
+  /* Bottom nav owns the home-indicator safe area; its bg fills it edge-to-edge */
+  .mf-bottomnav {
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    min-height: calc(82px + env(safe-area-inset-bottom));
+    background: #151515;
+  }
+
+  /* Subpages (no bottom nav/dock) must keep their last items clear of the
+     home indicator. Only the trailing scroller gets the inset. */
+  .mf-screen > .mf-scroll:last-child { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .mf-screenarea > .mf-screen > .mf-scroll:only-of-type { scroll-padding-bottom: env(safe-area-inset-bottom); }
+
+  /* Sheets reach the screen edge: square bottom + safe-area padding */
+  .mf-sheet { border-radius: 24px 24px 0 0; padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+  .mf-sheet.tall { max-height: 94%; height: 94%; }
+  .mf-detail-actions { padding-bottom: max(6px, env(safe-area-inset-bottom)); }
+
+  /* Inputs: keep iOS from zooming on focus (needs >=16px) */
+  .mf-add-input, .mf-quick-input, .mf-onb-input, .mf-ai-input, .mf-quick-name, .mf-auth-input { font-size: 16px; }
+}
+
+/* Allow text selection inside editable fields even on device */
+input, textarea { -webkit-user-select: text; user-select: text; }
+
+/* ============================================================
+   Loading splash
+   ============================================================ */
+.mf-loading {
+  flex: 1;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mf-bg);
+}
+.mf-loading-mark {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: #fff; color: #000;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mf-font-display); font-weight: 800; font-size: 26px;
+  letter-spacing: -1px;
+  animation: mf-pulse 1.3s ease-in-out infinite;
+}
+@keyframes mf-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.94); } }
+
+/* ============================================================
+   Auth (login / signup) screen
+   ============================================================ */
+.mf-auth {
+  min-height: 100dvh;
+  height: 100dvh;
+  background: var(--mf-bg);
+  color: var(--mf-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  padding-top: max(24px, env(safe-area-inset-top));
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+.mf-auth-inner {
+  width: calc(100vw - 48px);
+  max-width: 360px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.mf-auth-mark {
+  width: 76px; height: 76px; border-radius: 50%;
+  background: #fff; color: #000;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mf-font-display); font-weight: 800; font-size: 28px;
+  letter-spacing: -1px;
+  align-self: center;
+  margin-bottom: 22px;
+}
+.mf-auth-title {
+  font-size: 34px;
+  text-align: center;
+  margin: 0 0 8px;
+}
+.mf-auth-lede {
+  color: var(--mf-fg-2);
+  font-size: 15px;
+  text-align: center;
+  margin: 0 0 28px;
+  line-height: 1.4;
+}
+.mf-auth-form { display: flex; flex-direction: column; gap: 12px; }
+.mf-auth-input {
+  background: var(--mf-surface-3);
+  border: 1.5px solid transparent;
+  border-radius: 16px;
+  padding: 16px 18px;
+  color: #fff;
+  font-size: 16px;
+  outline: 0;
+  width: 100%;
+  min-width: 0;
+}
+.mf-auth-input::placeholder { color: var(--mf-fg-3); }
+.mf-auth-input:focus { border-color: rgba(255,255,255,.25); }
+.mf-auth-btn {
+  margin-top: 6px;
+  background: #fff; color: #000;
+  border: 0; border-radius: 999px;
+  padding: 17px;
+  font-size: 17px; font-weight: 700;
+  cursor: pointer;
+}
+.mf-auth-btn:disabled { opacity: .6; cursor: default; }
+.mf-auth-error {
+  background: rgba(239,106,69,.14);
+  color: #F2A98F;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+.mf-auth-info {
+  background: rgba(87,179,110,.14);
+  color: #86D49B;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+.mf-auth-toggle {
+  margin-top: 22px;
+  background: none; border: 0;
+  color: var(--mf-fg-2);
+  font-size: 15px;
+  text-decoration: underline;
+  cursor: pointer;
+  align-self: center;
+}
+
+/* Sign-out row inside settings */
+.mf-signout { color: var(--mf-protein) !important; }
+
+/* Strategy — Coached Program stacked macro chart */
+.mf-prog-cols { display: flex; gap: 5px; align-items: flex-start; margin-top: 6px; }
+.mf-prog-col { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.mf-prog-kcal {
+  background: var(--mf-energy); color: #fff; border-radius: 999px;
+  font-size: 11px; font-weight: 700; text-align: center; padding: 5px 0;
+}
+.mf-prog-block {
+  border-radius: 8px; font-size: 11px; font-weight: 800; color: rgba(0,0,0,.72);
+  display: flex; align-items: center; justify-content: center;
+}
+.mf-prog-block.p { background: var(--mf-protein); }
+.mf-prog-block.f { background: var(--mf-fat); }
+.mf-prog-block.c { background: var(--mf-carb); }
+.mf-prog-day { text-align: center; font-size: 12px; color: var(--mf-fg-3); margin-top: 2px; }
+
+/* Barcode scanner camera feed */
+.mf-scan-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; border-radius: 22px; background: #000;
+}
+.mf-scan-frame { position: relative; }
+.mf-scan-view .mf-pill { margin-top: 4px; }
+
+/* ============================================================
+   Detail / metric subpages
+   ============================================================ */
+/* Range selector */
+.mf-rangebar { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+.mf-rangetabs { flex: 1; display: flex; background: var(--mf-surface-3); border-radius: 999px; padding: 4px; }
+.mf-rangetab { flex: 1; border: 0; background: none; color: var(--mf-fg-2); font-family: inherit; font-size: 14px; font-weight: 600; padding: 9px 0; border-radius: 999px; cursor: pointer; }
+.mf-rangetab.on { background: #fff; color: #000; }
+.mf-rangeunit { display: inline-flex; align-items: center; gap: 2px; background: var(--mf-surface-3); border: 0; color: #fff; font-family: inherit; font-weight: 600; font-size: 14px; padding: 9px 12px; border-radius: 999px; cursor: pointer; }
+
+/* Metric hero */
+.mf-mh { padding: 8px 0 6px; }
+.mf-mh-stats { display: flex; gap: 48px; }
+.mf-mh-lbl { font-size: 15px; color: var(--mf-fg-2); margin-bottom: 2px; }
+.mf-mh-val { font-size: 40px; font-weight: 800; line-height: 1.05; }
+.mf-mh-val small { font-size: 18px; font-weight: 500; color: var(--mf-fg-2); }
+.mf-mh-range { font-size: 16px; color: var(--mf-fg); margin-top: 6px; }
+
+/* Big line chart */
+.mf-bigchart { display: flex; align-items: stretch; gap: 8px; padding: 10px 0 4px; }
+.mf-bigchart svg { flex: 1; min-width: 0; }
+.mf-bigchart-labels { width: 46px; display: flex; flex-direction: column; justify-content: space-between; padding: 12px 0; font-size: 14px; color: var(--mf-fg-2); text-align: right; }
+.mf-bigchart.empty { display: block; height: 190px; position: relative; }
+.mf-bigchart.empty .mf-bigchart-row { position: relative; height: 33.33%; border-top: 1px dashed rgba(255,255,255,.08); }
+.mf-bigchart.empty .mf-bigchart-axis { position: absolute; right: 0; top: -9px; font-size: 14px; color: var(--mf-fg-2); }
+.mf-bigchart-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--mf-fg-3); font-size: 15px; }
+
+/* Big bar chart */
+.mf-bigbars-wrap { padding: 8px 0; }
+.mf-bigbars { display: flex; align-items: flex-end; gap: 8px; height: 200px; }
+.mf-bigbar-col { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.mf-bigbar { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; }
+.mf-bigbars-labels { display: flex; margin-top: 8px; }
+.mf-bigbars-labels span { flex: 1; text-align: center; font-size: 14px; color: var(--mf-fg-2); }
+
+/* Legend chip */
+.mf-legend-chip { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--mf-surface-1); border-radius: 14px; padding: 14px; margin: 10px 0; font-size: 15px; color: var(--mf-fg); }
+.mf-legend-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--mf-fg-3); display: inline-block; }
+.mf-legend-dot.dashed { border-style: dashed; }
+
+/* Habit hero */
+.mf-habit-hero { display: flex; gap: 48px; padding: 8px 0 18px; }
+.mf-habit-hero-col { display: flex; flex-direction: column; }
+
+/* Calendar */
+.mf-cal { padding: 4px 0; }
+.mf-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.mf-cal-cell { position: relative; aspect-ratio: 1; border: 1.5px solid #2E2E32; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--mf-fg-2); }
+.mf-cal-cell.empty { border: 0; }
+.mf-cal-cell.marked { background: rgba(255,255,255,.04); }
+.mf-cal-dot { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; }
+.mf-cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 12px; }
+.mf-cal-dow span { text-align: center; font-size: 14px; color: var(--mf-fg-2); }
+.mf-cal-monthsel { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+.mf-cal-mpill { background: var(--mf-surface-3); border-radius: 999px; padding: 10px 22px; font-size: 16px; font-weight: 600; }
+.mf-cal-legend { display: flex; gap: 24px; justify-content: center; align-items: center; background: var(--mf-surface-1); border-radius: 16px; padding: 16px; margin: 18px 0; }
+.mf-cal-legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; }
+
+/* Tutorial card */
+.mf-tut-card { background: rgba(45,90,60,.45); border-radius: 18px; padding: 18px; margin-top: 4px; }
+.mf-tut-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.mf-tut-body { font-size: 15px; color: #cfe6d6; line-height: 1.4; margin-bottom: 16px; }
+.mf-tut-actions { display: flex; align-items: center; justify-content: space-between; }
+.mf-tut-dismiss { font-size: 15px; color: #cfe6d6; }
+.mf-tut-next { background: #2BA15F; color: #fff; font-weight: 600; font-size: 15px; padding: 10px 22px; border-radius: 999px; }
+
+/* Nutrition Data Manager mark */
+.mf-ndm-mark { width: 30px; height: 30px; border-radius: 8px; background: #fff; color: #000; display: flex; align-items: center; justify-content: center; font-family: var(--mf-font-display); font-weight: 800; font-size: 15px; flex: none; }
+
+/* Customize Dashboard — Primary Focus */
+.mf-pf-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+.mf-pf-row::-webkit-scrollbar { height: 0; }
+.mf-pf-card { flex: none; width: 240px; background: var(--mf-surface-1); border: 1.5px solid transparent; border-radius: 18px; padding: 14px; cursor: pointer; font-family: inherit; text-align: left; color: inherit; }
+.mf-pf-card.on { border-color: #fff; }
+.mf-pf-head { display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+.mf-pf-prev { height: 120px; }
+.mf-pf-prev.wn { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+.mf-pf-prevrow { display: flex; gap: 5px; flex: 1; align-items: center; }
+.mf-pf-prevrow span { flex: 1; height: 10px; border-radius: 3px; opacity: .85; }
+.mf-pf-prev.eb { display: flex; align-items: flex-end; gap: 3px; }
+.mf-pf-prev.eb span { flex: 1; background: var(--mf-energy); border-radius: 2px; opacity: .85; }
+.mf-pf-prev.daily { display: flex; align-items: center; justify-content: center; }
+.mf-pf-ring { width: 84px; height: 84px; border-radius: 50%; border: 9px solid var(--mf-energy); border-right-color: var(--mf-surface-3); border-bottom-color: var(--mf-surface-3); }

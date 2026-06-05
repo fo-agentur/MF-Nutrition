@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+web/dist
+.git
+.vercel
+.playwright-mcp
+.env
+.env.*
+.thumbnail
+uploads
+preview
+ui_kits
+assets

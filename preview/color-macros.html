@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--mf-bg);color:var(--mf-fg);font-family:var(--mf-font-body);
+       padding:24px 26px;box-sizing:border-box}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .sw{display:flex;flex-direction:column;gap:8px}
+  .chip{height:78px;border-radius:14px;display:flex;align-items:flex-end;justify-content:flex-start;padding:10px;box-sizing:border-box}
+  .lt{font-size:24px;font-weight:800;color:#000}
+  .name{font-size:13px;font-weight:600}
+  .hex{font-size:11px;color:var(--mf-fg-3);font-variant-numeric:tabular-nums}
+</style></head><body>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:#4A78F0"><span class="lt">🔥</span></div><div class="name">Energy · blue</div><div class="hex">#4A78F0</div></div>
+    <div class="sw"><div class="chip" style="background:#EF6A45"><span class="lt">P</span></div><div class="name">Protein · coral</div><div class="hex">#EF6A45</div></div>
+    <div class="sw"><div class="chip" style="background:#F2BE3F"><span class="lt">F</span></div><div class="name">Fat · gold</div><div class="hex">#F2BE3F</div></div>
+    <div class="sw"><div class="chip" style="background:#57B36E"><span class="lt">C</span></div><div class="name">Carbs · green</div><div class="hex">#57B36E</div></div>
+  </div>
+</body></html>

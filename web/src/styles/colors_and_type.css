@@ -1,0 +1,159 @@
+/* ============================================================
+   MacroFactor — Colors & Type
+   Brand identity by Pentagram. Custom typeface: MacroSans
+   (variable, architectural yet fluid — Reset Type Studio).
+   MacroSans is proprietary; substituted here with Archivo +
+   Archivo Expanded (variable grotesque, weight + width axes).
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Archivo+Expanded:wght@100..900&display=swap');
+
+:root {
+  /* ---- Type families ------------------------------------- */
+  /* Display = wide/extended, used for screen titles (uppercase). */
+  --mf-font-display: 'Archivo Expanded', 'Archivo', system-ui, sans-serif;
+  /* UI/body = normal-width grotesque, used for everything else. */
+  --mf-font-body: 'Archivo', system-ui, -apple-system, sans-serif;
+
+  /* ---- Surfaces (dark warm-gray) ------------------------- */
+  --mf-bg:          #181818;  /* app canvas — dark charcoal, NOT pure black */
+  --mf-surface-0:   #1A1A1A;  /* primary content bg */
+  --mf-surface-1:   #1E1E20;  /* raised section bg */
+  --mf-surface-2:   #252528;  /* card */
+  --mf-surface-3:   #2C2C30;  /* card on card / control */
+  --mf-surface-4:   #383840;  /* pressed / pill track */
+  --mf-hairline:    rgba(255,255,255,0.07); /* dividers */
+
+  /* ---- Text ---------------------------------------------- */
+  --mf-fg:          #FFFFFF;  /* primary */
+  --mf-fg-2:        #A6A6AC;  /* secondary */
+  --mf-fg-3:        #6E6E75;  /* tertiary / disabled */
+  --mf-fg-inverse:  #000000;  /* on white surfaces */
+
+  /* ---- Macro system (the signature palette) -------------- */
+  --mf-energy:   #4A78F0;  /* Calories / Energy — blue (flame) */
+  --mf-protein:  #EF6A45;  /* Protein — coral */
+  --mf-fat:      #F2BE3F;  /* Fat — gold */
+  --mf-carb:     #57B36E;  /* Carbs — green */
+
+  /* Muted track versions (behind progress) */
+  --mf-energy-track:  rgba(74,120,240,0.20);
+  --mf-protein-track: rgba(239,106,69,0.20);
+  --mf-fat-track:     rgba(242,190,63,0.20);
+  --mf-carb-track:    rgba(87,179,110,0.20);
+
+  /* ---- Accent / data-viz --------------------------------- */
+  --mf-accent:    #FFFFFF;  /* FAB, selected toggle, CTAs */
+  --mf-purple:    #9B7FE8;  /* weight-trend line */
+  --mf-teal:      #2BA89F;  /* food-entry / category icon */
+  --mf-info:      #4A78F0;  /* notification dot, info */
+
+  /* ---- Radii --------------------------------------------- */
+  --mf-r-sm:  10px;  /* small chips */
+  --mf-r-md:  16px;  /* buttons, search */
+  --mf-r-lg:  22px;  /* cards */
+  --mf-r-xl:  28px;  /* sheets, large cards */
+  --mf-r-pill: 999px;
+
+  /* ---- Spacing scale (4pt base) -------------------------- */
+  --mf-s-1: 4px;
+  --mf-s-2: 8px;
+  --mf-s-3: 12px;
+  --mf-s-4: 16px;
+  --mf-s-5: 20px;
+  --mf-s-6: 24px;
+  --mf-s-8: 32px;
+  --mf-s-10: 40px;
+
+  /* ---- Elevation ----------------------------------------- */
+  --mf-shadow-sheet: 0 -8px 40px rgba(0,0,0,0.55);
+  --mf-shadow-fab:   0 6px 18px rgba(0,0,0,0.45);
+
+  /* ---- Type scale (semantic) ----------------------------- */
+  /* Screen title — wide, black, uppercase */
+  --mf-title-size: 38px;
+  --mf-title-weight: 800;
+  --mf-title-tracking: 0.01em;
+
+  /* Section header — bold, normal width */
+  --mf-h2-size: 20px;
+  --mf-h2-weight: 700;
+
+  --mf-h3-size: 17px;
+  --mf-h3-weight: 600;
+
+  --mf-body-size: 15px;
+  --mf-body-weight: 400;
+
+  --mf-label-size: 14px;
+  --mf-caption-size: 12px;
+  --mf-micro-size: 11px;
+}
+
+/* ============================================================
+   Semantic helpers
+   ============================================================ */
+
+.mf-title {
+  font-family: var(--mf-font-display);
+  font-weight: var(--mf-title-weight);
+  font-size: var(--mf-title-size);
+  letter-spacing: var(--mf-title-tracking);
+  text-transform: uppercase;
+  color: var(--mf-fg);
+  line-height: 0.98;
+}
+
+.mf-h2 {
+  font-family: var(--mf-font-body);
+  font-weight: var(--mf-h2-weight);
+  font-size: var(--mf-h2-size);
+  color: var(--mf-fg);
+  line-height: 1.1;
+}
+
+.mf-h3 {
+  font-family: var(--mf-font-body);
+  font-weight: var(--mf-h3-weight);
+  font-size: var(--mf-h3-size);
+  color: var(--mf-fg);
+}
+
+.mf-body {
+  font-family: var(--mf-font-body);
+  font-weight: var(--mf-body-weight);
+  font-size: var(--mf-body-size);
+  color: var(--mf-fg);
+  line-height: 1.35;
+}
+
+.mf-label {
+  font-family: var(--mf-font-body);
+  font-weight: 500;
+  font-size: var(--mf-label-size);
+  color: var(--mf-fg);
+}
+
+.mf-caption {
+  font-family: var(--mf-font-body);
+  font-weight: 400;
+  font-size: var(--mf-caption-size);
+  color: var(--mf-fg-2);
+}
+
+/* Tabular numerals — used everywhere for data (447 / 2505). */
+.mf-num {
+  font-family: var(--mf-font-body);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Eyebrow above titles (e.g. DIENSTAG, 2. JUNI) */
+.mf-eyebrow {
+  font-family: var(--mf-font-body);
+  font-weight: 600;
+  font-size: var(--mf-caption-size);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mf-fg-2);
+}

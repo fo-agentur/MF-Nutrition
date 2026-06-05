@@ -1,0 +1,32 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--mf-bg);color:var(--mf-fg);font-family:var(--mf-font-body);
+       padding:24px 26px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px}
+  .stat{display:flex;flex-direction:column;gap:8px}
+  .top{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+  .badge{font-weight:800}
+  .track{height:6px;border-radius:3px;background:var(--mf-surface-4);overflow:hidden}
+  .fill{height:100%;border-radius:3px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px}
+</style></head><body>
+  <div class="grid">
+    <div class="stat">
+      <div class="top"><span class="badge" style="color:var(--mf-energy)">🔥 447</span><span style="color:var(--mf-fg-2)">/ 2505</span></div>
+      <div class="track"><div class="fill" style="width:18%;background:var(--mf-energy)"></div></div>
+    </div>
+    <div class="stat">
+      <div class="top"><span class="badge" style="color:var(--mf-protein)">P 10</span><span style="color:var(--mf-fg-2)">/ 168</span></div>
+      <div class="track"><div class="fill" style="width:6%;background:var(--mf-protein)"></div></div>
+    </div>
+    <div class="stat">
+      <div class="top"><span class="badge" style="color:var(--mf-fat)">F 15</span><span style="color:var(--mf-fg-2)">/ 82</span></div>
+      <div class="track"><div class="fill" style="width:18%;background:var(--mf-fat)"></div></div>
+    </div>
+    <div class="stat">
+      <div class="top"><span class="badge" style="color:var(--mf-carb)">C 64</span><span style="color:var(--mf-fg-2)">/ 271</span></div>
+      <div class="track"><div class="fill" style="width:24%;background:var(--mf-carb)"></div></div>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<style>
+  html,body{margin:0}
+  body{background:var(--mf-bg);color:var(--mf-fg);font-family:var(--mf-font-body);
+       padding:0;box-sizing:border-box}
+  .nav{display:flex;align-items:center;justify-content:space-between;
+       padding:16px 26px 22px;background:#0B0B0C;border-top:1px solid var(--mf-hairline)}
+  .item{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+  .item svg{width:24px;height:24px}
+  .lbl{font-size:12px;font-weight:500}
+  .inactive{color:var(--mf-fg-3)} .inactive .lbl{color:var(--mf-fg-3)}
+  .active{color:#fff}
+  .fab{width:56px;height:56px;border-radius:50%;background:#fff;color:#000;display:flex;
+       align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+  .fab svg{width:28px;height:28px}
+  .badge{position:relative}
+  .dot{position:absolute;top:-3px;right:8px;width:14px;height:14px;border-radius:50%;
+       background:var(--mf-info);border:2px solid #0B0B0C;display:flex;align-items:center;
+       justify-content:center;color:#fff;font-size:9px;font-weight:800}
+</style></head><body>
+  <div class="nav">
+    <div class="item active"><i data-lucide="layout-dashboard"></i><span class="lbl">Dashboard</span></div>
+    <div class="item inactive"><i data-lucide="apple"></i><span class="lbl">Food Log</span></div>
+    <div class="item" style="flex:0"><div class="fab"><i data-lucide="plus"></i></div></div>
+    <div class="item inactive badge"><div class="dot">!</div><i data-lucide="circle-dot-dashed"></i><span class="lbl">Strategy</span></div>
+    <div class="item inactive"><i data-lucide="more-horizontal"></i><span class="lbl">More</span></div>
+  </div>
+  <script>lucide.createIcons();</script>
+</body></html>

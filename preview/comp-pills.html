@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<style>
+  html,body{margin:0}
+  body{background:var(--mf-bg);color:var(--mf-fg);font-family:var(--mf-font-body);
+       padding:24px 26px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px}
+  .seg{display:inline-flex;background:var(--mf-surface-3);border-radius:999px;padding:5px;width:max-content}
+  .seg span{padding:10px 26px;border-radius:999px;font-size:16px;font-weight:600}
+  .seg .on{background:#fff;color:#000} .seg .off{color:var(--mf-fg-2)}
+  .pills{display:flex;gap:12px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:var(--mf-surface-3);
+        border-radius:999px;padding:12px 20px;font-size:16px;font-weight:600}
+  .pill svg{width:18px;height:18px}
+</style></head><body>
+  <div class="seg"><span class="on">Consumed</span><span class="off">Remaining</span></div>
+  <div class="pills">
+    <span class="pill"><i data-lucide="plus"></i>New Goal</span>
+    <span class="pill"><i data-lucide="pencil"></i>Edit Goal</span>
+    <span class="pill"><i data-lucide="rotate-cw"></i>New Program</span>
+  </div>
+  <script>lucide.createIcons();</script>
+</body></html>

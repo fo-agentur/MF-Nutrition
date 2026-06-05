@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<style>
+  html,body{margin:0}
+  body{background:var(--mf-bg);color:var(--mf-fg);font-family:var(--mf-font-body);
+       padding:30px 26px;box-sizing:border-box}
+  .bar{display:flex;align-items:center;gap:14px;background:var(--mf-surface-3);
+       border-radius:18px;padding:16px 20px}
+  .bar .s{color:var(--mf-fg-3);width:24px;height:24px}
+  input{flex:1;background:none;border:0;outline:0;color:var(--mf-fg);font-size:19px;
+        font-family:var(--mf-font-body)}
+  input::placeholder{color:var(--mf-fg-2)}
+  .bc{color:var(--mf-fg-2);width:26px;height:26px}
+</style></head><body>
+  <div class="bar">
+    <i data-lucide="search" class="s"></i>
+    <input placeholder="Search for a food" value="">
+    <i data-lucide="scan-barcode" class="bc"></i>
+  </div>
+  <script>lucide.createIcons();</script>
+</body></html>

@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<style>
+  html,body{margin:0}
+  body{background:var(--mf-bg);color:var(--mf-fg);font-family:var(--mf-font-body);
+       padding:26px;box-sizing:border-box;display:flex;justify-content:space-between;gap:10px}
+  .sc{display:flex;flex-direction:column;align-items:center;gap:11px;flex:1}
+  .btn{width:64px;height:64px;border-radius:50%;background:var(--mf-surface-3);
+       display:flex;align-items:center;justify-content:center}
+  .btn svg{width:26px;height:26px;color:#fff}
+  .lbl{font-size:15px;font-weight:600}
+</style></head><body>
+  <div class="sc"><div class="btn"><i data-lucide="search"></i></div><span class="lbl">Search</span></div>
+  <div class="sc"><div class="btn"><i data-lucide="scan-barcode"></i></div><span class="lbl">Barcode</span></div>
+  <div class="sc"><div class="btn"><i data-lucide="sparkles"></i></div><span class="lbl">AI</span></div>
+  <div class="sc"><div class="btn"><i data-lucide="scale"></i></div><span class="lbl">Weight</span></div>
+  <script>lucide.createIcons();</script>
+</body></html>
