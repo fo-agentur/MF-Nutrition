@@ -148,7 +148,7 @@ function AppInner() {
   };
 
   return (
-    <div className="mf-screenwrap">
+    <div className={'mf-screenwrap' + (!page ? ' has-bottomnav' : '')}>
       <StatusBar />
       <div className="mf-screenarea">
         {page ? pages[page] : tabs[tab]}

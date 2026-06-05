@@ -93,12 +93,21 @@ input, textarea, button { font-family: inherit; }
     width: auto;
     height: auto;
   }
+  .mf-screenwrap.has-bottomnav {
+    padding-bottom: calc(82px + env(safe-area-inset-bottom));
+  }
   /* Real iOS chrome replaces these mocks */
   .mf-statusbar { display: none; }
   .mf-homeind { display: none; }
 
   /* Bottom nav owns the home-indicator safe area; its bg fills it edge-to-edge */
   .mf-bottomnav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 12;
     padding-top: 10px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom));
     min-height: calc(82px + env(safe-area-inset-bottom));
