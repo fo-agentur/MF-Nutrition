@@ -17,7 +17,8 @@
 
   /* ---- Surfaces (dark warm-gray) ------------------------- */
   --mf-bg:          #181818;  /* app canvas — dark charcoal, NOT pure black */
-  --mf-safe-bg:     #0F0F0F;  /* iOS safe-area / PWA edge fill */
+  --mf-nav-bg:      #1A1A1A;  /* bottom nav + iOS home-indicator fill */
+  --mf-safe-bg:     #1A1A1A;  /* iOS safe-area / PWA edge fill */
   --mf-surface-0:   #1A1A1A;  /* primary content bg */
   --mf-surface-1:   #1E1E20;  /* raised section bg */
   --mf-surface-2:   #252528;  /* card */

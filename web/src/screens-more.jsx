@@ -84,9 +84,9 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
   const rateShown = rate ? weightDisplayText(state, Math.abs(rate)) : '0.0';
   const ratePct = currentWeight && rate ? Math.abs(rate / currentWeight * 100) : null;
   const days = ['M','T','W','T','F','S','S'];
-  const blockH = v => Math.max(26, Math.round(v * 0.5));
+  const blockH = v => Math.max(14, Math.round(v * 0.08));
   return (
-    <div className="mf-screen">
+    <div className="mf-screen mf-strategy-screen">
       {/* Small centered nav title */}
       <div className="mf-strategy-navtitle">Strategy</div>
       <div className="mf-scroll">

@@ -313,7 +313,7 @@ async function loadState(user) {
     goalHistory: loadGoalHistoryLocal(),
     program: loadProgramLocal(),
     units: loadUnitsLocal(),
-    selectedDate: TODAY,
+    selectedDate: latestLoggedNutritionDate(days, TODAY),
     days, weights,
     recipes: loadRecipesLocal(),
   };
@@ -541,6 +541,16 @@ function nutritionLoggedOn(state, key) {
   return entries.some(e => Number(e.energy) > 0 || Number(e.protein) > 0 || Number(e.fat) > 0 || Number(e.carb) > 0);
 }
 
+function latestLoggedNutritionDate(days, fallback = TODAY) {
+  const dates = Object.keys(days || {})
+    .filter(k => k <= fallback)
+    .filter(k => (((days[k] || {}).entries) || []).some(e =>
+      Number(e.energy) > 0 || Number(e.protein) > 0 || Number(e.fat) > 0 || Number(e.carb) > 0
+    ))
+    .sort();
+  return dates[dates.length - 1] || fallback;
+}
+
 function recentNutritionDays(state, endKey = TODAY, count = 7) {
   return dateRangeBack(endKey, count).filter(k => nutritionLoggedOn(state, k));
 }
@@ -673,7 +683,7 @@ Object.assign(window, {
   MF, MACRO_META, FOOD_DB, RECIPES_SEED, TODAY,
   DEFAULT_PROGRAM,
   AppProvider, useApp, dayTotals, scaleFood, latestWeight, defaultState,
-  addDaysISO, dateRangeBack, nutritionLoggedOn, recentNutritionDays,
+  addDaysISO, dateRangeBack, nutritionLoggedOn, latestLoggedNutritionDate, recentNutritionDays,
   latestWeightDate, hasRecentWeight, weightValueOn, weightUnit,
   weightDisplayValue, weightDisplayText, weightInputToKg, trendWeights,
   currentTrendWeight, estimateExpenditure, checkInReadiness,
