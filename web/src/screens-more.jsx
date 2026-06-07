@@ -83,15 +83,16 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
   const ratePct = currentWeight && rate ? Math.abs(rate / currentWeight * 100) : null;
   const days = ['M','T','W','T','F','S','S'];
   const blockH = (key, v) => {
-    const scale = key === 'protein' ? 0.34 : key === 'fat' ? 0.7 : 0.33;
-    return Math.min(136, Math.max(34, Math.round(v * scale)));
+    const scale = key === 'protein' ? 0.22 : key === 'fat' ? 0.44 : 0.105;
+    return Math.min(42, Math.max(30, Math.round(v * scale)));
   };
   return (
     <div className="mf-screen mf-strategy-screen">
       <div className="mf-scroll">
         <div className="mf-strategy-head">
-          <h1 className="mf-title">Strategy</h1>
+          <div className="mf-strategy-navtitle">Strategy</div>
           <div className="mf-strategy-top-actions">
+            <button className="mf-pill mf-strategy-action primary" onClick={onCheckIn}><Icon name="calendar-check" size={15} />Check In Early</button>
             <button className="mf-pill mf-strategy-action" onClick={onNewGoal}><Icon name="plus" size={16} />New Goal</button>
             <button className="mf-pill mf-strategy-action" onClick={onEditGoal}><Icon name="pencil" size={15} />Edit Goal</button>
             <button className="mf-pill mf-strategy-action" onClick={() => setProgram(window.DEFAULT_PROGRAM || {})}><Icon name="rotate-cw" size={15} />New Program</button>
@@ -101,9 +102,14 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
         {/* CHECK IN */}
         <div className="mf-checkin-wrap">
           <button className="mf-checkin" onClick={onCheckIn}>
-            <span className="mf-checkin-t">Check In</span>
-            <span className="mf-checkin-s">it's time</span>
+            <span className="mf-checkin-days mf-num">2</span>
+            <span className="mf-checkin-t">days</span>
+            <span className="mf-checkin-s">until next</span>
           </button>
+          <div className="mf-checkin-legend" aria-hidden="true">
+            <span><i className="goal" />Goal</span>
+            <span><i className="check" />Check-In</span>
+          </div>
         </div>
 
         {/* In Progress */}
@@ -126,10 +132,6 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
                 <div className="mf-prog-day">{days[i]}</div>
               </div>
             ))}
-          </div>
-          <div className="mf-strategy-pills" style={{ marginTop: 14, marginBottom: 0 }}>
-            <button className="mf-pill" onClick={() => setProgram(window.DEFAULT_PROGRAM || {})}><Icon name="rotate-cw" size={15} />New Program</button>
-            <button className="mf-pill" onClick={() => setProgram({ mode: settings.mode === 'manual' ? 'coached' : 'manual' })}><Icon name="pencil" size={14} />Edit Program</button>
           </div>
         </div>
 

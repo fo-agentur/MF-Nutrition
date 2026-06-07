@@ -137,20 +137,6 @@ input, textarea, button { font-family: inherit; }
     z-index: 13;
   }
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(
-      to right,
-      var(--mf-safe-bg) 0 1px,
-      transparent 1px calc(100% - 1px),
-      var(--mf-safe-bg) calc(100% - 1px) 100%
-    );
-    pointer-events: none;
-    z-index: 14;
-  }
-
   /* Subpages (no bottom nav/dock) must keep their last items clear of the
      home indicator. Only the trailing scroller gets the inset. */
   .mf-screen > .mf-scroll:last-child { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
