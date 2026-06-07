@@ -69,11 +69,9 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
   const settings = { ...(window.DEFAULT_PROGRAM || {}), ...(state.program || {}) };
   const setProgram = patch => dispatch({ type: 'SET_PROGRAM', program: patch });
   const mode = PROGRAM_MODES.find(([id]) => id === settings.mode) || PROGRAM_MODES[0];
-  const style = MACRO_STYLES.find(([id]) => id === settings.macroStyle) || MACRO_STYLES[0];
-  const pattern = CALORIE_PATTERNS.find(([id]) => id === settings.caloriePattern) || CALORIE_PATTERNS[1];
   const program = {
     name: `${mode[1]} Program`,
-    range: `${style[1]} · ${pattern[1]}`,
+    range: '26. Mai - Now',
     cols: programColsFor(t, settings),
   };
   const goal = state.goal || { type: 'gain', targetWeight: 75, rateKgPerWeek: 0.21 };
@@ -84,12 +82,22 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
   const rateShown = rate ? weightDisplayText(state, Math.abs(rate)) : '0.0';
   const ratePct = currentWeight && rate ? Math.abs(rate / currentWeight * 100) : null;
   const days = ['M','T','W','T','F','S','S'];
-  const blockH = v => Math.max(14, Math.round(v * 0.08));
+  const blockH = (key, v) => {
+    const scale = key === 'protein' ? 0.34 : key === 'fat' ? 0.7 : 0.33;
+    return Math.min(136, Math.max(34, Math.round(v * scale)));
+  };
   return (
     <div className="mf-screen mf-strategy-screen">
-      {/* Small centered nav title */}
-      <div className="mf-strategy-navtitle">Strategy</div>
       <div className="mf-scroll">
+        <div className="mf-strategy-head">
+          <h1 className="mf-title">Strategy</h1>
+          <div className="mf-strategy-top-actions">
+            <button className="mf-pill mf-strategy-action" onClick={onNewGoal}><Icon name="plus" size={16} />New Goal</button>
+            <button className="mf-pill mf-strategy-action" onClick={onEditGoal}><Icon name="pencil" size={15} />Edit Goal</button>
+            <button className="mf-pill mf-strategy-action" onClick={() => setProgram(window.DEFAULT_PROGRAM || {})}><Icon name="rotate-cw" size={15} />New Program</button>
+          </div>
+        </div>
+
         {/* CHECK IN */}
         <div className="mf-checkin-wrap">
           <button className="mf-checkin" onClick={onCheckIn}>
@@ -107,39 +115,14 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
               <div className="mf-program-sub">{program.range}</div>
             </div>
           </div>
-          <div className="mf-program-controls">
-            <div className="mf-program-control-label">Mode</div>
-            <div className="mf-program-chiprow">
-              {PROGRAM_MODES.map(([id, label, sub]) => (
-                <button key={id} className={'mf-program-chip' + (settings.mode === id ? ' on' : '')}
-                  onClick={() => setProgram({ mode: id })}>
-                  <span>{label}</span><small>{sub}</small>
-                </button>
-              ))}
-            </div>
-            <div className="mf-program-control-label">Macros</div>
-            <div className="mf-program-chiprow compact">
-              {MACRO_STYLES.map(([id, label]) => (
-                <button key={id} className={'mf-program-chip' + (settings.macroStyle === id ? ' on' : '')}
-                  onClick={() => setProgram({ macroStyle: id })}>{label}</button>
-              ))}
-            </div>
-            <div className="mf-program-control-label">Calories</div>
-            <div className="mf-program-chiprow compact">
-              {CALORIE_PATTERNS.map(([id, label]) => (
-                <button key={id} className={'mf-program-chip' + (settings.caloriePattern === id ? ' on' : '')}
-                  onClick={() => setProgram({ caloriePattern: id })}>{label}</button>
-              ))}
-            </div>
-          </div>
           {/* 7-day stacked macro chart (blocks sized by value) */}
           <div className="mf-prog-cols">
             {program.cols.map((col, i) => (
               <div className="mf-prog-col" key={i}>
                 <div className="mf-prog-kcal mf-num">{col.energy}</div>
-                <div className="mf-prog-block p mf-num" style={{ height: blockH(col.protein) }}>{col.protein} P</div>
-                <div className="mf-prog-block f mf-num" style={{ height: blockH(col.fat) }}>{col.fat} F</div>
-                <div className="mf-prog-block c mf-num" style={{ height: blockH(col.carb) }}>{col.carb} C</div>
+                <div className="mf-prog-block p mf-num" style={{ height: blockH('protein', col.protein) }}>{col.protein} P</div>
+                <div className="mf-prog-block f mf-num" style={{ height: blockH('fat', col.fat) }}>{col.fat} F</div>
+                <div className="mf-prog-block c mf-num" style={{ height: blockH('carb', col.carb) }}>{col.carb} C</div>
                 <div className="mf-prog-day">{days[i]}</div>
               </div>
             ))}

@@ -42,7 +42,7 @@ const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
   { id: 'foodlog',   label: 'Food Log',  icon: 'apple' },
   { id: 'fab',       label: '',          icon: 'plus' },
-  { id: 'strategy',  label: 'Strategy',  icon: 'circle-dot-dashed', badge: true },
+  { id: 'strategy',  label: 'Strategy',  icon: 'strategy-dots' },
   { id: 'more',      label: 'More',      icon: 'more-horizontal' },
 ];
 
@@ -58,7 +58,9 @@ function BottomNav({ active, onNav, onFab }) {
           onClick={() => onNav(n.id)}>
           <span className="mf-navicon">
             {n.badge && <span className="mf-navbadge">!</span>}
-            <Icon name={n.icon} size={24} />
+            {n.icon === 'strategy-dots'
+              ? <span className="mf-strategy-glyph" aria-hidden="true"><i /><i /><i /></span>
+              : <Icon name={n.icon} size={24} />}
           </span>
           <span className="mf-navlabel">{n.label}</span>
         </button>
