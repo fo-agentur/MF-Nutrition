@@ -375,12 +375,12 @@ function RecipeImportScreen({ onBack, onSave }) {
         return;
       }
       const context = [url.trim(), text.trim(), cleanText(page)].filter(Boolean).join('\n\n');
-      if (!context.trim()) throw new Error('Fuege eine URL oder kopierten Rezepttext ein.');
+      if (!context.trim()) throw new Error('Füge eine URL oder kopierten Rezepttext ein.');
       let aiRecipe = null;
       try { aiRecipe = await recipeFromOpenRouter(context); } catch (e) {}
       const recipe = aiRecipe || parseLocalRecipe(context, url);
       if (!recipe.energy && !recipe.protein && !recipe.fat && !recipe.carb && !text.trim() && !page) {
-        throw new Error('URL konnte nicht gelesen werden. Rezepttext einfuegen oder erneut versuchen.');
+        throw new Error('URL konnte nicht gelesen werden. Rezepttext einfügen oder erneut versuchen.');
       }
       setBusy(false);
       onSave(recipe);
@@ -400,7 +400,7 @@ function RecipeImportScreen({ onBack, onSave }) {
     <div className="mf-screen">
       <SubHeader title="Import Recipe" onBack={onBack} />
       <div className="mf-scroll">
-        <div className="mf-ai-prompt" style={{ marginTop: 10 }}>Rezept-Link einfuegen. Optional kannst du Zutaten und Makros als Text dazugeben.</div>
+        <div className="mf-ai-prompt" style={{ marginTop: 10 }}>Rezept-Link einfügen. Optional kannst du Zutaten und Makros als Text dazugeben.</div>
         <input className="mf-quick-name" placeholder="https://..." value={url} onChange={e => setUrl(e.target.value)} />
         <textarea className="mf-ai-input" rows="8"
           placeholder={'Recipe text or nutrition info\nExample:\nProtein Pancakes\n- 60g oats\n- 2 eggs\nEnergy 520 kcal\nProtein 34g\nFat 18g\nCarbs 54g'}

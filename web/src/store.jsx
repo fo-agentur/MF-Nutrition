@@ -658,8 +658,8 @@ function computeCheckInRecommendation(state, endKey = TODAY) {
       reason: !readiness.hasRecentWeight
         ? 'Logge zuerst ein aktuelles Gewicht, damit der Check-In deinen Trend aktualisieren kann.'
         : readiness.nutritionDays < 4
-          ? 'Es wurden weniger als 4 Nutrition-Tage in den letzten 7 Tagen geloggt. MacroFactor haelt Updates dann an.'
-          : 'Es gibt noch nicht genug Trenddaten fuer eine sinnvolle Zielanpassung.',
+          ? 'Es wurden weniger als 4 Nutrition-Tage in den letzten 7 Tagen geloggt. MacroFactor hält Updates dann an.'
+          : 'Es gibt noch nicht genug Trenddaten für eine sinnvolle Zielanpassung.',
     };
   }
 

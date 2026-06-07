@@ -5,10 +5,10 @@ import { estimateLocalMealFromText, normalizeAiTextForMatch } from './ai-estimat
 
 const mf = { purple: '#9B7FE8' };
 const foodDb = [
-  { id: 'eggs', name: 'Eier', per: 1, unit: 'Stueck', energy: 78, protein: 6, fat: 5, carb: 1 },
+  { id: 'eggs', name: 'Eier', per: 1, unit: 'Stück', energy: 78, protein: 6, fat: 5, carb: 1 },
   { id: 'yogurt', name: 'Skyr Natur', per: 100, unit: 'g', energy: 63, protein: 11, fat: 0, carb: 4 },
-  { id: 'banana', name: 'Banane', per: 1, unit: 'Stueck', energy: 105, protein: 1, fat: 0, carb: 27 },
-  { id: 'chicken', name: 'Haehnchenbrust gegrillt', per: 100, unit: 'g', energy: 165, protein: 31, fat: 4, carb: 0 },
+  { id: 'banana', name: 'Banane', per: 1, unit: 'Stück', energy: 105, protein: 1, fat: 0, carb: 27 },
+  { id: 'chicken', name: 'Hähnchenbrust gegrillt', per: 100, unit: 'g', energy: 165, protein: 31, fat: 4, carb: 0 },
   { id: 'rice', name: 'Reis gekocht', per: 100, unit: 'g', energy: 130, protein: 3, fat: 0, carb: 28 },
 ];
 

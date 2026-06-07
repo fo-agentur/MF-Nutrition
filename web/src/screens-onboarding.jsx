@@ -153,7 +153,7 @@ function CheckInSheet({ open, onClose, onApply, onLogWeight }) {
               </span>
               <div>
                 <div className="mf-checkin-module-title">Nutrition Logging</div>
-                <div className="mf-checkin-module-sub">{readiness.nutritionDays}/7 Tage geloggt, mindestens 4 noetig</div>
+                <div className="mf-checkin-module-sub">{readiness.nutritionDays}/7 Tage geloggt, mindestens 4 nötig</div>
               </div>
             </div>
             <div className="mf-checkin-module">
@@ -174,7 +174,7 @@ function CheckInSheet({ open, onClose, onApply, onLogWeight }) {
               <div>
                 <div className="mf-checkin-module-title">Expenditure</div>
                 <div className="mf-checkin-module-sub">
-                  {rec.expenditure ? `${rec.expenditure} kcal geschaetzt, Trend ${weightDisplayText(state, rec.trend)} ${wUnit}` : 'Wartet auf mehr Gewicht/Nutrition-Daten'}
+                  {rec.expenditure ? `${rec.expenditure} kcal geschätzt, Trend ${weightDisplayText(state, rec.trend)} ${wUnit}` : 'Wartet auf mehr Gewicht/Nutrition-Daten'}
                 </div>
               </div>
             </div>
@@ -196,7 +196,7 @@ function CheckInSheet({ open, onClose, onApply, onLogWeight }) {
             {!readiness.hasRecentWeight && onLogWeight ? (
               <button className="mf-detail-log" onClick={onLogWeight}>Gewicht jetzt eintragen</button>
             ) : rec.ready ? (
-              <button className="mf-detail-log" onClick={() => { onApply(newTargets); setStage(1); }}>Uebernehmen</button>
+              <button className="mf-detail-log" onClick={() => { onApply(newTargets); setStage(1); }}>Übernehmen</button>
             ) : (
               <button className="mf-detail-log" onClick={onClose}>Fertig</button>
             )}

@@ -452,7 +452,7 @@ function FoodLogMenuSheet({ open, onClose, hasEntries, canPaste, onCopyDay, onPa
         <button className={'mf-shortcut-row last' + (!canPaste ? ' disabled' : '')}
           onClick={canPaste ? onPasteDay : undefined}>
           <span className="mf-shortcut-rowic"><Icon name="clipboard-paste" size={24} /></span>
-          <span className="mf-shortcut-rowlbl">In diesen Tag einfuegen</span>
+          <span className="mf-shortcut-rowlbl">In diesen Tag einfügen</span>
           <Icon name="chevron-right" size={20} color="var(--mf-fg-3)" />
         </button>
       </div>
@@ -625,7 +625,7 @@ function AISheet({ open, hour, onClose, onResult }) {
     if (recognitionRef.current) recognitionRef.current.stop();
   }, []);
 
-  const samples = ['2 Eier mit Toast', 'Skyr mit Banane', 'Haehnchen mit Reis'];
+  const samples = ['2 Eier mit Toast', 'Skyr mit Banane', 'Hähnchen mit Reis'];
 
   const localFallback = () => {
     const estimated = estimateLocalMealFromText(text, { foodDb: FOOD_DB, scaleFood, mf: MF });
@@ -649,7 +649,7 @@ function AISheet({ open, hour, onClose, onResult }) {
   const toggleSpeech = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setError('Speech-to-Text wird in diesem Browser nicht unterstuetzt.');
+      setError('Speech-to-Text wird in diesem Browser nicht unterstützt.');
       return;
     }
     if (listening && recognitionRef.current) {
@@ -709,7 +709,7 @@ function AISheet({ open, hour, onClose, onResult }) {
           </label>
           <button className={'mf-ai-photo' + (listening ? ' on' : '')} type="button" onClick={toggleSpeech} aria-pressed={listening}>
             <Icon name={listening ? 'mic-off' : 'mic'} size={20} />
-            {listening ? 'Hoert zu' : 'Sprache'}
+            {listening ? 'Hört zu' : 'Sprache'}
           </button>
         </div>
         <textarea className="mf-ai-input" rows="3" placeholder="z. B. Skyr mit Banane und Honig"
@@ -722,7 +722,7 @@ function AISheet({ open, hour, onClose, onResult }) {
       <div className="mf-detail-actions">
         <button className="mf-detail-log" onClick={analyze} disabled={busy || (!text.trim() && !imageData)}
           style={{ opacity: busy || (!text.trim() && !imageData) ? 0.5 : 1 }}>
-          {busy ? 'Analysiere...' : 'Makros schaetzen'}
+          {busy ? 'Analysiere…' : 'Makros schätzen'}
         </button>
       </div>
     </Sheet>
@@ -810,7 +810,7 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
         : null;
       const food = data?.food ? aiFoodToAppFood(data.food, 'label') : parseLabelText(text);
       if (!food.energy && !food.protein && !food.fat && !food.carb) {
-        throw new Error(imageData ? 'Keine verwertbaren Label-Daten gefunden.' : 'Foto hochladen oder Label-Text einfuegen.');
+        throw new Error(imageData ? 'Keine verwertbaren Label-Daten gefunden.' : 'Foto hochladen oder Label-Text einfügen.');
       }
       setBusy(false);
       onResult(food, hour);
@@ -830,7 +830,7 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
   return (
     <Sheet open={open} onClose={onClose} title="Label Scanner" headerRight={<Icon name="file-text" size={20} />}>
       <div className="mf-ai">
-        <div className="mf-ai-prompt">Foto vom Nutrition Label hochladen oder Label-Text einfuegen.</div>
+        <div className="mf-ai-prompt">Foto vom Nutrition Label hochladen oder Label-Text einfügen.</div>
         <label className={'mf-ai-photo' + (imageData ? ' on' : '')}>
           <Icon name={imageData ? 'image-check' : 'camera'} size={20} />
           {imageData ? 'Label-Foto bereit' : 'Label-Foto'}
@@ -844,7 +844,7 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
       <div className="mf-detail-actions">
         <button className="mf-detail-log" onClick={analyze} disabled={busy || (!imageData && !text.trim())}
           style={{ opacity: busy || (!imageData && !text.trim()) ? 0.5 : 1 }}>
-          {busy ? 'Analysiere...' : 'Label auslesen'}
+          {busy ? 'Analysiere…' : 'Label auslesen'}
         </button>
       </div>
     </Sheet>

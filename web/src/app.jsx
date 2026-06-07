@@ -55,7 +55,7 @@ function AppInner() {
   const deleteEntry = () => { dispatch({ type: 'DELETE_ENTRY', id: sheet.entry.id }); closeSheet(); flash('Eintrag gelöscht'); };
   const addWeight = (v, date = TODAY) => {
     const value = Number(v);
-    if (!Number.isFinite(value) || value <= 0) { flash('Bitte gueltiges Gewicht eingeben'); return; }
+    if (!Number.isFinite(value) || value <= 0) { flash('Bitte gültiges Gewicht eingeben'); return; }
     dispatch({ type: 'ADD_WEIGHT', date, value });
     closeSheet();
     flash('Gewicht gespeichert');
@@ -99,14 +99,14 @@ function AppInner() {
   const pasteToSelectedDay = () => {
     const clip = foodClipboard();
     if (!clip || !Array.isArray(clip.entries) || !clip.entries.length) {
-      closeSheet(); flash('Nichts zum Einfuegen'); return;
+      closeSheet(); flash('Nichts zum Einfügen'); return;
     }
     clip.entries.forEach(e => {
       const { id, ...rest } = e;
       dispatch({ type: 'LOG_FOOD', date: state.selectedDate, entry: { ...rest } });
     });
     closeSheet();
-    flash('Tag eingefuegt');
+    flash('Tag eingefügt');
   };
 
   const shortcutAction = act => {
@@ -165,7 +165,7 @@ function AppInner() {
                   onReopenGoal={() => {
                     if (!((state.goalHistory || []).length)) { flash('Kein vorheriges Ziel vorhanden'); return; }
                     dispatch({ type: 'REOPEN_PREVIOUS_GOAL' });
-                    flash('Vorheriges Ziel wieder geoeffnet');
+                    flash('Vorheriges Ziel wieder geöffnet');
                   }} />,
     more:      <MoreScreen onGo={id => { if (id === 'reset') { dispatch({ type: 'RESET' }); flash('Aktualisiert'); } else openPage(id); }} />,
   };
