@@ -110,8 +110,10 @@ function WeeklyNutritionSlide() {
   return (
     <div className="mf-slide-card">
       <div className="mf-slide-title">Weekly Nutrition</div>
-      <WeeklyChart mode={mode} selected={sel} onSelect={k => dispatch({ type: 'SET_DATE', date: k })} />
-      <WeeklyDayLabels selected={sel} />
+      <div key={mode} className="mf-weekly-mode-panel">
+        <WeeklyChart mode={mode} selected={sel} onSelect={k => dispatch({ type: 'SET_DATE', date: k })} />
+        <WeeklyDayLabels selected={sel} />
+      </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
         <Segmented options={['Consumed', 'Remaining']} value={mode} onChange={setMode} />
       </div>
@@ -229,7 +231,7 @@ function DashboardScreen({ onSearch, onGo }) {
     <div className="mf-screen mf-dashboard-screen">
       {/* Title */}
       <div className="mf-dash-header">
-        <div className="mf-eyebrow" style={{ marginBottom: 2 }}>{fmtEyebrow(state.selectedDate)}</div>
+        <div className="mf-eyebrow" style={{ marginBottom: 2 }}>{fmtEyebrow(TODAY)}</div>
         <h1 className="mf-title">Dashboard</h1>
       </div>
 

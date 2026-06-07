@@ -80,10 +80,12 @@ function SearchBar({ onTap }) {
 
 /* ---- Segmented control ---------------------------------- */
 function Segmented({ options, value, onChange }) {
+  const activeIndex = Math.max(0, options.indexOf(value));
   return (
-    <div className="mf-segmented">
+    <div className="mf-segmented" style={{ '--mf-seg-count': options.length, '--mf-seg-index': activeIndex }}>
       {options.map(o => (
-        <button key={o} className={'mf-seg' + (value === o ? ' on' : '')}
+        <button key={o} type="button" aria-pressed={value === o}
+          className={'mf-seg' + (value === o ? ' on' : '')}
           onClick={() => onChange(o)}>{o}</button>
       ))}
     </div>

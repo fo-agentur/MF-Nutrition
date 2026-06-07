@@ -6,6 +6,7 @@ function AppInner() {
   const { state, dispatch } = useApp();
   const [tab, setTab] = React.useState('dashboard');   // bottom-nav tab
   const [page, setPage] = React.useState(null);        // full-screen subpage over tab
+  const [pageStack, setPageStack] = React.useState([]);
   const [sheet, setSheet] = React.useState(null);      // { id, food, hour, entry }
   const [toast, setToast] = React.useState('');
   const [onboarding, setOnboarding] = React.useState(false);
@@ -19,6 +20,29 @@ function AppInner() {
   const openSheet = (id, extra = {}) => setSheet({ id, hour: new Date().getHours(), ...extra });
   const openWeight = (date = TODAY) => openSheet('weight', { date });
   const closeSheet = () => setSheet(null);
+  const openPage = (id) => {
+    if (!id) {
+      setPage(null);
+      setPageStack([]);
+      return;
+    }
+    setPageStack(stack => (page ? [...stack, page] : stack));
+    setPage(id);
+  };
+  const replacePage = (id, clearStack = false) => {
+    setPage(id || null);
+    if (!id || clearStack) setPageStack([]);
+  };
+  const back = () => {
+    const prev = pageStack[pageStack.length - 1] || null;
+    setPageStack(stack => stack.slice(0, -1));
+    setPage(prev);
+  };
+  const switchTab = (id) => {
+    setPage(null);
+    setPageStack([]);
+    setTab(id);
+  };
 
   /* ----- actions ----- */
   const logFood = entry => { dispatch({ type: 'LOG_FOOD', entry }); closeSheet(); flash(entry.name + ' geloggt'); };
@@ -36,7 +60,7 @@ function AppInner() {
     closeSheet();
     flash('Gewicht gespeichert');
   };
-  const saveRecipe = r => { dispatch({ type: 'ADD_RECIPE', recipe: r }); setPage('recipes'); flash('Rezept gespeichert'); };
+  const saveRecipe = r => { dispatch({ type: 'ADD_RECIPE', recipe: r }); replacePage('recipes', true); flash('Rezept gespeichert'); };
   const saveCustomFood = async (food, h) => {
     const saved = window.saveCustomFood ? await window.saveCustomFood(food) : food;
     openSheet('detail', { food: saved, hour: h ?? sheet?.hour ?? new Date().getHours() });
@@ -86,8 +110,8 @@ function AppInner() {
   };
 
   const shortcutAction = act => {
-    if (act === 'recipes') { closeSheet(); setPage('recipes'); }
-    else if (act === 'metrics') { closeSheet(); setPage('metrics'); }
+    if (act === 'recipes') { closeSheet(); openPage('recipes'); }
+    else if (act === 'metrics') { closeSheet(); openPage('metrics'); }
     else if (act === 'weight') openWeight(TODAY);
     else openSheet(act);
   };
@@ -107,21 +131,20 @@ function AppInner() {
   }
 
   /* ----- subpages ----- */
-  const back = () => setPage(null);
   const pages = {
     insights:     <InsightsScreen onBack={back} />,
     metrics:      <ScaleWeightScreen onBack={back} onAddWeight={() => openWeight(TODAY)} />,
     weighttrend:  <ScaleWeightScreen onBack={back} onAddWeight={() => openWeight(TODAY)} title="Weight Trend" color={MF.purple} />,
     expenditure:  <ExpenditureScreen onBack={back} />,
-    steps:        <StepsScreen onBack={back} onAdd={() => setPage('integrations')} />,
+    steps:        <StepsScreen onBack={back} onAdd={() => openPage('integrations')} />,
     bodyfat:      <BodyFatScreen onBack={back} onAdd={() => flash('Progress-Fotos sind noch nicht verbunden')} />,
     weighin:      <WeighInScreen onBack={back} onAddWeight={() => openWeight(TODAY)} />,
     foodlogging:  <FoodLoggingScreen onBack={back} />,
     nutridata:    <NutritionDataScreen onBack={back} onAdd={() => openSheet('quickadd')} />,
     customize:    <CustomizeDashboardScreen onBack={back} />,
-    recipes:      <RecipesScreen onBack={back} onNew={() => setPage('recipe-new')} onImport={() => setPage('recipe-import')} />,
-    'recipe-new': <RecipeNewScreen onBack={() => setPage('recipes')} onSave={saveRecipe} />,
-    'recipe-import': <RecipeImportScreen onBack={() => setPage('recipes')} onSave={saveRecipe} />,
+    recipes:      <RecipesScreen onBack={back} onNew={() => openPage('recipe-new')} onImport={() => openPage('recipe-import')} />,
+    'recipe-new': <RecipeNewScreen onBack={back} onSave={saveRecipe} />,
+    'recipe-import': <RecipeImportScreen onBack={back} onSave={saveRecipe} />,
     account:      <AccountScreen onBack={back} />,
     subscription: <SubscriptionScreen onBack={back} />,
     integrations: <IntegrationsScreen onBack={back} />,
@@ -130,7 +153,7 @@ function AppInner() {
 
   /* ----- tabs ----- */
   const tabs = {
-    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onGo={setPage} />,
+    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onGo={openPage} />,
     foodlog:   <FoodLogScreen onSearch={() => openSheet('add')}
                   onMenu={() => openSheet('foodlogmenu')}
                   onAddAt={h => openSheet('add', { hour: h })}
@@ -144,7 +167,7 @@ function AppInner() {
                     dispatch({ type: 'REOPEN_PREVIOUS_GOAL' });
                     flash('Vorheriges Ziel wieder geoeffnet');
                   }} />,
-    more:      <MoreScreen onGo={id => { if (id === 'reset') { dispatch({ type: 'RESET' }); flash('Aktualisiert'); } else setPage(id); }} />,
+    more:      <MoreScreen onGo={id => { if (id === 'reset') { dispatch({ type: 'RESET' }); flash('Aktualisiert'); } else openPage(id); }} />,
   };
 
   return (
@@ -154,7 +177,7 @@ function AppInner() {
         {page ? pages[page] : tabs[tab]}
       </div>
       {!page && (
-        <BottomNav active={tab} onNav={id => { setPage(null); setTab(id); }} onFab={() => openSheet('shortcuts')} />
+        <BottomNav active={tab} onNav={switchTab} onFab={() => openSheet('shortcuts')} />
       )}
       <div className="mf-homeind" />
 
@@ -168,7 +191,10 @@ function AppInner() {
         onLabelScan={() => openSheet('labelscan')}
         onCustomFood={name => openSheet('customfood', { name, hour: sheet?.hour ?? new Date().getHours() })} />
 
-      <FoodDetailSheet open={sheet?.id === 'detail'} food={sheet?.food} hour={sheet?.hour}
+      <FoodDetailSheet key={sheet?.id === 'detail'
+          ? `${sheet?.entry?.id || sheet?.food?.id || 'food'}-${sheet?.food?.per || 0}`
+          : 'detail-closed'}
+        open={sheet?.id === 'detail'} food={sheet?.food} hour={sheet?.hour}
         editEntry={sheet?.entry}
         onBack={sheet?.entry ? null : () => openSheet('add', { hour: sheet?.hour })}
         onClose={closeSheet}

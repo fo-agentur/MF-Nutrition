@@ -1,3 +1,5 @@
+import { estimateLocalMealFromText, normalizeAiTextForMatch } from './ai-estimator.js';
+
 /* ============================================================
    MacroFactor UI Kit — Logging flow
    Sheet shell + Add, Food Detail, Quick Add, Barcode, AI
@@ -5,8 +7,10 @@
 
 /* ---- Bottom sheet shell --------------------------------- */
 function Sheet({ open, onClose, children, title, headerRight, tall, onBack }) {
+  if (!open) return null;
+
   return (
-    <div className={'mf-sheet-scrim' + (open ? ' open' : '')} onClick={onClose}>
+    <div className="mf-sheet-scrim open" onClick={onClose}>
       <div className={'mf-sheet' + (tall ? ' tall' : '')} onClick={e => e.stopPropagation()}>
         <div className="mf-sheet-grab" />
         {title !== undefined && (
@@ -157,7 +161,7 @@ function AddSheet({ open, onClose, hour, onPick, onQuickLog, onQuickAdd, onBarco
   return (
     <Sheet open={open} onClose={onClose} tall>
       <div className="mf-add-chips">
-        <button className="mf-add-chip round" onClick={onClose}><Icon name="x" size={20} /></button>
+        <button className="mf-add-chip round" onClick={onClose} aria-label="Close food search"><Icon name="x" size={20} /></button>
         <span className="mf-add-chip">{hourLabel(hour)}</span>
         <span className="mf-add-chip active mf-num">{totals.energy} / {state.targets.energy}</span>
         <button className="mf-add-chip round" onClick={() => setTab('Library')} aria-label="Library">
@@ -255,11 +259,12 @@ function MacroDonut({ p, f, c }) {
 
 /* ---- Food Detail sheet ---------------------------------- */
 function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, onDelete, onCopy }) {
-  const [qty, setQty] = React.useState(100);
+  const initialQty = () => Math.max(1, Math.round(Number(editEntry ? editEntry.qty : food?.per) || 100));
+  const [qty, setQty] = React.useState(initialQty);
   const [h, setH] = React.useState(hour ?? 11);
   React.useEffect(() => {
-    if (open && food) { setQty(editEntry ? editEntry.qty : food.per); setH(hour ?? 11); }
-  }, [open, food]);
+    if (open && food) { setQty(initialQty()); setH(hour ?? 11); }
+  }, [open, food, editEntry, hour]);
   if (!food) return <Sheet open={open} onClose={onClose} />;
   const m = scaleFood(food, qty);
   return (
@@ -623,8 +628,10 @@ function AISheet({ open, hour, onClose, onResult }) {
   const samples = ['2 Eier mit Toast', 'Skyr mit Banane', 'Haehnchen mit Reis'];
 
   const localFallback = () => {
-    const t = text.toLowerCase();
-    return FOOD_DB.find(x => t.includes(x.name.toLowerCase().split(' ')[0].toLowerCase()))
+    const estimated = estimateLocalMealFromText(text, { foodDb: FOOD_DB, scaleFood, mf: MF });
+    if (estimated) return estimated;
+    const t = normalizeAiTextForMatch(text);
+    return FOOD_DB.find(x => t.includes(normalizeAiTextForMatch(x.name).split(' ')[0]))
       || FOOD_DB.find(x => x.id === 'eggs');
   };
 

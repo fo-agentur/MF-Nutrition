@@ -30,12 +30,19 @@ const App = window.App;
 
 function Root() {
   const { session } = useAuth();
+  const demo = import.meta.env.DEV && new URLSearchParams(window.location.search).has('demo');
+  if (demo) return <App />;
+
   if (session === undefined) return <Splash />;
   if (session === null) return <LoginScreen />;
   return <App />;
 }
 
-createRoot(document.getElementById('root')).render(
+const rootEl = document.getElementById('root');
+const root = window.__mfRoot || createRoot(rootEl);
+window.__mfRoot = root;
+
+root.render(
   <React.StrictMode>
     <AuthProvider>
       <Root />

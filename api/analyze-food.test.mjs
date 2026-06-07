@@ -8,6 +8,7 @@ const {
   extractJsonObject,
   normalizeFood,
   normalizeRecipe,
+  promptFor,
   validImageDataUrl,
 } = api;
 
@@ -46,6 +47,38 @@ test('normalizeFood maps common macro aliases to app food shape', () => {
       carb: 74,
     },
   );
+});
+
+test('normalizeFood prefers explicit visual portion gram estimates', () => {
+  assert.deepEqual(
+    normalizeFood({
+      name: 'Restaurant pasta bowl',
+      estimated_grams: 385,
+      unit: 'serving',
+      kcal: 740,
+      protein: 28,
+      fat: 24,
+      carbs: 92,
+    }, 'meal'),
+    {
+      name: 'Restaurant pasta bowl',
+      brand: 'AI Portion Estimate',
+      per: 385,
+      unit: 'g',
+      energy: 740,
+      protein: 28,
+      fat: 24,
+      carb: 92,
+    },
+  );
+});
+
+test('meal prompt asks the model to estimate the visible portion in grams', () => {
+  const prompt = promptFor('meal', 'photo only');
+  assert.match(prompt, /estimate/i);
+  assert.match(prompt, /portion/i);
+  assert.match(prompt, /grams/i);
+  assert.match(prompt, /estimated_grams/i);
 });
 
 test('normalizeRecipe returns recipe totals with item count', () => {

@@ -40,18 +40,22 @@ function WeeklyChart({ mode, selected, onSelect }) {
           const isSel = k === selected;
           return (
             <button key={k} className={'mf-chart-col' + (isSel ? ' sel' : '')}
+              style={{ '--mf-weekly-index': i }}
               onClick={() => onSelect(k)}>
               {MACRO_META.map(m => {
                 const goal = state.targets[m.key];
                 const tot = dayTotals(state, k)[m.key];
                 const shown = mode === 'Remaining' ? Math.max(0, goal - tot) : tot;
-                const pct = Math.min(100, goal ? (shown / goal) * 100 : 0);
+                const scaleMax = Math.max(goal || 0, shown || 0) * 1.12;
+                const pct = Math.min(96, scaleMax ? (shown / scaleMax) * 100 : 0);
+                const goalPct = Math.min(94, scaleMax && mode === 'Consumed' ? (goal / scaleMax) * 100 : 0);
                 return (
                   <div className="mf-chart-bar" key={m.key}>
                     {pct > 0
                       ? <div className="mf-chart-fill" style={{ height: pct + '%', background: m.color }} />
                       : <span className="mf-chart-dash" />
                     }
+                    {goalPct > 0 && <span className="mf-chart-goalmark" style={{ bottom: goalPct + '%' }} />}
                   </div>
                 );
               })}
@@ -66,7 +70,7 @@ function WeeklyChart({ mode, selected, onSelect }) {
           return (
             <div className="mf-chart-meta-row" key={m.key}>
               <span className="mf-num mf-chart-meta-val" style={{ color: m.color }}>
-                {shown}{m.key === 'energy' ? ' 🔥' : ' ' + m.unit}
+                {shown}<span className="mf-chart-meta-unit">{m.key === 'energy' ? '🔥' : m.unit}</span>
               </span>
               <span className="mf-chart-meta-goal">of {state.targets[m.key]}</span>
             </div>
@@ -144,8 +148,10 @@ function DashboardScreen({ onSearch, onGo }) {
           <h1 className="mf-title">Dashboard</h1>
         </div>
         <div className="mf-h2" style={{ margin: '14px 0 10px' }}>Weekly Nutrition</div>
-        <WeeklyChart mode={mode} selected={sel} onSelect={k => dispatch({ type: 'SET_DATE', date: k })} />
-        <WeeklyDayLabels selected={sel} />
+        <div key={mode} className="mf-weekly-mode-panel">
+          <WeeklyChart mode={mode} selected={sel} onSelect={k => dispatch({ type: 'SET_DATE', date: k })} />
+          <WeeklyDayLabels selected={sel} />
+        </div>
         <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0 6px' }}>
           <Segmented options={['Consumed', 'Remaining']} value={mode} onChange={setMode} />
         </div>

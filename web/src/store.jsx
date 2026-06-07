@@ -213,6 +213,53 @@ function skeletonState() {
 }
 function defaultState() { return skeletonState(); }
 
+function isDevDemoMode() {
+  return Boolean(import.meta.env.DEV && typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo'));
+}
+
+function demoNutritionEntry(key, totals, i) {
+  return {
+    id: `demo-${key}`,
+    foodId: `demo-day-${i}`,
+    name: 'Nutrition Day',
+    time: '14:00',
+    qty: 1,
+    unit: 'day',
+    icon: 'utensils',
+    color: MF.teal,
+    energy: totals.energy,
+    protein: totals.protein,
+    fat: totals.fat,
+    carb: totals.carb,
+  };
+}
+
+function demoState() {
+  const base = skeletonState();
+  const keys = dateRangeBack(TODAY, 7);
+  const weekTotals = [
+    { energy: 2825, protein: 160, fat: 95,  carb: 318 },
+    { energy: 2120, protein: 78,  fat: 24,  carb: 176 },
+    { energy: 2805, protein: 146, fat: 87,  carb: 296 },
+    { energy: 3180, protein: 170, fat: 124, carb: 332 },
+    { energy: 2820, protein: 150, fat: 88,  carb: 298 },
+    { energy: 3717, protein: 152, fat: 208, carb: 312 },
+    { energy: 1480, protein: 18,  fat: 18,  carb: 126 },
+  ];
+  const days = {};
+  keys.forEach((key, i) => {
+    days[key] = { entries: [demoNutritionEntry(key, weekTotals[i], i)] };
+  });
+  return {
+    ...base,
+    profile: { name: 'MF Demo', initials: 'MF', memberSince: fmtMemberSince() },
+    targets: { energy: 2821, protein: 169, fat: 96, carb: 319 },
+    selectedDate: keys[5] || TODAY,
+    days,
+    weights: keys.map((date, i) => ({ date, value: 78.4 + i * 0.02, bf: null })),
+  };
+}
+
 /* ---- load everything for a user ------------------------- */
 async function loadState(user) {
   const uid = user.id;
@@ -384,6 +431,10 @@ function AppProvider({ children }) {
   React.useEffect(() => {
     let alive = true;
     (async () => {
+      if (isDevDemoMode()) {
+        if (alive) setState(demoState());
+        return;
+      }
       const { data } = await supabase.auth.getUser();
       const user = data && data.user;
       userRef.current = user;
@@ -401,6 +452,10 @@ function AppProvider({ children }) {
 
   const dispatch = React.useCallback((action) => {
     if (action.type === 'RESET') {
+      if (isDevDemoMode()) {
+        setState(demoState());
+        return;
+      }
       const user = userRef.current;
       if (user) loadState(user).then(s => setState(s)).catch(() => setState(skeletonState()));
       return;

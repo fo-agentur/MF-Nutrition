@@ -33,12 +33,25 @@ function extractJsonObject(raw) {
 
 function normalizeFood(json, task = 'meal') {
   const isLabel = task === 'label';
-  const serving = number(json.serving_g ?? json.grams ?? json.per ?? json.serving ?? 1) || 1;
+  const visualGramServing =
+    json.estimated_grams ??
+    json.estimated_g ??
+    json.portion_g ??
+    json.portion_grams;
+  const explicitGramServing =
+    visualGramServing ??
+    json.serving_g ??
+    json.grams ??
+    json.qty_g;
+  const serving = number(explicitGramServing ?? json.per ?? json.serving ?? 1) || 1;
+  const unit = explicitGramServing != null
+    ? 'g'
+    : (text(json.unit, serving ? 'g' : 'serving').slice(0, 12) || 'g');
   return {
     name: text(json.name ?? json.meal ?? json.product, isLabel ? 'Scanned Label' : 'AI Meal').slice(0, 80),
-    brand: text(json.brand, isLabel ? 'Nutrition Label' : 'AI Estimate').slice(0, 80),
+    brand: text(json.brand, isLabel ? 'Nutrition Label' : visualGramServing != null ? 'AI Portion Estimate' : 'AI Estimate').slice(0, 80),
     per: serving,
-    unit: text(json.unit, serving ? 'g' : 'serving').slice(0, 12) || 'g',
+    unit,
     energy: number(json.energy ?? json.kcal ?? json.calories),
     protein: number(json.protein ?? json.protein_g),
     fat: number(json.fat ?? json.fat_g),
@@ -86,8 +99,10 @@ function promptFor(task, userText) {
 
   return [
     'Estimate nutrition for this food or meal from the text and/or image.',
-    'Return keys: name, serving_g, unit, energy, protein, fat, carb.',
-    'If a nutrition label is visible, read it; otherwise estimate realistically.',
+    'Estimate the visible edible portion size in grams from plate, bowl, hand, package, and context clues.',
+    'If the user gives an amount, convert it to grams when possible; if uncertain, choose a realistic single best estimate.',
+    'Return keys: name, estimated_grams, unit, energy, protein, fat, carb.',
+    'If a nutrition label is visible, read it; otherwise estimate realistically for the estimated portion.',
     base,
     `Context: ${userText || 'photo only'}`,
   ].join(' ');
@@ -173,6 +188,7 @@ module.exports = {
   handler,
   normalizeFood,
   normalizeRecipe,
+  promptFor,
   validImageDataUrl,
 };
 module.exports.default = handler;
