@@ -313,7 +313,10 @@ async function loadState(user) {
     goalHistory: loadGoalHistoryLocal(),
     program: loadProgramLocal(),
     units: loadUnitsLocal(),
-    selectedDate: latestLoggedNutritionDate(days, TODAY),
+    // Always open on today (like MacroFactor). Jumping to the last logged day made
+    // the dashboard's current-week chart look empty/inconsistent whenever the last
+    // entry wasn't in the current week.
+    selectedDate: TODAY,
     days, weights,
     recipes: loadRecipesLocal(),
   };
