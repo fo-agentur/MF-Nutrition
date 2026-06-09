@@ -30,15 +30,15 @@ function InsightsScreen({ onBack }) {
   const weights = state.weights.map(w => weightDisplayValue(state, w.value));
   const unit = weightUnit(state);
   const lastWeight = state.weights.length ? weightDisplayText(state, state.weights[state.weights.length - 1].value) : '–';
-  const expenditure = [2740, 2710, 2760, 2730, 2780, 2756, 2756];
+  const exp = estimateExpenditure(state);
   return (
     <div className="mf-screen">
       <SubHeader title="Insights & Analytics" onBack={onBack} />
       <div className="mf-scroll">
         <div className="mf-card-lg">
           <div className="mf-h3">Expenditure</div>
-          <div className="mf-insight-sub">Last 7 Days · Ø {Math.round(expenditure.reduce((a,b)=>a+b,0)/7)} 🔥</div>
-          <LineChart values={expenditure} color="#E07A4E" fill />
+          <div className="mf-insight-sub">{exp ? 'Geschätzter Tagesverbrauch' : 'Noch nicht genug Daten — logge Gewicht & Mahlzeiten ein paar Tage'}</div>
+          <div className="mf-metric-big mf-num" style={{ marginTop: 8 }}>{exp ? exp : '–'}<small> 🔥 kcal</small></div>
         </div>
         <div className="mf-card-lg">
           <div className="mf-h3">Weight Trend</div>

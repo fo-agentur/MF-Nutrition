@@ -179,30 +179,26 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
           </div>
         </div>
 
-        {/* Goal History */}
+        {/* Goal History (real, from completed goals) */}
         <div className="mf-h2" style={{ margin: '20px 0 12px' }}>Goal History</div>
-        <div className="mf-goal-history">
-          <div className="mf-ghrow">
-            <div>
-              <div className="mf-gh-range">12. Mai 2026 – Now</div>
-              <div className="mf-num mf-gh-val">{weightDisplayText(state, 70)} {wUnit}</div>
-            </div>
-            <div className="mf-gh-tag">
-              <span>Gain</span>
-              <Icon name="hourglass" size={16} color="var(--mf-fg-2)" />
-            </div>
+        {(state.goalHistory && state.goalHistory.length) ? (
+          <div className="mf-goal-history">
+            {state.goalHistory.map((g, i) => (
+              <div className="mf-ghrow" key={i}>
+                <div>
+                  <div className="mf-gh-range">{g.endedOn ? `Beendet ${fmtDayMonth(g.endedOn)}` : 'Aktiv'}</div>
+                  <div className="mf-num mf-gh-val">{weightDisplayText(state, g.targetWeight || 0)} {wUnit}</div>
+                </div>
+                <div className="mf-gh-tag">
+                  <span>{g.type === 'lose' ? 'Abnehmen' : g.type === 'gain' ? 'Zunehmen' : 'Halten'}</span>
+                  <Icon name="circle-check" size={16} color="var(--mf-fg-2)" />
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="mf-ghrow">
-            <div>
-              <div className="mf-gh-range">6. Jan. 2026 – 12. Mai 2026</div>
-              <div className="mf-num mf-gh-val">{weightDisplayText(state, 66)} {wUnit} <span style={{ color: 'var(--mf-fg-2)' }}>to</span> {weightDisplayText(state, 70)} {wUnit}</div>
-            </div>
-            <div className="mf-gh-tag">
-              <span>Gain</span>
-              <Icon name="circle-check" size={16} color="var(--mf-fg-2)" />
-            </div>
-          </div>
-        </div>
+        ) : (
+          <div className="mf-empty">Noch keine abgeschlossenen Ziele. Setze über „New Goal" ein Ziel — es landet hier, sobald du es abschließt.</div>
+        )}
         <div style={{ height: 16 }} />
       </div>
       <div className="mf-bottomdock"><SearchBar onTap={onSearch} /></div>
