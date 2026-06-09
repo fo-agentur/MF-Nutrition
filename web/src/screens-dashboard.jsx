@@ -206,7 +206,7 @@ function StepsChart() {
 }
 
 /* ---- Dashboard main screen ------------------------------ */
-function DashboardScreen({ onSearch, onGo }) {
+function DashboardScreen({ onSearch, onAI, onGo }) {
   const { state } = useApp();
   const [ebMode, setEbMode] = React.useState('Expenditure');
   const [slide, setSlide] = React.useState(0);
@@ -321,7 +321,7 @@ function DashboardScreen({ onSearch, onGo }) {
         </div>
       </div>
 
-      <div className="mf-bottomdock"><SearchBar onTap={onSearch} /></div>
+      <div className="mf-bottomdock"><SearchBar onTap={onSearch} onAI={onAI} /></div>
     </div>
   );
 }

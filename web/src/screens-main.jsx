@@ -250,7 +250,7 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
   );
 }
 
-function FoodLogScreen({ onSearch, onAddAt, onEditEntry, onMenu, onCopyHour }) {
+function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHour }) {
   const { state, dispatch } = useApp();
   const sel = state.selectedDate;
   const entries = (state.days[sel] || { entries: [] }).entries;
@@ -315,7 +315,7 @@ function FoodLogScreen({ onSearch, onAddAt, onEditEntry, onMenu, onCopyHour }) {
         ))}
         <div style={{ height: 10 }} />
       </div>
-      <div className="mf-bottomdock"><SearchBar onTap={onSearch} /></div>
+      <div className="mf-bottomdock"><SearchBar onTap={onSearch} onAI={onAI} /></div>
     </div>
   );
 }

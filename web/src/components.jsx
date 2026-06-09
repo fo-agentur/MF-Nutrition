@@ -70,13 +70,20 @@ function BottomNav({ active, onNav, onFab }) {
 }
 
 /* ---- Persistent search bar ------------------------------ */
-function SearchBar({ onTap }) {
+function SearchBar({ onTap, onAI }) {
   return (
-    <button className="mf-searchbar" onClick={onTap}>
-      <Icon name="search" size={22} color="var(--mf-fg-2)" />
-      <span className="mf-search-ph">Search for a food</span>
-      <Icon name="scan-barcode" size={24} color="var(--mf-fg-2)" />
-    </button>
+    <div className="mf-searchrow">
+      <button className="mf-searchbar" onClick={onTap}>
+        <Icon name="search" size={22} color="var(--mf-fg-2)" />
+        <span className="mf-search-ph">Search for a food</span>
+        <Icon name="scan-barcode" size={24} color="var(--mf-fg-2)" />
+      </button>
+      {onAI && (
+        <button className="mf-search-ai" onClick={onAI} aria-label="Mit KI loggen">
+          <Icon name="sparkles" size={22} />
+        </button>
+      )}
+    </div>
   );
 }
 

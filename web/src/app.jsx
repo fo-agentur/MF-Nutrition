@@ -153,13 +153,13 @@ function AppInner() {
 
   /* ----- tabs ----- */
   const tabs = {
-    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onGo={openPage} />,
-    foodlog:   <FoodLogScreen onSearch={() => openSheet('add')}
+    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onAI={() => openSheet('ai')} onGo={openPage} />,
+    foodlog:   <FoodLogScreen onSearch={() => openSheet('add')} onAI={() => openSheet('ai')}
                   onMenu={() => openSheet('foodlogmenu')}
                   onAddAt={h => openSheet('add', { hour: h })}
                   onCopyHour={(entries) => copyEntries(entries, 'meal')}
                   onEditEntry={e => { const food = FOOD_DB.find(f => f.id === e.foodId) || { ...e, per: e.qty || 1, brand: '' }; openSheet('detail', { food, hour: parseInt(e.time, 10), entry: e }); }} />,
-    strategy:  <StrategyScreen onSearch={() => openSheet('add')} onCheckIn={() => openSheet('checkin')}
+    strategy:  <StrategyScreen onSearch={() => openSheet('add')} onAI={() => openSheet('ai')} onCheckIn={() => openSheet('checkin')}
                   onNewGoal={() => setOnboarding(true)}
                   onEditGoal={() => setOnboarding(true)}
                   onReopenGoal={() => {

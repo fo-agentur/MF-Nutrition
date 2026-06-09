@@ -118,6 +118,14 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   cursor: pointer; font-family: inherit;
 }
 .mf-search-ph { flex: 1; text-align: left; color: var(--mf-fg-3); font-size: 16px; }
+.mf-searchrow { display: flex; align-items: stretch; gap: 10px; }
+.mf-searchrow .mf-searchbar { flex: 1; min-width: 0; }
+.mf-search-ai {
+  flex: none; aspect-ratio: 1; border-radius: 50%;
+  background: var(--mf-surface-3); border: 0; color: #fff;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.mf-search-ai:active { background: var(--mf-surface-4); }
 
 /* ---- Segmented ------------------------------------------ */
 .mf-segmented {

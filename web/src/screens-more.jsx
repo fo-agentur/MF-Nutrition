@@ -63,7 +63,7 @@ function goalEta(state) {
   return weeks <= 0 ? 'At goal' : `${weeks} wk · ${addDaysISO(TODAY, weeks * 7)}`;
 }
 
-function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGoal }) {
+function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onReopenGoal }) {
   const { state, dispatch } = useApp();
   const t = state.targets;
   const settings = { ...(window.DEFAULT_PROGRAM || {}), ...(state.program || {}) };
@@ -201,7 +201,7 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
         )}
         <div style={{ height: 16 }} />
       </div>
-      <div className="mf-bottomdock"><SearchBar onTap={onSearch} /></div>
+      <div className="mf-bottomdock"><SearchBar onTap={onSearch} onAI={onAI} /></div>
     </div>
   );
 }
