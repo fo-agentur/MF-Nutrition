@@ -89,7 +89,8 @@ function WeeklyDayLabels({ selected }) {
           <span key={i} className={WEEK_KEYS[i] === selected ? 'on' : ''}>{d}</span>
         ))}
       </div>
-      <div style={{ width: 86 }} />
+      {/* spacer mirrors the meta column so the 7 letters line up under the 7 bars */}
+      <div className="mf-chart-days-meta" />
     </div>
   );
 }

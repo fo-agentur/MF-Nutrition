@@ -17,124 +17,73 @@ html, body {
 
 input, textarea, button { font-family: inherit; }
 
-/* On a phone (or installed PWA): fill the screen, drop the mock frame. */
+/* On a phone (or installed PWA): fill the screen, drop the mock frame.
+   The shell is ONE flex column — content area (flex:1) above, bottom nav as a
+   normal flex child below. Because the nav is in normal flow at the end of a
+   column that is exactly the viewport height, it is always flush with the
+   bottom edge: it can never "float" and leave a strip of page-bg under it
+   (the bug). No position:fixed/inset soup, no JS height var. */
 @media (max-width: 600px), (display-mode: standalone), (display-mode: fullscreen) {
   html, body {
     overflow: hidden;
     overscroll-behavior: none;
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
     background: var(--mf-safe-bg);
     -webkit-user-select: none;
     user-select: none;
   }
-  /* Fill the visual viewport directly via the React root. position:fixed+inset:0
-     does NOT depend on a percentage-height chain (which iOS collapses when the
-     body is fixed/inset:0 with no explicit height) — so the shell always reaches
-     the bottom edge. Avoids both the thin "weird border" and the big black gap
-     below the nav that appears when height:100%/100dvh fails to resolve on iOS. */
-  #root {
-    position: fixed;
-    inset: 0;
-    background: var(--mf-safe-bg);
-  }
+  html { height: 100%; }
+  /* dvh == physical screen in standalone (no browser toolbars); vh is the fallback. */
+  body  { height: 100vh; height: 100dvh; }
+  #root { height: 100vh; height: 100dvh; background: var(--mf-safe-bg); }
+
   .mf-stage {
+    height: 100%;
     padding: 0;
     background: var(--mf-safe-bg);
     display: block;
   }
   .mf-phone {
     width: 100%;
+    height: 100%;
     border-radius: 0;
     padding: 0;
     box-shadow: none;
-  }
-  .mf-screenwrap {
-    border-radius: 0;
-    padding-top: max(80px, calc(env(safe-area-inset-top) + 32px));
     background: var(--mf-bg);
   }
-  /* iOS Home Screen can report a shorter JS/CSS height than the physical
-     screen. These overrides make the shell obey inset:0 instead of that cap. */
-  #root {
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    max-height: none;
-    overflow: hidden;
-  }
-  .mf-stage {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    overflow: hidden;
-  }
-  .mf-phone {
-    position: absolute;
-    inset: 0;
-    height: auto;
-    min-height: 0;
-    max-height: none;
-  }
   .mf-screenwrap {
-    position: absolute;
-    inset: 0;
-    width: auto;
-    height: auto;
+    height: 100%;
+    border-radius: 0;
+    background: var(--mf-bg);
+    display: flex;
+    flex-direction: column;
+    /* clear the notch / status bar only — no oversized fixed offset */
+    padding-top: max(env(safe-area-inset-top), 10px);
   }
-  .mf-screenwrap.has-bottomnav {
-    padding-bottom: calc(68px + env(safe-area-inset-bottom));
-  }
+  .mf-screenarea { flex: 1 1 auto; min-height: 0; }
+
   /* Real iOS chrome replaces these mocks */
   .mf-statusbar { display: none; }
   .mf-homeind { display: none; }
 
-  /* Bottom nav owns the home-indicator safe area; its bg fills it edge-to-edge */
+  /* Bottom nav: normal flex child, flush to the bottom; its padding owns the
+     home-indicator safe area and its bg fills edge-to-edge. */
   .mf-bottomnav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    flex: none;
     width: 100%;
-    z-index: 12;
-    padding-left: 12px;
-    padding-right: 12px;
-    padding-top: 7px;
-    padding-bottom: calc(7px + env(safe-area-inset-bottom));
-    min-height: calc(68px + env(safe-area-inset-bottom));
+    padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
     background: var(--mf-nav-bg);
     grid-template-columns: repeat(5, minmax(0, 1fr));
     column-gap: 0;
   }
-  .mf-bottomnav .mf-navicon { transform: scale(.88); }
+  .mf-bottomnav .mf-navicon { transform: scale(.86); }
   .mf-bottomnav .mf-navlabel { font-size: 10px; }
-  .mf-bottomnav .mf-fab { width: 46px; height: 46px; }
+  .mf-bottomnav .mf-fab { width: 44px; height: 44px; }
   .mf-bottomdock { padding: 5px 18px 6px; background: var(--mf-bg); }
   .mf-searchbar { padding: 12px 16px; border-radius: 15px; }
-
-  body::after {
-    content: '';
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: env(safe-area-inset-bottom);
-    background: var(--mf-nav-bg);
-    pointer-events: none;
-    z-index: 13;
-  }
 
   /* Subpages (no bottom nav/dock) must keep their last items clear of the
      home indicator. Only the trailing scroller gets the inset. */
   .mf-screen > .mf-scroll:last-child { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
-  .mf-screenarea > .mf-screen > .mf-scroll:only-of-type { scroll-padding-bottom: env(safe-area-inset-bottom); }
-  .mf-screenwrap.has-bottomnav .mf-screen > .mf-scroll {
-    scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom));
-  }
 
   /* Sheets reach the screen edge: square bottom + safe-area padding */
   .mf-sheet { border-radius: 24px 24px 0 0; padding-bottom: max(18px, env(safe-area-inset-bottom)); }

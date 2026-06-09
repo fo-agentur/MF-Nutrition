@@ -127,35 +127,58 @@ function Onboarding({ onDone }) {
 }
 
 /* ---- Check-In sheet ------------------------------------- */
-function CheckInSheet({ open, onClose, onApply, onLogWeight }) {
-  const { state } = useApp();
-  const [stage, setStage] = React.useState(0);
-  React.useEffect(() => { if (open) setStage(0); }, [open]);
+function CheckInSheet({ open, onClose, onApply }) {
+  const { state, dispatch } = useApp();
+  const [stage, setStage] = React.useState('weigh'); // weigh -> review -> done
+  const [wInput, setWInput] = React.useState('');
+  const wUnit = weightUnit(state);
+  React.useEffect(() => {
+    if (open) {
+      setStage('weigh');
+      const kg = latestWeight(state);
+      setWInput(kg ? String(weightDisplayValue(state, kg)) : '');
+    }
+  }, [open]);
+
+  // rec recomputes after the weigh-in dispatch, so the review reflects the new weight.
   const rec = computeCheckInRecommendation(state, TODAY);
   const readiness = rec.readiness;
   const newTargets = rec.targets;
   const diffLabel = rec.deltaEnergy > 0 ? '+' + rec.deltaEnergy : String(rec.deltaEnergy);
-  const wUnit = weightUnit(state);
+  const parsedKg = weightInputToKg(state, wInput);
+  const canSaveWeight = Number.isFinite(parsedKg) && parsedKg > 0;
+
+  const saveWeightAndContinue = () => {
+    if (canSaveWeight) dispatch({ type: 'ADD_WEIGHT', date: TODAY, value: parsedKg });
+    setStage('review');
+  };
+
   return (
     <Sheet open={open} onClose={onClose} title="Weekly Check-In" headerRight={<Icon name="circle-check" size={20} />} tall>
-      {stage === 0 ? (
+      {stage === 'weigh' ? (
+        <div className="mf-checkin-body" style={{ textAlign: 'center' }}>
+          <div className="mf-checkin-illus"><Icon name="scale" size={46} /></div>
+          <h2 className="mf-onb-q" style={{ textAlign: 'center', marginBottom: 8 }}>Schritt 1 · Wieg dich</h2>
+          <p className="mf-onb-lede" style={{ textAlign: 'center' }}>
+            Trag dein heutiges Gewicht ein. Daraus schätzt MacroFactor deinen Verbrauch und passt im nächsten Schritt dein Kalorienziel an.
+          </p>
+          <div className="mf-weight-display mf-num" style={{ fontSize: 46, padding: '14px 0 10px' }}>{wInput || '0'}<small> {wUnit}</small></div>
+          <input className="mf-onb-input mf-num" inputMode="decimal" style={{ textAlign: 'center' }}
+            value={wInput}
+            onChange={e => setWInput(e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.').slice(0, 6))}
+            placeholder={`Gewicht (${wUnit})`} aria-label="Gewicht heute" />
+          <div className="mf-detail-actions" style={{ padding: '22px 0 0' }}>
+            <button className="mf-detail-log" onClick={saveWeightAndContinue} disabled={!canSaveWeight}
+              style={{ opacity: canSaveWeight ? 1 : 0.5 }}>Speichern & weiter</button>
+          </div>
+          <button className="mf-reset" onClick={() => setStage('review')}>Ohne neues Gewicht fortfahren</button>
+        </div>
+      ) : stage === 'review' ? (
         <div className="mf-checkin-body mf-checkin-review">
           <div className="mf-checkin-illus">📊</div>
-          <h2 className="mf-onb-q" style={{ textAlign: 'center' }}>Dein Wochen-Update</h2>
-          <p className="mf-onb-lede" style={{ textAlign: 'center' }}>
-            Basierend auf deinem Gewicht ({weightDisplayText(state, latestWeight(state))} {wUnit}) und deiner Adhärenz passen wir dein Energieziel an.
-          </p>
+          <h2 className="mf-onb-q" style={{ textAlign: 'center' }}>Schritt 2 · Dein Update</h2>
           <p className="mf-onb-lede mf-checkin-reason" style={{ textAlign: 'center' }}>{rec.reason}</p>
           <div className="mf-checkin-modules">
-            <div className="mf-checkin-module">
-              <span className={'mf-checkin-state' + (readiness.nutritionDays >= 4 ? ' ok' : '')}>
-                <Icon name={readiness.nutritionDays >= 4 ? 'check' : 'pause'} size={16} />
-              </span>
-              <div>
-                <div className="mf-checkin-module-title">Nutrition Logging</div>
-                <div className="mf-checkin-module-sub">{readiness.nutritionDays}/7 Tage geloggt, mindestens 4 nötig</div>
-              </div>
-            </div>
             <div className="mf-checkin-module">
               <span className={'mf-checkin-state' + (readiness.hasRecentWeight ? ' ok' : '')}>
                 <Icon name={readiness.hasRecentWeight ? 'check' : 'scale'} size={16} />
@@ -165,6 +188,15 @@ function CheckInSheet({ open, onClose, onApply, onLogWeight }) {
                 <div className="mf-checkin-module-sub">
                   {readiness.latestWeight ? `${weightDisplayText(state, readiness.latestWeight)} ${wUnit}, zuletzt ${readiness.latestWeightDate}` : 'Noch kein Gewicht geloggt'}
                 </div>
+              </div>
+            </div>
+            <div className="mf-checkin-module">
+              <span className={'mf-checkin-state' + (readiness.nutritionDays >= 4 ? ' ok' : '')}>
+                <Icon name={readiness.nutritionDays >= 4 ? 'check' : 'pause'} size={16} />
+              </span>
+              <div>
+                <div className="mf-checkin-module-title">Nutrition Logging</div>
+                <div className="mf-checkin-module-sub">{readiness.nutritionDays}/7 Tage geloggt, mindestens 4 nötig</div>
               </div>
             </div>
             <div className="mf-checkin-module">
@@ -182,7 +214,7 @@ function CheckInSheet({ open, onClose, onApply, onLogWeight }) {
           <div className="mf-checkin-row">
             <div><div className="mf-insight-sub">Bisher</div><div className="mf-num mf-checkin-num">{state.targets.energy} 🔥</div></div>
             <Icon name="arrow-right" size={24} color="var(--mf-fg-2)" />
-            <div><div className="mf-insight-sub">Neu</div><div className="mf-num mf-checkin-num" style={{ color: MF.energy }}>{newTargets.energy} 🔥</div></div>
+            <div><div className="mf-insight-sub">Neu</div><div className="mf-num mf-checkin-num" style={{ color: rec.ready ? MF.energy : 'var(--mf-fg)' }}>{newTargets.energy} 🔥</div></div>
           </div>
           {rec.ready && (
             <div className="mf-checkin-macros">
@@ -193,16 +225,11 @@ function CheckInSheet({ open, onClose, onApply, onLogWeight }) {
             </div>
           )}
           <div className="mf-detail-actions" style={{ padding: '20px 0 0' }}>
-            {!readiness.hasRecentWeight && onLogWeight ? (
-              <button className="mf-detail-log" onClick={onLogWeight}>Gewicht jetzt eintragen</button>
-            ) : rec.ready ? (
-              <button className="mf-detail-log" onClick={() => { onApply(newTargets); setStage(1); }}>Übernehmen</button>
+            {rec.ready ? (
+              <button className="mf-detail-log" onClick={() => { onApply(newTargets); setStage('done'); }}>Neues Ziel übernehmen</button>
             ) : (
-              <button className="mf-detail-log" onClick={onClose}>Fertig</button>
+              <button className="mf-detail-log" onClick={onClose}>Verstanden</button>
             )}
-          </div>
-          <div className="mf-detail-actions" style={{ padding: '20px 0 0', display: 'none' }}>
-            <button className="mf-detail-log" onClick={() => { onApply(newTargets); setStage(1); }}>Übernehmen</button>
           </div>
         </div>
       ) : (

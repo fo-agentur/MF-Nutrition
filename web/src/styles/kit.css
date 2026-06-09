@@ -227,8 +227,9 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-chart-meta-val { font-size: 17px; font-weight: 800; white-space: nowrap; }
 .mf-chart-meta-unit { display: inline-block; margin-left: 4px; font-size: .78em; line-height: 1; vertical-align: .04em; }
 .mf-chart-meta-goal { font-size: 12px; color: var(--mf-fg-3); margin-top: 1px; }
-.mf-chart-days { display: flex; margin-top: 6px; }
+.mf-chart-days { display: flex; gap: 8px; margin-top: 6px; }
 .mf-chart-days-inner { flex: 1; display: flex; gap: 5px; }
+.mf-chart-days-meta { width: 82px; flex: none; }
 .mf-chart-days-inner span { flex: 1; text-align: center; font-size: 13px; color: var(--mf-fg-3); padding: 0 4px; }
 .mf-chart-days-inner span.on { color: #fff; font-weight: 600; }
 
@@ -870,12 +871,15 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 }
 .mf-dashboard-screen .mf-chart-days {
   margin-top: 10px;
-  padding-right: 96px;
+  gap: 14px;
   position: relative;
   z-index: 4;
 }
 .mf-dashboard-screen .mf-chart-days-inner {
-  gap: 10px;
+  gap: 8px;
+}
+.mf-dashboard-screen .mf-chart-days-meta {
+  width: 96px;
 }
 .mf-dashboard-screen .mf-chart-days-inner span {
   font-size: 15px;
@@ -970,7 +974,13 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   }
   .mf-dashboard-screen .mf-chart-days {
     margin-top: 8px;
-    padding-right: 102px;
+    gap: 10px;
+  }
+  .mf-dashboard-screen .mf-chart-days-inner {
+    gap: 7px;
+  }
+  .mf-dashboard-screen .mf-chart-days-meta {
+    width: 92px;
   }
   .mf-dashboard-screen .mf-segmented {
     margin-top: 12px;
