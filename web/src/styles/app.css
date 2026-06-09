@@ -25,8 +25,7 @@ input, textarea, button { font-family: inherit; }
     position: fixed;
     inset: 0;
     width: 100%;
-    height: var(--mf-app-height, 100dvh);
-    min-height: -webkit-fill-available;
+    height: 100%;
     background: var(--mf-safe-bg);
     -webkit-user-select: none;
     user-select: none;
@@ -39,23 +38,15 @@ input, textarea, button { font-family: inherit; }
   #root {
     position: fixed;
     inset: 0;
-    height: var(--mf-app-height, 100dvh);
-    min-height: -webkit-fill-available;
-    max-height: var(--mf-app-height, 100dvh);
     background: var(--mf-safe-bg);
   }
   .mf-stage {
     padding: 0;
     background: var(--mf-safe-bg);
     display: block;
-    height: var(--mf-app-height, 100dvh);
-    min-height: -webkit-fill-available;
   }
   .mf-phone {
     width: 100%;
-    height: var(--mf-app-height, 100dvh);
-    min-height: -webkit-fill-available;
-    max-height: var(--mf-app-height, 100dvh);
     border-radius: 0;
     padding: 0;
     box-shadow: none;

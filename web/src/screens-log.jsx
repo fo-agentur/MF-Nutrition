@@ -266,7 +266,12 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
     if (open && food) { setQty(initialQty()); setH(hour ?? 11); }
   }, [open, food, editEntry, hour]);
   if (!food) return <Sheet open={open} onClose={onClose} />;
-  const m = scaleFood(food, qty);
+  // Step size: fine-grained for weights/volumes (5/10/25 g·ml) so a photo's
+  // gram estimate can be nudged precisely; whole units otherwise (e.g. 1 Stück).
+  const isMass = food.unit === 'g' || food.unit === 'ml';
+  const step = isMass ? (food.per >= 200 ? 25 : food.per >= 80 ? 10 : 5) : Math.max(1, Math.round(food.per || 1));
+  const qtyNum = Math.max(1, Math.round(Number(qty) || 0));
+  const m = scaleFood(food, qtyNum);
   return (
     <Sheet open={open} onClose={onClose} onBack={onBack} title={editEntry ? 'Edit Entry' : 'Add Food'}>
       <div className="mf-detail">
@@ -299,9 +304,15 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
         <div className="mf-detail-field">
           <span className="mf-detail-fieldlbl">Quantity</span>
           <div className="mf-stepper">
-            <button onClick={() => setQty(q => Math.max(food.per, q - food.per))}><Icon name="minus" size={18} /></button>
-            <span className="mf-num">{qty} {food.unit}</span>
-            <button onClick={() => setQty(q => q + food.per)}><Icon name="plus" size={18} /></button>
+            <button onClick={() => setQty(Math.max(step, qtyNum - step))} aria-label="Weniger"><Icon name="minus" size={18} /></button>
+            <span className="mf-stepper-val">
+              <input className="mf-num mf-stepper-input" inputMode="numeric" aria-label="Menge"
+                value={qty === '' ? '' : qty}
+                onChange={e => { const d = e.target.value.replace(/[^0-9]/g, ''); setQty(d === '' ? '' : parseInt(d, 10)); }}
+                onBlur={() => { if (qty === '' || qtyNum < 1) setQty(1); }} />
+              <span className="mf-stepper-unit">{food.unit}</span>
+            </span>
+            <button onClick={() => setQty(qtyNum + step)} aria-label="Mehr"><Icon name="plus" size={18} /></button>
           </div>
         </div>
         <div className="mf-detail-field">
@@ -316,7 +327,7 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
       <div className="mf-detail-actions">
         {editEntry && <button className="mf-detail-delete" onClick={onDelete}><Icon name="trash-2" size={20} /></button>}
         {editEntry && onCopy && <button className="mf-detail-copy" onClick={onCopy}><Icon name="copy" size={20} /></button>}
-        <button className="mf-detail-log" onClick={() => onLog(buildEntry(food, qty, h))}>
+        <button className="mf-detail-log" onClick={() => onLog(buildEntry(food, qtyNum, h))}>
           {editEntry ? 'Save' : 'Log Food'}
         </button>
       </div>

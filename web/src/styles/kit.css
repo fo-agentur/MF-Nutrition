@@ -522,6 +522,9 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-stepper span, .mf-timepick span { min-width: 74px; text-align: center; font-size: 16px; font-weight: 600; }
 .mf-timepick span { min-width: 64px; }
 .mf-stepper button, .mf-timepick button { width: 36px; height: 36px; border-radius: 50%; background: var(--mf-surface-4); border: 0; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.mf-stepper .mf-stepper-val { min-width: 92px; display: inline-flex; align-items: baseline; justify-content: center; gap: 4px; text-align: center; }
+.mf-stepper-input { width: 56px; min-width: 0; background: none; border: 0; outline: 0; padding: 0; color: #fff; font-size: 16px; font-weight: 600; text-align: right; font-family: inherit; -webkit-appearance: none; }
+.mf-stepper .mf-stepper-unit { min-width: auto; font-size: 14px; font-weight: 600; color: var(--mf-fg-2); }
 .mf-detail-actions { display: flex; gap: 12px; padding: 8px 22px 6px; flex: none; }
 .mf-detail-log { flex: 1; background: #fff; color: #000; border: 0; border-radius: 999px; padding: 16px; font-family: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
 .mf-detail-delete { width: 56px; border-radius: 999px; background: var(--mf-surface-3); border: 0; color: var(--mf-protein); display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
@@ -735,7 +738,7 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   color: rgba(255,255,255,.52);
 }
 .mf-dashboard-screen .mf-dash-header .mf-title {
-  font-size: 40px;
+  font-size: 33px;
   line-height: .98;
   letter-spacing: .01em;
   text-align: left;
@@ -747,7 +750,7 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-dashboard-screen .mf-slides {
   width: auto;
   max-width: none;
-  margin: 28px 18px 0;
+  margin: 16px 18px 0;
   padding: 0 6px;
   background: transparent;
   border-radius: 0;
@@ -760,10 +763,10 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   margin: 0;
 }
 .mf-dashboard-screen .mf-slide-title {
-  font-size: 21px;
+  font-size: 18px;
   line-height: 1.05;
   font-weight: 800;
-  margin: 0 0 22px;
+  margin: 0 0 14px;
 }
 .mf-dashboard-screen .mf-chart-wrap {
   width: 100%;
@@ -775,8 +778,8 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   position: relative;
   flex: 1 1 0;
   min-width: 0;
-  gap: 10px;
-  min-height: 214px;
+  gap: 8px;
+  min-height: 150px;
 }
 .mf-dashboard-screen .mf-chart-cols::before {
   content: '';
@@ -802,10 +805,10 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   position: relative;
   z-index: 1;
   min-width: 0;
-  gap: 10px;
-  padding: 6px 5px;
+  gap: 8px;
+  padding: 5px 5px;
   border-width: 0;
-  border-radius: 16px;
+  border-radius: 14px;
 }
 .mf-dashboard-screen .mf-chart-col.sel {
   border-color: transparent;
@@ -814,16 +817,16 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   content: '';
   position: absolute;
   z-index: 3;
-  top: -2px;
-  left: -3px;
-  right: -3px;
-  bottom: -40px;
+  top: -3px;
+  left: -4px;
+  right: -4px;
+  bottom: -30px;
   border: 2px solid rgba(255,255,255,.92);
-  border-radius: 15px;
+  border-radius: 13px;
   pointer-events: none;
 }
 .mf-dashboard-screen .mf-chart-bar {
-  min-height: 45px;
+  min-height: 30px;
   border-radius: 3px;
   background: #202023;
 }
@@ -842,23 +845,23 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 }
 .mf-dashboard-screen .mf-chart-meta {
   width: 96px;
-  gap: 10px;
+  gap: 8px;
 }
 .mf-dashboard-screen .mf-chart-meta-row {
-  min-height: 45px;
+  min-height: 30px;
   padding-left: 6px;
   justify-content: center;
 }
 .mf-dashboard-screen .mf-chart-meta-val {
-  font-size: 24px;
+  font-size: 21px;
   line-height: 1;
   font-weight: 500;
   color: #f7f7f7 !important;
 }
 .mf-dashboard-screen .mf-chart-meta-goal {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.1;
-  margin-top: 6px;
+  margin-top: 3px;
   color: rgba(255,255,255,.48);
 }
 .mf-dashboard-screen .mf-chart-meta-unit {
@@ -866,7 +869,7 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   font-size: .72em;
 }
 .mf-dashboard-screen .mf-chart-days {
-  margin-top: 12px;
+  margin-top: 10px;
   padding-right: 96px;
   position: relative;
   z-index: 4;
@@ -875,7 +878,7 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   gap: 10px;
 }
 .mf-dashboard-screen .mf-chart-days-inner span {
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
   padding: 0 6px;
   color: rgba(255,255,255,.52);
@@ -887,12 +890,12 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-dashboard-screen .mf-segmented {
   background: #333331;
   padding: 4px;
-  margin-top: 28px;
+  margin-top: 16px;
 }
 .mf-dashboard-screen .mf-seg {
-  min-width: 132px;
-  padding: 13px 20px;
-  font-size: 17px;
+  min-width: 118px;
+  padding: 10px 18px;
+  font-size: 15px;
   font-weight: 500;
   color: rgba(255,255,255,.66);
 }
@@ -900,8 +903,8 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   color: #121212;
 }
 .mf-dashboard-screen .mf-dots {
-  margin: 12px 0 0;
-  padding: 8px 0 10px;
+  margin: 10px 0 0;
+  padding: 6px 0 8px;
   background: #111112;
 }
 .mf-dashboard-screen .mf-dots i {
@@ -941,16 +944,16 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
     gap: 10px;
   }
   .mf-dashboard-screen .mf-chart-cols {
-    gap: 8px;
-    min-height: 174px;
+    gap: 7px;
+    min-height: 146px;
   }
   .mf-dashboard-screen .mf-chart-col {
-    gap: 8px;
+    gap: 7px;
     padding-left: 4px;
     padding-right: 4px;
   }
   .mf-dashboard-screen .mf-chart-bar {
-    min-height: 37px;
+    min-height: 28px;
   }
   .mf-dashboard-screen .mf-chart-meta {
     width: 92px;
@@ -970,7 +973,7 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
     padding-right: 102px;
   }
   .mf-dashboard-screen .mf-segmented {
-    margin-top: 18px;
+    margin-top: 12px;
   }
   .mf-dashboard-screen .mf-seg {
     min-width: 122px;
@@ -1234,15 +1237,28 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-strategy-screen .mf-prog-block {
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: #151515;
-  min-height: 20px;
-  max-height: 58px;
+  min-height: 16px;
+  max-height: none;
 }
 .mf-strategy-screen .mf-prog-day {
   font-size: 13px;
   margin-top: 6px;
 }
+.mf-prog-legend {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--mf-fg-2);
+}
+.mf-prog-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.mf-prog-legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.mf-prog-legend .p { background: var(--mf-protein); }
+.mf-prog-legend .f { background: var(--mf-fat); }
+.mf-prog-legend .c { background: var(--mf-carb); }
 .mf-prog-grid { display: flex; flex-direction: column; gap: 4px; }
 .mf-prog-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .mf-prog-cell { font-size: 11px; font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 6px; font-variant-numeric: tabular-nums; }

@@ -1,4 +1,12 @@
 const DEFAULT_MODEL = 'openrouter/free';
+// Current free, vision-capable OpenRouter models (verified Jun 2026), tried in order.
+// `openrouter/free` is the auto-router fallback that picks any available free model.
+const FREE_VISION_MODELS = [
+  'google/gemma-4-31b-it:free',
+  'google/gemma-4-26b-a4b-it:free',
+  'nvidia/nemotron-nano-12b-v2-vl:free',
+  'openrouter/free',
+];
 const MAX_IMAGE_CHARS = 5_500_000;
 
 function number(value) {
@@ -15,6 +23,17 @@ function allowedModel(model) {
   if (!cleaned) return DEFAULT_MODEL;
   if (cleaned === DEFAULT_MODEL || cleaned.endsWith(':free')) return cleaned;
   return DEFAULT_MODEL;
+}
+
+// Build an ordered fallback list of free models. A caller-supplied free model is
+// tried first; the curated free vision list follows so a single model outage or
+// rate-limit doesn't break logging. OpenRouter walks this list until one responds.
+function modelChain(model) {
+  const preferred = text(model);
+  const chain = [];
+  if (preferred && (preferred === 'openrouter/free' || preferred.endsWith(':free'))) chain.push(preferred);
+  for (const m of FREE_VISION_MODELS) if (!chain.includes(m)) chain.push(m);
+  return chain;
 }
 
 function validImageDataUrl(value) {
@@ -137,11 +156,14 @@ async function callOpenRouter({ task, text: userText, imageData, model }) {
       'X-Title': 'MF Nutrition PWA',
     },
     body: JSON.stringify({
-      model: allowedModel(model || process.env.OPENROUTER_MODEL),
+      // Send an ordered free-model fallback list. response_format is intentionally
+      // omitted: several free vision models reject json_object mode outright, which
+      // was the main cause of "photo analysis sometimes does nothing". The prompt
+      // demands raw JSON and extractJsonObject() strips any markdown fences.
+      models: modelChain(model || process.env.OPENROUTER_MODEL),
       messages: [{ role: 'user', content }],
-      response_format: { type: 'json_object' },
       temperature: 0.1,
-      max_tokens: 600,
+      max_tokens: 700,
     }),
   });
 

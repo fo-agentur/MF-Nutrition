@@ -82,9 +82,20 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
   const rateShown = rate ? weightDisplayText(state, Math.abs(rate)) : '0.0';
   const ratePct = currentWeight && rate ? Math.abs(rate / currentWeight * 100) : null;
   const days = ['M','T','W','T','F','S','S'];
-  const blockH = (key, v) => {
-    const scale = key === 'protein' ? 0.22 : key === 'fat' ? 0.44 : 0.105;
-    return Math.min(42, Math.max(30, Math.round(v * scale)));
+  // Calorie-proportional stacked bars (MacroFactor style): the whole stack height
+  // tracks the day's kcal vs the highest day, and P/F/C segments are sized by their
+  // calorie share (P·4, F·9, C·4) so higher-calorie days visibly stand taller.
+  const maxEnergy = Math.max(...program.cols.map(c => c.energy), 1);
+  const STACK_MAX = 132;
+  const segHeights = col => {
+    const stack = Math.max(56, Math.round(STACK_MAX * (col.energy / maxEnergy)));
+    const cals = { p: col.protein * 4, f: col.fat * 9, c: col.carb * 4 };
+    const tot = cals.p + cals.f + cals.c || 1;
+    return {
+      p: Math.max(16, Math.round(stack * cals.p / tot)),
+      f: Math.max(16, Math.round(stack * cals.f / tot)),
+      c: Math.max(16, Math.round(stack * cals.c / tot)),
+    };
   };
   return (
     <div className="mf-screen mf-strategy-screen">
@@ -123,15 +134,23 @@ function StrategyScreen({ onSearch, onCheckIn, onNewGoal, onEditGoal, onReopenGo
           </div>
           {/* 7-day stacked macro chart (blocks sized by value) */}
           <div className="mf-prog-cols">
-            {program.cols.map((col, i) => (
-              <div className="mf-prog-col" key={i}>
-                <div className="mf-prog-kcal mf-num">{col.energy}</div>
-                <div className="mf-prog-block p mf-num" style={{ height: blockH('protein', col.protein) }}>{col.protein} P</div>
-                <div className="mf-prog-block f mf-num" style={{ height: blockH('fat', col.fat) }}>{col.fat} F</div>
-                <div className="mf-prog-block c mf-num" style={{ height: blockH('carb', col.carb) }}>{col.carb} C</div>
-                <div className="mf-prog-day">{days[i]}</div>
-              </div>
-            ))}
+            {program.cols.map((col, i) => {
+              const hp = segHeights(col);
+              return (
+                <div className="mf-prog-col" key={i}>
+                  <div className="mf-prog-kcal mf-num">{col.energy}</div>
+                  <div className="mf-prog-block p mf-num" style={{ height: hp.p }}>{col.protein}</div>
+                  <div className="mf-prog-block f mf-num" style={{ height: hp.f }}>{col.fat}</div>
+                  <div className="mf-prog-block c mf-num" style={{ height: hp.c }}>{col.carb}</div>
+                  <div className="mf-prog-day">{days[i]}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mf-prog-legend">
+            <span><i className="p" />Protein</span>
+            <span><i className="f" />Fat</span>
+            <span><i className="c" />Carbs</span>
           </div>
         </div>
 
