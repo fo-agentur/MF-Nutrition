@@ -5,49 +5,53 @@
    default = Weekly Nutrition.
    ============================================================ */
 
-/* ---- Energy Balance bar chart (30-day) ------------------ */
-const ENERGY_30D = [
-  2200,2450,2310,2290,2480,2190,2560,2310,2420,2380,
-  2270,2490,2310,2350,2460,2290,2510,2380,2340,2420,
-  2280,2460,2330,2480,2250,2370,2510,2290,2340,2358,
-];
-const EXPEND_30D = [
-  2340,2360,2380,2390,2400,2350,2380,2360,2370,2390,
-  2380,2400,2360,2380,2410,2380,2390,2380,2370,2390,
-  2380,2400,2370,2390,2360,2380,2400,2370,2380,2390,
-];
-
+/* ---- Energy Balance bar chart (real last-30-day intake) -- */
 function EnergyBalanceChart({ mode }) {
-  const vals = mode === 'Expenditure' ? ENERGY_30D : ENERGY_30D;
-  const expLine = mode === 'Expenditure' ? EXPEND_30D : EXPEND_30D.map(v => v - 200);
-  const max = Math.max(...vals, ...expLine) * 1.08;
+  const { state } = useApp();
+  const keys = dateRangeBack(TODAY, 30);
+  const vals = keys.map(k => dayTotals(state, k).energy);
+  const loggedVals = vals.filter(v => v > 0);
+  const hasData = loggedVals.length > 0;
+  const est = estimateExpenditure(state, TODAY, 30);
+  // Reference line: measured expenditure, or the calorie target when toggled/while
+  // there isn't enough data for an estimate yet.
+  const refValue = mode === 'Targets' ? state.targets.energy : (est || state.targets.energy);
+  const max = Math.max(...vals, refValue, 1) * 1.12;
   const W = 320, H = 140, pad = 4;
-  const bw = (W - pad * 2) / vals.length;
+  const bw = (W - pad * 2) / (vals.length || 1);
   const y = v => H - pad - ((v / max) * (H - pad * 2));
-  const expPts = expLine.map((v, i) => [pad + i * bw + bw / 2, y(v)]);
-  const expPath = expPts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
-  const avgNut = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-  const avgExp = Math.round(expLine.reduce((a, b) => a + b, 0) / expLine.length);
+  const refY = y(refValue);
+  const avgNut = hasData ? Math.round(loggedVals.reduce((a, b) => a + b, 0) / loggedVals.length) : 0;
+  const avgExp = Math.round(refValue);
   const diff = avgNut - avgExp;
+  const showExp = mode === 'Targets' ? true : !!est;
   return (
     <div className="mf-slide-card">
       <div className="mf-slide-title">Energy Balance</div>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', marginBottom: 8 }}>
-        {vals.map((v, i) => (
+        {vals.map((v, i) => v > 0 ? (
           <rect key={i} x={pad + i * bw + 1} y={y(v)} width={Math.max(2, bw - 2)} height={H - pad - y(v)}
             rx="2" fill={MF.energy} opacity="0.85" />
-        ))}
-        <path d={expPath} fill="none" stroke="#EF6A45" strokeWidth="1.5"
-          strokeDasharray="4 3" strokeLinecap="round" />
-        <text x={W - pad} y={H - 2} textAnchor="end" fill="rgba(255,255,255,.35)" fontSize="11">Last 30 Days</text>
+        ) : null)}
+        {hasData && showExp && (
+          <line x1={pad} y1={refY} x2={W - pad} y2={refY} stroke="#EF6A45" strokeWidth="1.5"
+            strokeDasharray="4 3" strokeLinecap="round" />
+        )}
+        <text x={W - pad} y={H - 2} textAnchor="end" fill="rgba(255,255,255,.35)" fontSize="11">Letzte 30 Tage</text>
       </svg>
-      <div className="mf-ebstat">
-        <div className="mf-ebcol"><span className="mf-num mf-ebn">{avgNut}</span><span className="mf-eblbl"><i>▌</i> Nutrition</span></div>
-        <span className="mf-ebop">−</span>
-        <div className="mf-ebcol"><span className="mf-num mf-ebn">{avgExp}</span><span className="mf-eblbl"><svg width="14" height="10"><path d="M0,8 Q3,2 7,5 Q11,8 14,2" fill="none" stroke="#EF6A45" strokeWidth="1.5"/></svg> Expenditure</span></div>
-        <span className="mf-ebop">=</span>
-        <div className="mf-ebcol"><span className="mf-num mf-ebn" style={{ color: diff < 0 ? MF.carb : MF.protein }}>{diff > 0 ? '+' : ''}{diff}</span><span className="mf-eblbl" style={{ color: 'var(--mf-fg-3)' }}>Difference</span></div>
-      </div>
+      {hasData ? (
+        <div className="mf-ebstat">
+          <div className="mf-ebcol"><span className="mf-num mf-ebn">{avgNut}</span><span className="mf-eblbl"><i>▌</i> Zufuhr</span></div>
+          <span className="mf-ebop">−</span>
+          <div className="mf-ebcol"><span className="mf-num mf-ebn">{showExp ? avgExp : '–'}</span><span className="mf-eblbl">{mode === 'Targets' ? 'Ziel' : 'Verbrauch'}</span></div>
+          <span className="mf-ebop">=</span>
+          <div className="mf-ebcol"><span className="mf-num mf-ebn" style={{ color: showExp ? (diff < 0 ? MF.carb : MF.protein) : 'var(--mf-fg-3)' }}>{showExp ? (diff > 0 ? '+' : '') + diff : '–'}</span><span className="mf-eblbl" style={{ color: 'var(--mf-fg-3)' }}>Differenz</span></div>
+        </div>
+      ) : (
+        <div className="mf-empty" style={{ textAlign: 'center', padding: '2px 0 10px' }}>
+          Logge ein paar Tage — dann erscheint hier deine Energiebilanz.
+        </div>
+      )}
     </div>
   );
 }
@@ -207,6 +211,7 @@ function DashboardScreen({ onSearch, onGo }) {
   const [ebMode, setEbMode] = React.useState('Expenditure');
   const [slide, setSlide] = React.useState(0);
   const tot = dayTotals(state, state.selectedDate);
+  const expEstimate = estimateExpenditure(state);
 
   // Primary Focus order (configurable via Customize Dashboard; default Weekly Nutrition)
   let primary = 'weekly';
@@ -257,7 +262,7 @@ function DashboardScreen({ onSearch, onGo }) {
         {/* ---- Insights & Analytics -------------------- */}
         <SectionHead title="Insights & Analytics" action="See All" onAction={() => onGo('insights')} />
         <div className="mf-card2grid">
-          <MiniDataCard title="Expenditure" subtitle="Last 7 Days" value="2343" unit="kcal"
+          <MiniDataCard title="Expenditure" subtitle="geschätzt" value={expEstimate ? String(expEstimate) : '–'} unit="kcal"
             chart={<ExpenditureChartMini />} onClick={() => onGo('expenditure')} />
           <MiniDataCard title="Weight Trend" subtitle="Last 7 Days" value={lastW ? weightDisplayText(state, lastW.value) : '–'} unit={wUnit}
             chart={<WeightSparkMini weights={state.weights} />} onClick={() => onGo('weighttrend')} />
