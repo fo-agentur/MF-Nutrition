@@ -33,7 +33,11 @@ if (window.visualViewport) {
    overflow:hidden shell this shows as "the app is shifted up / the bottom nav is
    half cut off". Snap the window back whenever the keyboard goes away. */
 function snapWindowBack() {
-  if (window.scrollY || document.documentElement.scrollTop) {
+  // In the installed PWA (standalone WKWebView) the keyboard pan can leave
+  // window.scrollY at 0 while only visualViewport.offsetTop is displaced —
+  // check both, otherwise the restore never fires there.
+  const vvOffset = window.visualViewport ? window.visualViewport.offsetTop : 0;
+  if (window.scrollY || document.documentElement.scrollTop || vvOffset) {
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;

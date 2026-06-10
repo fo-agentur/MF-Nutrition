@@ -32,11 +32,19 @@ input, textarea, button { font-family: inherit; }
     user-select: none;
   }
   html { height: 100%; }
-  /* dvh == *visible* viewport (excludes Safari toolbars); -webkit-fill-available
-     is the fallback for older iOS. Plain 100vh would include the collapsed
-     toolbar area in Safari and push the bottom nav half off-screen. */
-  body  { height: 100vh; height: -webkit-fill-available; height: 100dvh; }
-  #root { height: 100vh; height: -webkit-fill-available; height: 100dvh; background: var(--mf-safe-bg); }
+  body { height: 100%; }
+  /* Pin the shell to the viewport edges. Height UNITS (100dvh /
+     -webkit-fill-available) mis-resolve in the installed iOS PWA — the webview
+     reports a shorter height at launch and the column stops above the screen
+     bottom, leaving a black strip below the nav. fixed+inset:0 takes its
+     geometry straight from the viewport edges, so the shell always reaches the
+     bottom (and in Safari browser mode it tracks the visible area, so the nav
+     is never pushed under the toolbar either). */
+  #root {
+    position: fixed;
+    inset: 0;
+    background: var(--mf-safe-bg);
+  }
 
   .mf-stage {
     height: 100%;
