@@ -27,13 +27,14 @@ function allowedModel(model) {
 
 // Build an ordered fallback list of free models. A caller-supplied free model is
 // tried first; the curated free vision list follows so a single model outage or
-// rate-limit doesn't break logging. OpenRouter walks this list until one responds.
+// rate-limit doesn't break logging. OpenRouter walks this list until one responds
+// and rejects requests with more than 3 models, so cap the chain there.
 function modelChain(model) {
   const preferred = text(model);
   const chain = [];
   if (preferred && (preferred === 'openrouter/free' || preferred.endsWith(':free'))) chain.push(preferred);
   for (const m of FREE_VISION_MODELS) if (!chain.includes(m)) chain.push(m);
-  return chain;
+  return chain.slice(0, 3);
 }
 
 function validImageDataUrl(value) {
