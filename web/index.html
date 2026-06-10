@@ -2,7 +2,13 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <!-- interactive-widget=resizes-content: when the iOS keyboard opens, RESIZE the
+       viewport instead of natively panning the whole webview upward. The pan is the
+       source of the black bar below the nav: in the installed PWA iOS often leaves
+       the webview panned up after the keyboard closes (native transform — invisible
+       to scrollY/visualViewport, unfixable from JS), exposing the black UIKit window
+       below. Supported since Safari 18.4; unknown keys are ignored elsewhere. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no, interactive-widget=resizes-content" />
   <meta name="color-scheme" content="dark" />
   <title>MacroFactor</title>
 
