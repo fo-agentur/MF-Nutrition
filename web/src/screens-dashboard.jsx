@@ -262,7 +262,7 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
         {/* ---- Insights & Analytics -------------------- */}
         <SectionHead title="Insights & Analytics" action="See All" onAction={() => onGo('insights')} />
         <div className="mf-card2grid">
-          <MiniDataCard title="Expenditure" subtitle="geschätzt" value={expEstimate ? String(expEstimate) : '–'} unit="kcal"
+          <MiniDataCard title="Expenditure" subtitle="Last 7 Days" value={expEstimate ? String(expEstimate) : '–'} unit="kcal"
             chart={<ExpenditureChartMini />} onClick={() => onGo('expenditure')} />
           <MiniDataCard title="Weight Trend" subtitle="Last 7 Days" value={lastW ? weightDisplayText(state, lastW.value) : '–'} unit={wUnit}
             chart={<WeightSparkMini weights={state.weights} />} onClick={() => onGo('weighttrend')} />

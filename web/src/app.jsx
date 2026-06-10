@@ -113,6 +113,7 @@ function AppInner() {
     if (act === 'recipes') { closeSheet(); openPage('recipes'); }
     else if (act === 'metrics') { closeSheet(); openPage('metrics'); }
     else if (act === 'weight') openWeight(TODAY);
+    else if (act === 'ai') openSheet('add', { tab: 'AI' });
     else openSheet(act);
   };
 
@@ -153,13 +154,13 @@ function AppInner() {
 
   /* ----- tabs ----- */
   const tabs = {
-    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onAI={() => openSheet('ai')} onGo={openPage} />,
-    foodlog:   <FoodLogScreen onSearch={() => openSheet('add')} onAI={() => openSheet('ai')}
+    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })} onGo={openPage} />,
+    foodlog:   <FoodLogScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })}
                   onMenu={() => openSheet('foodlogmenu')}
                   onAddAt={h => openSheet('add', { hour: h })}
                   onCopyHour={(entries) => copyEntries(entries, 'meal')}
                   onEditEntry={e => { const food = FOOD_DB.find(f => f.id === e.foodId) || { ...e, per: e.qty || 1, brand: '' }; openSheet('detail', { food, hour: parseInt(e.time, 10), entry: e }); }} />,
-    strategy:  <StrategyScreen onSearch={() => openSheet('add')} onAI={() => openSheet('ai')} onCheckIn={() => openSheet('checkin')}
+    strategy:  <StrategyScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })} onCheckIn={() => openSheet('checkin')}
                   onNewGoal={() => setOnboarding(true)}
                   onEditGoal={() => setOnboarding(true)}
                   onReopenGoal={() => {
@@ -183,12 +184,12 @@ function AppInner() {
 
       {/* sheets */}
       <AddSheet open={sheet?.id === 'add'} hour={sheet?.hour ?? new Date().getHours()} onClose={closeSheet}
+        initialTab={sheet?.tab}
         onPick={(food, hour) => { if (window.cacheFood) window.cacheFood(food); openSheet('detail', { food, hour }); }}
         onQuickLog={quickLog}
         onQuickAdd={() => openSheet('quickadd')}
         onBarcode={() => openSheet('barcode')}
-        onAI={() => openSheet('ai')}
-        onLabelScan={() => openSheet('labelscan')}
+        onAIResult={(food, hour) => openSheet('detail', { food, hour })}
         onCustomFood={name => openSheet('customfood', { name, hour: sheet?.hour ?? new Date().getHours() })} />
 
       <FoodDetailSheet key={sheet?.id === 'detail'
@@ -212,10 +213,8 @@ function AppInner() {
         onSave={saveCustomFood} />
 
       <BarcodeSheet open={sheet?.id === 'barcode'} hour={sheet?.hour} onClose={closeSheet}
-        onFound={(food, hour) => { if (window.cacheFood) window.cacheFood(food); openSheet('detail', { food, hour }); }} />
-
-      <AISheet open={sheet?.id === 'ai'} hour={sheet?.hour} onClose={closeSheet}
-        onResult={(food, hour) => openSheet('detail', { food, hour })} />
+        onFound={(food, hour) => { if (window.cacheFood) window.cacheFood(food); openSheet('detail', { food, hour }); }}
+        onLabelScan={() => openSheet('labelscan', { hour: sheet?.hour })} />
 
       <LabelScannerSheet open={sheet?.id === 'labelscan'} hour={sheet?.hour} onClose={closeSheet}
         onResult={saveCustomFood} />

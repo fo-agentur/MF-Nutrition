@@ -32,12 +32,18 @@ input, textarea, button { font-family: inherit; }
     user-select: none;
   }
   html { height: 100%; }
-  /* dvh == physical screen in standalone (no browser toolbars); vh is the fallback. */
-  body  { height: 100vh; height: 100dvh; }
-  #root { height: 100vh; height: 100dvh; background: var(--mf-safe-bg); }
+  /* dvh == *visible* viewport (excludes Safari toolbars); -webkit-fill-available
+     is the fallback for older iOS. Plain 100vh would include the collapsed
+     toolbar area in Safari and push the bottom nav half off-screen. */
+  body  { height: 100vh; height: -webkit-fill-available; height: 100dvh; }
+  #root { height: 100vh; height: -webkit-fill-available; height: 100dvh; background: var(--mf-safe-bg); }
 
   .mf-stage {
     height: 100%;
+    /* kit.css sets min-height:100vh for the desktop mock frame. 100vh overshoots
+       the visible viewport in Safari (toolbar), which made the column taller
+       than the screen and cut the bottom nav in half. Kill it on device. */
+    min-height: 0;
     padding: 0;
     background: var(--mf-safe-bg);
     display: block;

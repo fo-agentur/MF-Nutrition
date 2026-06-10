@@ -50,11 +50,9 @@ function WeeklyChart({ mode, selected, onSelect }) {
                 const pct = Math.min(96, scaleMax ? (shown / scaleMax) * 100 : 0);
                 const goalPct = Math.min(94, scaleMax && mode === 'Consumed' ? (goal / scaleMax) * 100 : 0);
                 return (
-                  <div className="mf-chart-bar" key={m.key}>
-                    {pct > 0
-                      ? <div className="mf-chart-fill" style={{ height: pct + '%', background: m.color }} />
-                      : <span className="mf-chart-dash" />
-                    }
+                  <div className={'mf-chart-bar' + (pct > 0 ? '' : ' empty')} key={m.key}>
+                    {pct > 0 && <div className="mf-chart-fill" style={{ height: pct + '%', background: m.color }} />}
+                    {pct <= 0 && goalPct <= 0 && <span className="mf-chart-dash" />}
                     {goalPct > 0 && <span className="mf-chart-goalmark" style={{ bottom: goalPct + '%' }} />}
                   </div>
                 );

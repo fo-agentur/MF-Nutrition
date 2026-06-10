@@ -107,14 +107,14 @@ function smartHistory(state, hour) {
 }
 
 /* ---- Add / Log sheet ------------------------------------ */
-function AddSheet({ open, onClose, hour, onPick, onQuickLog, onQuickAdd, onBarcode, onAI, onLabelScan, onCustomFood }) {
+function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuickAdd, onBarcode, onAIResult, onLabelScan, onCustomFood }) {
   const { state } = useApp();
   const [tab, setTab] = React.useState('Search');
   const [q, setQ] = React.useState('');
   const [customFoods, setCustomFoods] = React.useState([]);
   const tabs = [
     { id: 'Scan', icon: 'scan-barcode' }, { id: 'Search', icon: 'search' },
-    { id: 'AI', icon: 'sparkles' }, { id: 'Label', icon: 'file-text' },
+    { id: 'AI', icon: 'sparkles' },
     { id: 'Quick Add', icon: 'rocket' }, { id: 'Library', icon: 'book-open' },
   ];
   const totals = dayTotals(state, state.selectedDate);
@@ -132,12 +132,12 @@ function AddSheet({ open, onClose, hour, onPick, onQuickLog, onQuickAdd, onBarco
 
   React.useEffect(() => {
     if (open) {
-      setTab('Search');
+      setTab(initialTab || 'Search');
       setQ('');
       setResults([]);
       setCustomFoods(window.getCustomFoods ? window.getCustomFoods() : []);
     }
-  }, [open]);
+  }, [open, initialTab]);
 
   // Live OpenFoodFacts search (debounced)
   React.useEffect(() => {
@@ -158,29 +158,35 @@ function AddSheet({ open, onClose, hour, onPick, onQuickLog, onQuickAdd, onBarco
     </span>
   );
 
+  const kcalPct = Math.max(0, Math.min(100, Math.round((totals.energy / (state.targets.energy || 1)) * 100)));
+
   return (
     <Sheet open={open} onClose={onClose} tall>
       <div className="mf-add-chips">
         <button className="mf-add-chip round" onClick={onClose} aria-label="Close food search"><Icon name="x" size={20} /></button>
         <span className="mf-add-chip">{hourLabel(hour)}</span>
-        <span className="mf-add-chip active mf-num">{totals.energy} / {state.targets.energy}</span>
-        <button className="mf-add-chip round" onClick={() => setTab('Library')} aria-label="Library">
-          <Icon name="utensils" size={18} color="var(--mf-fg-2)" />
-        </button>
-        <button className="mf-add-chip round" onClick={() => { setQ(''); setTab('Search'); }} aria-label="Search">
-          <Icon name="chevron-down" size={20} />
-        </button>
+        <span className="mf-add-chip kcal mf-num" style={{ '--pct': kcalPct }}>{totals.energy} / {state.targets.energy}</span>
+        <span className="mf-add-chip duo">
+          <button className="mf-add-duo-btn" onClick={() => setTab('Library')} aria-label="Library">
+            <Icon name="utensils" size={18} color="var(--mf-fg-3)" />
+          </button>
+          <button className="mf-add-duo-btn" onClick={onClose} aria-label="Collapse">
+            <Icon name="chevron-down" size={20} />
+          </button>
+        </span>
       </div>
       <div className="mf-add-tabs">
         {tabs.map(t => (
           <button key={t.id} className={'mf-add-tab' + (tab === t.id ? ' on' : '')}
-            onClick={() => { if (t.id === 'Quick Add') onQuickAdd(); else if (t.id === 'Scan') onBarcode(); else if (t.id === 'AI') onAI(); else if (t.id === 'Label') onLabelScan(); else setTab(t.id); }}>
+            onClick={() => { if (t.id === 'Quick Add') onQuickAdd(); else if (t.id === 'Scan') onBarcode(); else setTab(t.id); }}>
             <Icon name={t.icon} size={20} />{t.id}
           </button>
         ))}
       </div>
       <div className="mf-add-body">
-        {q.trim().length >= 2 ? (
+        {tab === 'AI' ? (
+          <AIPanel hour={hour} onResult={onAIResult} />
+        ) : q.trim().length >= 2 ? (
           <React.Fragment>
             <div className="mf-add-sec">{searching ? 'Suche…' : results.length + ' Treffer'}</div>
             {results.map(f => <FoodRow key={f.id} food={f} onClick={() => onPick(f, hour)} right={plusBtn(f)} />)}
@@ -228,14 +234,16 @@ function AddSheet({ open, onClose, hour, onPick, onQuickLog, onQuickAdd, onBarco
           </React.Fragment>
         )}
       </div>
-      <div className="mf-add-footer">
-        <div className="mf-add-searchfield">
-          <Icon name="search" size={20} color="var(--mf-fg-2)" />
-          <input className="mf-add-input" placeholder="Search for a food" value={q}
-            onChange={e => setQ(e.target.value)} />
+      {tab !== 'AI' && (
+        <div className="mf-add-footer">
+          <div className="mf-add-searchfield">
+            <Icon name="search" size={20} color="var(--mf-fg-2)" />
+            <input className="mf-add-input" placeholder="Search for a food" value={q}
+              onChange={e => setQ(e.target.value)} />
+          </div>
+          <button className="mf-add-logbtn" onClick={onClose}>Log Foods</button>
         </div>
-        <button className="mf-add-logbtn" onClick={onClose}>Log Foods</button>
-      </div>
+      )}
     </Sheet>
   );
 }
@@ -472,7 +480,7 @@ function FoodLogMenuSheet({ open, onClose, hasEntries, canPaste, onCopyDay, onPa
 }
 
 /* ---- Barcode sheet (simulated) -------------------------- */
-function BarcodeSheet({ open, hour, onClose, onFound }) {
+function BarcodeSheet({ open, hour, onClose, onFound, onLabelScan }) {
   const videoRef = React.useRef(null);
   const doneRef = React.useRef(false);
   const [status, setStatus] = React.useState('scanning'); // scanning|searching|notfound|error
@@ -518,6 +526,11 @@ function BarcodeSheet({ open, hour, onClose, onFound }) {
           <div className="mf-scan-hint">{hint}</div>
           {(status === 'notfound' || status === 'error') && (
             <button className="mf-pill" onClick={begin}><Icon name="rotate-ccw" size={18} /> Erneut versuchen</button>
+          )}
+          {onLabelScan && (
+            <button className="mf-pill" onClick={onLabelScan}>
+              <Icon name="file-text" size={18} /> Nährwert-Label scannen
+            </button>
           )}
         </div>
       </div>
@@ -613,7 +626,7 @@ function aiFoodToAppFood(food, task = 'meal') {
   };
 }
 
-function AISheet({ open, hour, onClose, onResult }) {
+function AIPanel({ hour, onResult }) {
   const [text, setText] = React.useState('');
   const [imageData, setImageData] = React.useState('');
   const [busy, setBusy] = React.useState(false);
@@ -621,16 +634,6 @@ function AISheet({ open, hour, onClose, onResult }) {
   const [listening, setListening] = React.useState(false);
   const recognitionRef = React.useRef(null);
   const speechBaseRef = React.useRef('');
-
-  React.useEffect(() => {
-    if (!open) return;
-    setText('');
-    setImageData('');
-    setBusy(false);
-    setError('');
-    setListening(false);
-    if (recognitionRef.current) recognitionRef.current.stop();
-  }, [open]);
 
   React.useEffect(() => () => {
     if (recognitionRef.current) recognitionRef.current.stop();
@@ -709,34 +712,32 @@ function AISheet({ open, hour, onClose, onResult }) {
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="AI" headerRight={<Icon name="sparkles" size={20} />}>
-      <div className="mf-ai">
-        <div className="mf-ai-prompt">Beschreibe deine Mahlzeit, sprich sie ein, oder lade ein Foto hoch.</div>
-        <div className="mf-ai-tools">
-          <label className={'mf-ai-photo' + (imageData ? ' on' : '')}>
-            <Icon name={imageData ? 'image-check' : 'camera'} size={20} />
-            {imageData ? 'Foto bereit' : 'Foto'}
-            <input type="file" accept="image/*" onChange={onImage} />
-          </label>
-          <button className={'mf-ai-photo' + (listening ? ' on' : '')} type="button" onClick={toggleSpeech} aria-pressed={listening}>
-            <Icon name={listening ? 'mic-off' : 'mic'} size={20} />
-            {listening ? 'Hört zu' : 'Sprache'}
-          </button>
-        </div>
-        <textarea className="mf-ai-input" rows="3" placeholder="z. B. Skyr mit Banane und Honig"
-          value={text} onChange={e => setText(e.target.value)} />
-        <div className="mf-ai-samples">
-          {samples.map(s => <button key={s} className="mf-ai-chip" onClick={() => setText(s)}>{s}</button>)}
-        </div>
-        {error && <div className="mf-ai-error">{error}</div>}
+    <div className="mf-ai mf-ai-panel">
+      <div className="mf-ai-prompt">Beschreibe deine Mahlzeit, sprich sie ein, oder lade ein Foto hoch.</div>
+      <div className="mf-ai-tools">
+        <label className={'mf-ai-photo' + (imageData ? ' on' : '')}>
+          <Icon name={imageData ? 'image-check' : 'camera'} size={20} />
+          {imageData ? 'Foto bereit' : 'Foto'}
+          <input type="file" accept="image/*" onChange={onImage} />
+        </label>
+        <button className={'mf-ai-photo' + (listening ? ' on' : '')} type="button" onClick={toggleSpeech} aria-pressed={listening}>
+          <Icon name={listening ? 'mic-off' : 'mic'} size={20} />
+          {listening ? 'Hört zu' : 'Sprache'}
+        </button>
       </div>
-      <div className="mf-detail-actions">
+      <textarea className="mf-ai-input" rows="3" placeholder="z. B. Skyr mit Banane und Honig"
+        value={text} onChange={e => setText(e.target.value)} />
+      <div className="mf-ai-samples">
+        {samples.map(s => <button key={s} className="mf-ai-chip" onClick={() => setText(s)}>{s}</button>)}
+      </div>
+      {error && <div className="mf-ai-error">{error}</div>}
+      <div className="mf-ai-actionrow">
         <button className="mf-detail-log" onClick={analyze} disabled={busy || (!text.trim() && !imageData)}
           style={{ opacity: busy || (!text.trim() && !imageData) ? 0.5 : 1 }}>
           {busy ? 'Analysiere…' : 'Makros schätzen'}
         </button>
       </div>
-    </Sheet>
+    </div>
   );
 }
 
@@ -863,6 +864,6 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
 }
 
 Object.assign(window, {
-  Sheet, AddSheet, FoodDetailSheet, QuickAddSheet, CustomFoodSheet, FoodLogMenuSheet, BarcodeSheet, AISheet, LabelScannerSheet,
+  Sheet, AddSheet, FoodDetailSheet, QuickAddSheet, CustomFoodSheet, FoodLogMenuSheet, BarcodeSheet, AIPanel, LabelScannerSheet,
   buildEntry, HH, hourLabel, MacroDonut, analyzeFoodViaApi,
 });

@@ -417,6 +417,24 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-add-chip { display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: var(--mf-surface-3); border: 0; border-radius: 999px; color: #fff; font-family: inherit; font-size: 15px; font-weight: 600; padding: 9px 16px; cursor: pointer; }
 .mf-add-chip.round { width: 40px; height: 40px; padding: 0; flex: none; }
 .mf-add-chip.active { border: 1.5px solid var(--mf-energy); }
+/* kcal chip: partial progress ring along the pill edge (starts top, --pct 0-100) */
+.mf-add-chip.kcal { position: relative; }
+.mf-add-chip.kcal::before {
+  content: ''; position: absolute; inset: 0; border-radius: 999px; padding: 2px;
+  background: conic-gradient(from 0deg, var(--mf-energy) calc(var(--pct, 0) * 1%), transparent 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          mask-composite: exclude;
+  pointer-events: none;
+}
+/* utensils + collapse arrow combined in one wide pill (like the original) */
+.mf-add-chip.duo { padding: 0; margin-left: auto; overflow: hidden; }
+.mf-add-duo-btn {
+  background: none; border: 0; color: #fff; font-family: inherit; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 40px; padding: 0;
+}
 .mf-add-tabs { display: flex; gap: 18px; padding: 4px 18px 0; overflow-x: auto; overflow-y: hidden; flex: none; border-bottom: 1px solid var(--mf-hairline); max-width: 100%; contain: paint; }
 .mf-add-tabs::-webkit-scrollbar { height: 0; }
 .mf-add-tab { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--mf-fg-2); font-family: inherit; font-size: 15px; font-weight: 500; padding: 10px 2px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
@@ -622,6 +640,10 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   margin-top: 12px; color: #F2A98F; background: rgba(239,106,69,.14);
   border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.3;
 }
+/* AI rendered inline as a tab of the add sheet */
+.mf-ai-panel { padding: 16px 0 8px; }
+.mf-ai-actionrow { margin-top: 16px; }
+.mf-ai-actionrow .mf-detail-log { width: 100%; }
 
 /* ============================================================
    Weight keypad
@@ -836,20 +858,27 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 }
 .mf-dashboard-screen .mf-chart-bar {
   min-height: 30px;
-  border-radius: 3px;
+  border-radius: 6px;
   background: #202023;
+  /* original: narrow track centered in a wider tap column */
+  width: 20px;
+  align-self: center;
 }
 .mf-dashboard-screen .mf-chart-fill {
-  width: 12px;
-  border-radius: 0;
+  width: 8px;
+  border-radius: 2px 2px 0 0;
 }
 .mf-dashboard-screen .mf-chart-goalmark {
-  width: 14px;
-  height: 3px;
+  width: 12px;
+  height: 2px;
+}
+/* empty day: only the goal tick remains, in gray */
+.mf-dashboard-screen .mf-chart-bar.empty .mf-chart-goalmark {
+  background: #6f6f70;
 }
 .mf-dashboard-screen .mf-chart-dash {
-  width: 14px;
-  height: 3px;
+  width: 12px;
+  height: 2px;
   background: #6f6f70;
 }
 .mf-dashboard-screen .mf-chart-meta {

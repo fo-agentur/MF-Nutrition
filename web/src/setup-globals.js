@@ -27,3 +27,24 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', syncAppViewportHeight, { passive: true });
   window.visualViewport.addEventListener('scroll', syncAppViewportHeight, { passive: true });
 }
+
+/* iOS keyboard bug: when an input near the bottom is focused, iOS scrolls the
+   whole window up and often leaves it there after the keyboard closes. With an
+   overflow:hidden shell this shows as "the app is shifted up / the bottom nav is
+   half cut off". Snap the window back whenever the keyboard goes away. */
+function snapWindowBack() {
+  if (window.scrollY || document.documentElement.scrollTop) {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }
+}
+document.addEventListener('focusout', () => { setTimeout(snapWindowBack, 50); }, true);
+if (window.visualViewport) {
+  let lastH = window.visualViewport.height;
+  window.visualViewport.addEventListener('resize', () => {
+    // keyboard closed -> viewport grew back -> restore scroll
+    if (window.visualViewport.height > lastH) snapWindowBack();
+    lastH = window.visualViewport.height;
+  }, { passive: true });
+}
