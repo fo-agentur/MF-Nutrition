@@ -1141,8 +1141,10 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-program-chip small { display: block; margin-top: 3px; font-size: 11px; font-weight: 500; color: var(--mf-fg-3); line-height: 1.15; }
 .mf-program-chip.on { background: #f4f1ec; color: #111; border-color: #f4f1ec; }
 .mf-program-chip.on span, .mf-program-chip.on small { color: #111; }
+/* Dock + nav are in-flow flex siblings below the scroller, so it needs no
+   fixed-overlay clearance — the old 112px left a dead strip after the content. */
 .mf-strategy-screen .mf-scroll {
-  padding: 0 18px calc(112px + env(safe-area-inset-bottom));
+  padding: 0 18px 24px;
 }
 .mf-strategy-head {
   padding-top: 8px;
@@ -1161,7 +1163,11 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
   margin-top: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0 0 2px;
+  /* Bleed to the screen edge so scrolled-out chips clip at the edge instead
+     of being cut hard at the content inset. */
+  margin-left: -18px;
+  margin-right: -18px;
+  padding: 0 18px 2px;
   scrollbar-width: none;
   flex-wrap: nowrap;
 }
