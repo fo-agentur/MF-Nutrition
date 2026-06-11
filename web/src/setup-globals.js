@@ -28,13 +28,15 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('scroll', syncAppViewportHeight, { passive: true });
 }
 
-/* Installed-PWA shell height. In standalone the WKWebView is exactly
-   fullscreen, but iOS regularly reports a SHORT layout viewport (launch bug),
-   and position:fixed/inset:0 inherits that short height — the shell then ends
-   ~60-100px above the screen bottom and the body background shows as a dead
-   band under the nav. screen.height is exact in standalone (no browser
-   chrome), so pin the shell to it. Never applied in Safari browser mode,
-   where toolbars legitimately shrink the viewport. */
+/* Installed-PWA shell height. iOS regularly reports a SHORT layout viewport
+   at launch (innerHeight lags), and position:fixed/inset:0 inherits that
+   short height — the shell then ends well above the screen bottom and a dead
+   band shows under the nav. screen.height is no good either: on modern iOS
+   the standalone webview starts BELOW the opaque status bar, so the full
+   screen height overshoots and the nav gets clipped. visualViewport.height
+   is the one value that reflects the REAL visible webview on every device —
+   measure it (guarded by innerHeight) and pin the shell to it. Never applied
+   in Safari browser mode, where toolbars legitimately shrink the viewport. */
 function isStandalone() {
   return navigator.standalone === true
     || (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches);
@@ -44,13 +46,20 @@ function syncShellHeight() {
     document.documentElement.style.removeProperty('--mf-shell-h');
     return;
   }
-  const h = Math.max(window.innerHeight || 0, (window.screen && window.screen.height) || 0);
-  if (h) document.documentElement.style.setProperty('--mf-shell-h', `${h}px`);
+  const vv = window.visualViewport;
+  const h = Math.max((vv && vv.height) || 0, window.innerHeight || 0);
+  if (h) document.documentElement.style.setProperty('--mf-shell-h', `${Math.round(h)}px`);
 }
 syncShellHeight();
+// The misreported viewport often corrects itself shortly after launch — re-measure.
+setTimeout(syncShellHeight, 300);
+setTimeout(syncShellHeight, 1000);
 window.addEventListener('resize', syncShellHeight, { passive: true });
 window.addEventListener('orientationchange', () => setTimeout(syncShellHeight, 250), { passive: true });
 window.addEventListener('pageshow', syncShellHeight);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', syncShellHeight, { passive: true });
+}
 
 /* iOS keyboard bug: when an input near the bottom is focused, iOS scrolls the
    whole window up and often leaves it there after the keyboard closes. With an
