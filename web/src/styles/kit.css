@@ -543,6 +543,14 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-detail-macros { display: flex; justify-content: space-around; padding: 8px 0 18px; }
 .mf-detail-macro { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .mf-detail-macrolbl { font-size: 13px; color: var(--mf-fg-2); }
+
+/* ---- AI estimate extras (fiber/sugar, components, low-confidence hint) ---- */
+.mf-detail-ai-extras { display: flex; justify-content: center; gap: 8px; font-size: 13px; color: var(--mf-fg-2); padding: 0 0 12px; }
+.mf-detail-ai-dot { color: var(--mf-fg-3); }
+.mf-detail-ai-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 0 0 14px; }
+.mf-detail-ai-item { font-size: 12px; color: var(--mf-fg-2); background: var(--mf-surface-3); border-radius: 999px; padding: 5px 11px; }
+.mf-detail-ai-item b { font-weight: 700; color: var(--mf-fg); }
+.mf-detail-ai-hint { font-size: 13px; color: var(--mf-fat, #F2BE3F); background: rgba(242, 190, 63, .1); border-radius: 12px; padding: 10px 14px; text-align: center; margin-bottom: 14px; }
 .mf-detail-field { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--mf-hairline); }
 .mf-detail-fieldlbl { font-size: 17px; font-weight: 500; }
 .mf-stepper, .mf-timepick { display: flex; align-items: center; gap: 14px; background: var(--mf-surface-3); border-radius: 999px; padding: 6px; }

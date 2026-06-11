@@ -25,14 +25,20 @@ function allowedModel(model) {
   return DEFAULT_MODEL;
 }
 
-// Build an ordered fallback list of free models. A caller-supplied free model is
-// tried first; the curated free vision list follows so a single model outage or
-// rate-limit doesn't break logging. OpenRouter walks this list until one responds
-// and rejects requests with more than 3 models, so cap the chain there.
-function modelChain(model) {
-  const preferred = text(model);
+// Build an ordered fallback list of models. The server-side OPENROUTER_MODEL env
+// var is trusted and may name any (also paid) model — set it to e.g.
+// "google/gemini-2.5-flash" for far better food/portion recognition than the
+// free tier. A caller-supplied model is only honored if it is free (clients
+// must not be able to run up costs). The curated free vision list follows so a
+// single model outage or rate-limit doesn't break logging. OpenRouter walks
+// this list until one responds and rejects requests with more than 3 models,
+// so cap the chain there.
+function modelChain(clientModel) {
   const chain = [];
-  if (preferred && (preferred === 'openrouter/free' || preferred.endsWith(':free'))) chain.push(preferred);
+  const envModel = text(process.env.OPENROUTER_MODEL);
+  if (envModel) chain.push(envModel);
+  const preferred = text(clientModel);
+  if (preferred && (preferred === 'openrouter/free' || preferred.endsWith(':free')) && !chain.includes(preferred)) chain.push(preferred);
   for (const m of FREE_VISION_MODELS) if (!chain.includes(m)) chain.push(m);
   return chain.slice(0, 3);
 }
@@ -67,6 +73,14 @@ function normalizeFood(json, task = 'meal') {
   const unit = explicitGramServing != null
     ? 'g'
     : (text(json.unit, serving ? 'g' : 'serving').slice(0, 12) || 'g');
+  const confidenceRaw = text(json.confidence).toLowerCase();
+  const confidence = ['low', 'medium', 'high'].includes(confidenceRaw) ? confidenceRaw : null;
+  const items = Array.isArray(json.items)
+    ? json.items
+        .slice(0, 5)
+        .map((it) => ({ name: text(it && it.name).slice(0, 40), grams: number(it && it.grams) }))
+        .filter((it) => it.name)
+    : [];
   return {
     name: text(json.name ?? json.meal ?? json.product, isLabel ? 'Scanned Label' : 'AI Meal').slice(0, 80),
     brand: text(json.brand, isLabel ? 'Nutrition Label' : visualGramServing != null ? 'AI Portion Estimate' : 'AI Estimate').slice(0, 80),
@@ -76,6 +90,10 @@ function normalizeFood(json, task = 'meal') {
     protein: number(json.protein ?? json.protein_g),
     fat: number(json.fat ?? json.fat_g),
     carb: number(json.carb ?? json.carbs ?? json.carbs_g ?? json.carbohydrates),
+    fiber: number(json.fiber ?? json.fiber_g ?? json.fibre),
+    sugar: number(json.sugar ?? json.sugar_g),
+    confidence,
+    items,
   };
 }
 
@@ -118,11 +136,19 @@ function promptFor(task, userText) {
   }
 
   return [
-    'Estimate nutrition for this food or meal from the text and/or image.',
-    'Estimate the visible edible portion size in grams from plate, bowl, hand, package, and context clues.',
-    'If the user gives an amount, convert it to grams when possible; if uncertain, choose a realistic single best estimate.',
-    'Return keys: name, estimated_grams, unit, energy, protein, fat, carb.',
-    'If a nutrition label is visible, read it; otherwise estimate realistically for the estimated portion.',
+    'You are a nutrition estimation engine for a food tracking app.',
+    'Identify the food or meal from the image and/or text, then estimate the edible portion size in grams YOURSELF',
+    'using visual cues: plate (~26 cm) or bowl size, cutlery, hands, packaging, typical serving sizes.',
+    'Never ask the user for the amount — always commit to one realistic best estimate.',
+    'If the user states an amount, convert it to grams. If a nutrition label is visible, read it.',
+    'Return keys:',
+    'name (short dish name in German, e.g. "Hähnchen mit Reis und Gemüse"),',
+    'estimated_grams (integer, total edible portion),',
+    'energy (kcal for the WHOLE portion), protein, carb, fat (grams for the WHOLE portion),',
+    'fiber, sugar (grams for the whole portion, best estimate),',
+    'confidence ("low", "medium" or "high" — how certain identification AND portion size are),',
+    'items (array of the main components as {"name": string, "grams": integer}, max 5, [] if a single food).',
+    'Typical cooked portions for sanity: rice/pasta side 150-250g, meat 120-220g, full restaurant plate 350-550g.',
     base,
     `Context: ${userText || 'photo only'}`,
   ].join(' ');
@@ -161,10 +187,10 @@ async function callOpenRouter({ task, text: userText, imageData, model }) {
       // omitted: several free vision models reject json_object mode outright, which
       // was the main cause of "photo analysis sometimes does nothing". The prompt
       // demands raw JSON and extractJsonObject() strips any markdown fences.
-      models: modelChain(model || process.env.OPENROUTER_MODEL),
+      models: modelChain(model),
       messages: [{ role: 'user', content }],
       temperature: 0.1,
-      max_tokens: 700,
+      max_tokens: 900,
     }),
   });
 

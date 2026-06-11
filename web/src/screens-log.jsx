@@ -309,6 +309,26 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
           ))}
         </div>
 
+        {food.aiMeta && (food.aiMeta.fiber > 0 || food.aiMeta.sugar > 0) && (
+          <div className="mf-detail-ai-extras mf-num">
+            {food.aiMeta.fiber > 0 && <span>Ballaststoffe ca. {Math.round(food.aiMeta.fiber * qtyNum / food.per)} g</span>}
+            {food.aiMeta.fiber > 0 && food.aiMeta.sugar > 0 && <span className="mf-detail-ai-dot">·</span>}
+            {food.aiMeta.sugar > 0 && <span>Zucker ca. {Math.round(food.aiMeta.sugar * qtyNum / food.per)} g</span>}
+          </div>
+        )}
+        {food.aiMeta && food.aiMeta.items.length > 1 && (
+          <div className="mf-detail-ai-items">
+            {food.aiMeta.items.map((it, i) => (
+              <span className="mf-detail-ai-item" key={i}>
+                {it.name}{it.grams > 0 ? <b className="mf-num"> {it.grams}g</b> : null}
+              </span>
+            ))}
+          </div>
+        )}
+        {food.aiMeta && food.aiMeta.confidence === 'low' && (
+          <div className="mf-detail-ai-hint">Unsichere Erkennung — prüfe kurz Gericht &amp; Portion.</div>
+        )}
+
         <div className="mf-detail-field">
           <span className="mf-detail-fieldlbl">Quantity</span>
           <div className="mf-stepper">
@@ -608,21 +628,39 @@ async function analyzeFoodViaApi({ task = 'meal', text = '', imageData = '' }) {
   return data;
 }
 
+const AI_CONFIDENCE_DE = { low: 'niedrig', medium: 'mittel', high: 'hoch' };
+
 function aiFoodToAppFood(food, task = 'meal') {
   const f = food || {};
+  const per = Math.max(1, Math.round(Number(f.per || 1) || 1));
+  const unit = String(f.unit || 'g').slice(0, 12) || 'g';
+  const confidence = AI_CONFIDENCE_DE[f.confidence] ? f.confidence : null;
+  // Brand doubles as the subtitle in the detail sheet: surface the AI's own
+  // portion estimate + how sure it is, so the gram stepper is just an
+  // optional correction, not a required step.
+  const brand = task === 'label'
+    ? String(f.brand || 'Nutrition Label').slice(0, 80)
+    : ['KI-Schätzung', unit === 'g' ? `ca. ${per} g` : null, confidence ? `Sicherheit ${AI_CONFIDENCE_DE[confidence]}` : null]
+        .filter(Boolean).join(' · ');
   return {
     id: (task === 'label' ? 'label-' : 'ai-') + Date.now(),
     name: String(f.name || (task === 'label' ? 'Scanned Label' : 'AI Meal')).slice(0, 80),
-    brand: String(f.brand || (task === 'label' ? 'Nutrition Label' : 'AI Estimate')).slice(0, 80),
+    brand,
     icon: task === 'label' ? 'file-text' : 'sparkles',
     color: task === 'label' ? MF.teal : MF.purple,
-    per: Math.max(1, Math.round(Number(f.per || 1) || 1)),
-    unit: String(f.unit || 'g').slice(0, 12) || 'g',
+    per,
+    unit,
     energy: Math.max(0, Math.round(Number(f.energy) || 0)),
     protein: Math.max(0, Math.round(Number(f.protein) || 0)),
     fat: Math.max(0, Math.round(Number(f.fat) || 0)),
     carb: Math.max(0, Math.round(Number(f.carb) || 0)),
     fav: false,
+    aiMeta: task === 'label' ? null : {
+      confidence,
+      fiber: Math.max(0, Math.round(Number(f.fiber) || 0)),
+      sugar: Math.max(0, Math.round(Number(f.sugar) || 0)),
+      items: Array.isArray(f.items) ? f.items.filter(it => it && it.name).slice(0, 5) : [],
+    },
   };
 }
 
