@@ -407,6 +407,7 @@ function AIPlateSheet({ open, food, hour, onClose, onLog }) {
             <div className="mf-aiplate-name">{food.name}</div>
             <div className="mf-aiplate-sub mf-num">
               {m.energy}<span className="e">🔥</span> {m.protein}P {m.fat}F {m.carb}C
+              {meta.servingLabel ? <span> · {meta.servingLabel}</span> : null}
             </div>
           </div>
           <div className="mf-aiplate-qty">
@@ -771,6 +772,7 @@ function aiFoodToAppFood(food, task = 'meal') {
       confidence,
       fiber: Math.max(0, Math.round(Number(f.fiber) || 0)),
       sugar: Math.max(0, Math.round(Number(f.sugar) || 0)),
+      servingLabel: String(f.servingLabel || '').slice(0, 30),
       items: Array.isArray(f.items) ? f.items.filter(it => it && it.name).slice(0, 5) : [],
     },
   };

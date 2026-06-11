@@ -1,5 +1,12 @@
 const DEFAULT_MODEL = 'openrouter/free';
-// Current free, vision-capable OpenRouter models (verified Jun 2026), tried in order.
+// Strongest free vision models to TRY first (ids may rotate on OpenRouter —
+// any failure falls back to the verified chain below within the same request).
+const CANDIDATE_VISION_MODELS = [
+  'qwen/qwen2.5-vl-72b-instruct:free',
+  'meta-llama/llama-4-maverick:free',
+  'google/gemma-4-31b-it:free',
+];
+// Verified free, vision-capable OpenRouter models (verified Jun 2026), tried in order.
 // `openrouter/free` is the auto-router fallback that picks any available free model.
 const FREE_VISION_MODELS = [
   'google/gemma-4-31b-it:free',
@@ -39,8 +46,14 @@ function modelChain(clientModel) {
   if (envModel) chain.push(envModel);
   const preferred = text(clientModel);
   if (preferred && (preferred === 'openrouter/free' || preferred.endsWith(':free')) && !chain.includes(preferred)) chain.push(preferred);
-  for (const m of FREE_VISION_MODELS) if (!chain.includes(m)) chain.push(m);
+  for (const m of CANDIDATE_VISION_MODELS) if (!chain.includes(m)) chain.push(m);
   return chain.slice(0, 3);
+}
+
+// Last-resort chain of ids that are known-good; used when the candidate chain
+// fails as a whole (e.g. a rotated/retired model id makes the request invalid).
+function fallbackChain() {
+  return FREE_VISION_MODELS.slice(0, 3);
 }
 
 function validImageDataUrl(value) {
@@ -93,6 +106,7 @@ function normalizeFood(json, task = 'meal') {
     fiber: number(json.fiber ?? json.fiber_g ?? json.fibre),
     sugar: number(json.sugar ?? json.sugar_g),
     confidence,
+    servingLabel: text(json.serving_label ?? json.servingLabel).slice(0, 30),
     items,
   };
 }
@@ -147,6 +161,7 @@ function promptFor(task, userText) {
     'energy (kcal for the WHOLE portion), protein, carb, fat (grams for the WHOLE portion),',
     'fiber, sugar (grams for the whole portion, best estimate),',
     'confidence ("low", "medium" or "high" — how certain identification AND portion size are),',
+    'serving_label (short German label when the portion is countable, e.g. "6 Scheiben", "2 Eier", "1 Teller", else ""),',
     'items (array of the main components as {"name": string, "grams": integer}, max 5, [] if a single food).',
     'Typical cooked portions for sanity: rice/pasta side 150-250g, meat 120-220g, full restaurant plate 350-550g.',
     base,
@@ -163,17 +178,7 @@ async function readBody(req) {
   return raw ? JSON.parse(raw) : {};
 }
 
-async function callOpenRouter({ task, text: userText, imageData, model }) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    const err = new Error('OPENROUTER_API_KEY is not configured');
-    err.statusCode = 500;
-    throw err;
-  }
-
-  const content = [{ type: 'text', text: promptFor(task, userText) }];
-  if (imageData) content.push({ type: 'image_url', image_url: { url: imageData } });
-
+async function requestChat({ models, content, apiKey }) {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -187,13 +192,12 @@ async function callOpenRouter({ task, text: userText, imageData, model }) {
       // omitted: several free vision models reject json_object mode outright, which
       // was the main cause of "photo analysis sometimes does nothing". The prompt
       // demands raw JSON and extractJsonObject() strips any markdown fences.
-      models: modelChain(model),
+      models,
       messages: [{ role: 'user', content }],
       temperature: 0.1,
       max_tokens: 900,
     }),
   });
-
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const err = new Error(data.error?.message || `OpenRouter request failed (${response.status})`);
@@ -201,6 +205,29 @@ async function callOpenRouter({ task, text: userText, imageData, model }) {
     throw err;
   }
   return extractJsonObject(data.choices?.[0]?.message?.content || '');
+}
+
+async function callOpenRouter({ task, text: userText, imageData, model }) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    const err = new Error('OPENROUTER_API_KEY is not configured');
+    err.statusCode = 500;
+    throw err;
+  }
+
+  const content = [{ type: 'text', text: promptFor(task, userText) }];
+  if (imageData) content.push({ type: 'image_url', image_url: { url: imageData } });
+
+  // Strong candidates first; if the whole request fails (retired model id,
+  // rate limit across the chain, …) retry once with the verified chain.
+  const primary = modelChain(model);
+  const fallback = fallbackChain();
+  try {
+    return await requestChat({ models: primary, content, apiKey });
+  } catch (err) {
+    if (JSON.stringify(primary) === JSON.stringify(fallback)) throw err;
+    return requestChat({ models: fallback, content, apiKey });
+  }
 }
 
 async function handler(req, res) {

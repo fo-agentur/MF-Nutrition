@@ -48,6 +48,7 @@ test('normalizeFood maps common macro aliases to app food shape', () => {
       fiber: 0,
       sugar: 0,
       confidence: null,
+      servingLabel: '',
       items: [],
     },
   );
@@ -76,6 +77,7 @@ test('normalizeFood prefers explicit visual portion gram estimates', () => {
       fiber: 0,
       sugar: 0,
       confidence: null,
+      servingLabel: '',
       items: [],
     },
   );

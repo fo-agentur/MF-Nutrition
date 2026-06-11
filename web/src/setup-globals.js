@@ -28,26 +28,51 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('scroll', syncAppViewportHeight, { passive: true });
 }
 
-/* Installed-PWA shell height. iOS regularly reports a SHORT layout viewport
-   at launch (innerHeight lags), and position:fixed/inset:0 inherits that
-   short height — the shell then ends well above the screen bottom and a dead
-   band shows under the nav. screen.height is no good either: on modern iOS
-   the standalone webview starts BELOW the opaque status bar, so the full
-   screen height overshoots and the nav gets clipped. visualViewport.height
-   is the one value that reflects the REAL visible webview on every device —
-   measure it (guarded by innerHeight) and pin the shell to it. Never applied
-   in Safari browser mode, where toolbars legitimately shrink the viewport. */
+/* Installed-PWA shell height. Three facts, established by on-device pixel
+   measurement: (1) the page PAINTS across the whole webview, (2) on modern
+   iOS the standalone webview starts BELOW the opaque status bar and reaches
+   the physical screen bottom, (3) the reported viewport (innerHeight AND
+   visualViewport) comes up short by exactly TWICE the status-bar height —
+   iOS insets the window by the bar and then subtracts it from the viewport
+   again. screen.height alone overshoots by one bar height (nav got clipped),
+   the reported value undershoots by one (dead band under the nav). So:
+   real webview height = screen.height − (screen.height − reported)/2.
+   A translucent/fullscreen install is detected via env(safe-area-inset-top)
+   and gets the full screen height. Never applied in Safari browser mode. */
 function isStandalone() {
   return navigator.standalone === true
     || (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches);
+}
+function measureEnvTop() {
+  try {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:0;left:0;height:0;padding-top:env(safe-area-inset-top);visibility:hidden;pointer-events:none;';
+    document.documentElement.appendChild(el);
+    const v = parseFloat(getComputedStyle(el).paddingTop) || 0;
+    el.remove();
+    return v;
+  } catch (e) { return 0; }
+}
+function computeShellHeight() {
+  const vv = window.visualViewport;
+  const reported = Math.max((vv && vv.height) || 0, window.innerHeight || 0);
+  const sh = (window.screen && window.screen.height) || 0;
+  if (!sh || !reported) return reported;
+  // Webview position on screen, when the browser exposes it: the most direct truth.
+  const sy = window.screenY || window.screenTop || 0;
+  if (sy > 16 && sy < 120 && sh - sy >= reported) return sh - sy;
+  const diff = sh - reported;
+  if (diff <= 24 || diff >= 160) return reported;          // plausible value / keyboard open
+  if (measureEnvTop() >= 24) return sh;                     // fullscreen webview, viewport just lags
+  if (diff >= 80) return sh - Math.round(diff / 2);         // status bar subtracted twice
+  return reported;                                          // opaque bar, viewport already correct
 }
 function syncShellHeight() {
   if (!isStandalone()) {
     document.documentElement.style.removeProperty('--mf-shell-h');
     return;
   }
-  const vv = window.visualViewport;
-  const h = Math.max((vv && vv.height) || 0, window.innerHeight || 0);
+  const h = computeShellHeight();
   if (h) document.documentElement.style.setProperty('--mf-shell-h', `${Math.round(h)}px`);
 }
 syncShellHeight();
