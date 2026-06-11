@@ -434,7 +434,7 @@ function AccountScreen({ onBack }) {
         <div className="mf-avatar">{state.profile.initials}</div>
         <div className="mf-profile-who">
           <div className="mf-profile-name">{state.profile.name}</div>
-          <div className="mf-profile-sub">Member Since {state.profile.memberSince}</div>
+          <div className="mf-profile-sub">Mitglied seit {state.profile.memberSince}</div>
         </div>
       </div>
       <div className="mf-setcard">

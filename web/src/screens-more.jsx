@@ -49,12 +49,12 @@ function programColsFor(targets, program) {
   });
 }
 function goalLabel(goal) {
-  if (!goal || goal.type === 'maintain') return 'Weight Maintenance Goal';
-  return goal.type === 'lose' ? 'Weight Loss Goal' : 'Weight Gain Goal';
+  if (!goal || goal.type === 'maintain') return 'Ziel: Gewicht halten';
+  return goal.type === 'lose' ? 'Ziel: Abnehmen' : 'Ziel: Zunehmen';
 }
 function goalEta(state) {
   const goal = state.goal || {};
-  if (goal.type === 'maintain') return 'Maintaining';
+  if (goal.type === 'maintain') return 'Gewicht halten';
   const current = latestWeight(state);
   const target = Number(goal.targetWeight);
   const rate = Math.abs(Number(goal.rateKgPerWeek) || 0);
@@ -71,7 +71,7 @@ function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onRe
   const mode = PROGRAM_MODES.find(([id]) => id === settings.mode) || PROGRAM_MODES[0];
   const program = {
     name: `${mode[1]} Program`,
-    range: '26. Mai - Now',
+    range: '26. Mai – heute',
     cols: programColsFor(t, settings),
   };
   const goal = state.goal || { type: 'gain', targetWeight: 75, rateKgPerWeek: 0.21 };
@@ -101,12 +101,12 @@ function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onRe
     <div className="mf-screen mf-strategy-screen">
       <div className="mf-scroll">
         <div className="mf-strategy-head">
-          <div className="mf-strategy-navtitle">Strategy</div>
+          <div className="mf-strategy-navtitle">Strategie</div>
           <div className="mf-strategy-top-actions">
-            <button className="mf-pill mf-strategy-action primary" onClick={onCheckIn}><Icon name="calendar-check" size={15} />Check In Early</button>
-            <button className="mf-pill mf-strategy-action" onClick={onNewGoal}><Icon name="plus" size={16} />New Goal</button>
-            <button className="mf-pill mf-strategy-action" onClick={onEditGoal}><Icon name="pencil" size={15} />Edit Goal</button>
-            <button className="mf-pill mf-strategy-action" onClick={() => setProgram(window.DEFAULT_PROGRAM || {})}><Icon name="rotate-cw" size={15} />New Program</button>
+            <button className="mf-pill mf-strategy-action primary" onClick={onCheckIn}><Icon name="calendar-check" size={15} />Früher einchecken</button>
+            <button className="mf-pill mf-strategy-action" onClick={onNewGoal}><Icon name="plus" size={16} />Neues Ziel</button>
+            <button className="mf-pill mf-strategy-action" onClick={onEditGoal}><Icon name="pencil" size={15} />Ziel bearbeiten</button>
+            <button className="mf-pill mf-strategy-action" onClick={() => setProgram(window.DEFAULT_PROGRAM || {})}><Icon name="rotate-cw" size={15} />Neues Programm</button>
           </div>
         </div>
 
@@ -114,17 +114,17 @@ function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onRe
         <div className="mf-checkin-wrap">
           <button className="mf-checkin" onClick={onCheckIn}>
             <span className="mf-checkin-days mf-num">2</span>
-            <span className="mf-checkin-t">days</span>
-            <span className="mf-checkin-s">until next</span>
+            <span className="mf-checkin-t">Tage</span>
+            <span className="mf-checkin-s">bis zum Check-In</span>
           </button>
           <div className="mf-checkin-legend" aria-hidden="true">
-            <span><i className="goal" />Goal</span>
+            <span><i className="goal" />Ziel</span>
             <span><i className="check" />Check-In</span>
           </div>
         </div>
 
         {/* In Progress */}
-        <div className="mf-h2" style={{ marginBottom: 12 }}>In Progress</div>
+        <div className="mf-h2" style={{ marginBottom: 12 }}>Aktive Ziele</div>
         <div className="mf-program">
           <div className="mf-program-head">
             <div>
@@ -149,7 +149,7 @@ function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onRe
           </div>
           <div className="mf-prog-legend">
             <span><i className="p" />Protein</span>
-            <span><i className="f" />Fat</span>
+            <span><i className="f" />Fett</span>
             <span><i className="c" />Carbs</span>
           </div>
         </div>
@@ -173,14 +173,14 @@ function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onRe
             </div>
           </div>
           <div className="mf-strategy-pills" style={{ marginTop: 14, borderTop: '1px solid var(--mf-hairline)', paddingTop: 14, marginBottom: 0 }}>
-            <button className="mf-pill" onClick={onNewGoal}><Icon name="plus" size={15} />New Goal</button>
-            <button className="mf-pill" onClick={onEditGoal}><Icon name="pencil" size={14} />Edit Goal</button>
+            <button className="mf-pill" onClick={onNewGoal}><Icon name="plus" size={15} />Neues Ziel</button>
+            <button className="mf-pill" onClick={onEditGoal}><Icon name="pencil" size={14} />Ziel bearbeiten</button>
             <button className="mf-pill" onClick={onReopenGoal}><Icon name="undo-2" size={14} />Reopen Prev</button>
           </div>
         </div>
 
         {/* Goal History (real, from completed goals) */}
-        <div className="mf-h2" style={{ margin: '20px 0 12px' }}>Goal History</div>
+        <div className="mf-h2" style={{ margin: '20px 0 12px' }}>Ziel-Historie</div>
         {(state.goalHistory && state.goalHistory.length) ? (
           <div className="mf-goal-history">
             {state.goalHistory.map((g, i) => (
@@ -225,31 +225,31 @@ function MoreScreen({ onGo }) {
   return (
     <div className="mf-screen">
       <div className="mf-scroll">
-        <ScreenTitle title="More" />
+        <ScreenTitle title="Mehr" />
         <button className="mf-profile" onClick={() => onGo('account')}>
           <div className="mf-avatar">{state.profile.initials}</div>
           <div className="mf-profile-who">
             <div className="mf-profile-name">{state.profile.name}</div>
-            <div className="mf-profile-sub">Member Since {state.profile.memberSince}</div>
+            <div className="mf-profile-sub">Mitglied seit {state.profile.memberSince}</div>
           </div>
           <Icon name="chevron-right" size={22} color="var(--mf-fg-3)" />
         </button>
-        <div className="mf-group-label">General</div>
+        <div className="mf-group-label">Allgemein</div>
         <div className="mf-setcard">
-          <SettingRow icon="smile" label="Account" onClick={() => onGo('account')} />
-          <SettingRow icon="tag" label="Subscription" value="Pro" onClick={() => onGo('subscription')} />
-          <SettingRow icon="refresh-cw" label="Integrations" onClick={() => onGo('integrations')} />
-          <SettingRow icon="ruler" label="Units" value={unitMode} last onClick={() => onGo('units')} />
+          <SettingRow icon="smile" label="Konto" onClick={() => onGo('account')} />
+          <SettingRow icon="tag" label="Abo" value="Pro" onClick={() => onGo('subscription')} />
+          <SettingRow icon="refresh-cw" label="Integrationen" onClick={() => onGo('integrations')} />
+          <SettingRow icon="ruler" label="Einheiten" value={unitMode} last onClick={() => onGo('units')} />
         </div>
-        <div className="mf-group-label">Feature Settings</div>
+        <div className="mf-group-label">Funktionen</div>
         <div className="mf-setcard">
           <SettingRow icon="layout-dashboard" label="Dashboard" onClick={() => onGo('customize')} />
-          <SettingRow icon="apple" label="Food Log" onClick={() => onGo('foodlogging')} last />
+          <SettingRow icon="apple" label="Tagebuch" onClick={() => onGo('foodlogging')} last />
         </div>
         <div className="mf-group-label">Tools</div>
         <div className="mf-setcard">
-          <SettingRow icon="chef-hat" label="Recipes" onClick={() => onGo('recipes')} />
-          <SettingRow icon="ruler" label="Metrics & Weight" onClick={() => onGo('metrics')} last />
+          <SettingRow icon="chef-hat" label="Rezepte" onClick={() => onGo('recipes')} />
+          <SettingRow icon="ruler" label="Gewicht & Messwerte" onClick={() => onGo('metrics')} last />
         </div>
         <button className="mf-reset" onClick={() => window.mfSignOut && window.mfSignOut()}>Abmelden</button>
         <div style={{ height: 20 }} />
@@ -261,17 +261,17 @@ function MoreScreen({ onGo }) {
 /* ---- Shortcuts sheet ------------------------------------ */
 function ShortcutsSheet({ open, onClose, onAction }) {
   const quick = [
-    { icon: 'search', label: 'Search', act: 'add' },
+    { icon: 'search', label: 'Suche', act: 'add' },
     { icon: 'scan-barcode', label: 'Barcode', act: 'barcode' },
     { icon: 'sparkles', label: 'AI', act: 'ai' },
-    { icon: 'scale', label: 'Weight', act: 'weight' },
+    { icon: 'scale', label: 'Gewicht', act: 'weight' },
   ];
   const list = [
-    { icon: 'chef-hat', label: 'Recipes', act: 'recipes' },
+    { icon: 'chef-hat', label: 'Rezepte', act: 'recipes' },
     { icon: 'rocket', label: 'Quick Add', act: 'quickadd' },
-    { icon: 'file-text', label: 'Label Scanner', act: 'labelscan' },
-    { icon: 'camera', label: 'Photos', act: 'ai' },
-    { icon: 'ruler', label: 'Metrics', act: 'metrics' },
+    { icon: 'file-text', label: 'Label-Scanner', act: 'labelscan' },
+    { icon: 'camera', label: 'Fotos', act: 'ai' },
+    { icon: 'ruler', label: 'Messwerte', act: 'metrics' },
   ];
   return (
     <Sheet open={open} onClose={onClose} title="Shortcuts"

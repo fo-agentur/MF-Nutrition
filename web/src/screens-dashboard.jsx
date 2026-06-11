@@ -15,7 +15,7 @@ function EnergyBalanceChart({ mode }) {
   const est = estimateExpenditure(state, TODAY, 30);
   // Reference line: measured expenditure, or the calorie target when toggled/while
   // there isn't enough data for an estimate yet.
-  const refValue = mode === 'Targets' ? state.targets.energy : (est || state.targets.energy);
+  const refValue = mode === 'Ziele' ? state.targets.energy : (est || state.targets.energy);
   const max = Math.max(...vals, refValue, 1) * 1.12;
   const W = 320, H = 140, pad = 4;
   const bw = (W - pad * 2) / (vals.length || 1);
@@ -24,10 +24,10 @@ function EnergyBalanceChart({ mode }) {
   const avgNut = hasData ? Math.round(loggedVals.reduce((a, b) => a + b, 0) / loggedVals.length) : 0;
   const avgExp = Math.round(refValue);
   const diff = avgNut - avgExp;
-  const showExp = mode === 'Targets' ? true : !!est;
+  const showExp = mode === 'Ziele' ? true : !!est;
   return (
     <div className="mf-slide-card">
-      <div className="mf-slide-title">Energy Balance</div>
+      <div className="mf-slide-title">Energiebilanz</div>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', marginBottom: 8 }}>
         {vals.map((v, i) => v > 0 ? (
           <rect key={i} x={pad + i * bw + 1} y={y(v)} width={Math.max(2, bw - 2)} height={H - pad - y(v)}
@@ -43,7 +43,7 @@ function EnergyBalanceChart({ mode }) {
         <div className="mf-ebstat">
           <div className="mf-ebcol"><span className="mf-num mf-ebn">{avgNut}</span><span className="mf-eblbl"><i>▌</i> Zufuhr</span></div>
           <span className="mf-ebop">−</span>
-          <div className="mf-ebcol"><span className="mf-num mf-ebn">{showExp ? avgExp : '–'}</span><span className="mf-eblbl">{mode === 'Targets' ? 'Ziel' : 'Verbrauch'}</span></div>
+          <div className="mf-ebcol"><span className="mf-num mf-ebn">{showExp ? avgExp : '–'}</span><span className="mf-eblbl">{mode === 'Ziele' ? 'Ziel' : 'Verbrauch'}</span></div>
           <span className="mf-ebop">=</span>
           <div className="mf-ebcol"><span className="mf-num mf-ebn" style={{ color: showExp ? (diff < 0 ? MF.carb : MF.protein) : 'var(--mf-fg-3)' }}>{showExp ? (diff > 0 ? '+' : '') + diff : '–'}</span><span className="mf-eblbl" style={{ color: 'var(--mf-fg-3)' }}>Differenz</span></div>
         </div>
@@ -70,7 +70,7 @@ function DailyNutritionSlide({ mode, onMode }) {
   const transform = `rotate(-220, ${CX}, ${CY})`;
   return (
     <div className="mf-slide-card">
-      <div className="mf-slide-title">Daily Nutrition</div>
+      <div className="mf-slide-title">Tagesübersicht</div>
       <div className="mf-ring-wrap">
         <svg width="220" height="130" viewBox="0 0 220 130">
           <circle cx={CX} cy={CY} r={R} fill="none" stroke="#2C2C30" strokeWidth="10"
@@ -81,11 +81,11 @@ function DailyNutritionSlide({ mode, onMode }) {
             strokeLinecap="round" transform={transform} />
           <text x={CX} y={CY - 10} textAnchor="middle" fill="#fff" fontSize="26" fontWeight="800"
             style={{ fontVariantNumeric: 'tabular-nums' }}>{consumed}</text>
-          <text x={CX} y={CY + 12} textAnchor="middle" fill="rgba(255,255,255,.45)" fontSize="12">Consumed</text>
+          <text x={CX} y={CY + 12} textAnchor="middle" fill="rgba(255,255,255,.45)" fontSize="12">Gegessen</text>
         </svg>
         <div className="mf-ring-sides">
-          <div className="mf-ring-side"><span className="mf-num mf-ring-val">{remaining}</span><span className="mf-ring-lbl">Remaining</span></div>
-          <div className="mf-ring-side right"><span className="mf-num mf-ring-val">{target}</span><span className="mf-ring-lbl">Target</span></div>
+          <div className="mf-ring-side"><span className="mf-num mf-ring-val">{remaining}</span><span className="mf-ring-lbl">Übrig</span></div>
+          <div className="mf-ring-side right"><span className="mf-num mf-ring-val">{target}</span><span className="mf-ring-lbl">Ziel</span></div>
         </div>
       </div>
       <div className="mf-ring-macros">
@@ -95,7 +95,7 @@ function DailyNutritionSlide({ mode, onMode }) {
           const pct = Math.min(100, v / g * 100);
           return (
             <div className="mf-ring-macrow" key={k}>
-              <span className="mf-ring-macro-lbl" style={{ color: m.color }}>{k.charAt(0).toUpperCase() + k.slice(1)}</span>
+              <span className="mf-ring-macro-lbl" style={{ color: m.color }}>{k === 'protein' ? 'Protein' : k === 'fat' ? 'Fett' : 'Carbs'}</span>
               <div className="mf-ring-bar"><span style={{ width: pct + '%', background: m.color }} /></div>
               <span className="mf-num mf-ring-macro-val">{v}/{g}g</span>
             </div>
@@ -109,17 +109,17 @@ function DailyNutritionSlide({ mode, onMode }) {
 /* ---- Weekly Nutrition slide (reuses chart from screens-main) */
 function WeeklyNutritionSlide() {
   const { state, dispatch } = useApp();
-  const [mode, setMode] = React.useState('Consumed');
+  const [mode, setMode] = React.useState('Gegessen');
   const sel = state.selectedDate;
   return (
     <div className="mf-slide-card">
-      <div className="mf-slide-title">Weekly Nutrition</div>
+      <div className="mf-slide-title">Wochenübersicht</div>
       <div key={mode} className="mf-weekly-mode-panel">
         <WeeklyChart mode={mode} selected={sel} onSelect={k => dispatch({ type: 'SET_DATE', date: k })} />
         <WeeklyDayLabels selected={sel} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
-        <Segmented options={['Consumed', 'Remaining']} value={mode} onChange={setMode} />
+        <Segmented options={['Gegessen', 'Übrig']} value={mode} onChange={setMode} />
       </div>
     </div>
   );
@@ -159,7 +159,7 @@ function HabitCard({ title, daysLogged, thisWeek, color, onClick }) {
   return (
     <button className="mf-datacard" onClick={onClick}>
       <div className="mf-datacard-title">{title}</div>
-      <div className="mf-datacard-sub">Last 30 Days</div>
+      <div className="mf-datacard-sub">Letzte 30 Tage</div>
       <HabitGrid daysLogged={daysLogged} total={30} color={color} />
       <div className="mf-datacard-divider" />
       <div className="mf-datacard-footer">
@@ -208,7 +208,7 @@ function StepsChart() {
 /* ---- Dashboard main screen ------------------------------ */
 function DashboardScreen({ onSearch, onAI, onGo }) {
   const { state } = useApp();
-  const [ebMode, setEbMode] = React.useState('Expenditure');
+  const [ebMode, setEbMode] = React.useState('Verbrauch');
   const [slide, setSlide] = React.useState(0);
   const tot = dayTotals(state, state.selectedDate);
   const expEstimate = estimateExpenditure(state);
@@ -248,7 +248,7 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
         {/* Energy-Balance-specific toggle */}
         {current.key === 'energy' && (
           <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0' }}>
-            <Segmented options={['Expenditure', 'Targets']} value={ebMode} onChange={setEbMode} />
+            <Segmented options={['Verbrauch', 'Ziele']} value={ebMode} onChange={setEbMode} />
           </div>
         )}
         {/* Dots (tappable slide nav) */}
@@ -260,25 +260,25 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
         </div>
 
         {/* ---- Insights & Analytics -------------------- */}
-        <SectionHead title="Insights & Analytics" action="See All" onAction={() => onGo('insights')} />
+        <SectionHead title="Insights & Analytics" action="Alle" onAction={() => onGo('insights')} />
         <div className="mf-card2grid">
-          <MiniDataCard title="Expenditure" subtitle="Last 7 Days" value={expEstimate ? String(expEstimate) : '–'} unit="kcal"
+          <MiniDataCard title="Verbrauch" subtitle="Letzte 7 Tage" value={expEstimate ? String(expEstimate) : '–'} unit="kcal"
             chart={<ExpenditureChartMini />} onClick={() => onGo('expenditure')} />
-          <MiniDataCard title="Weight Trend" subtitle="Last 7 Days" value={lastW ? weightDisplayText(state, lastW.value) : '–'} unit={wUnit}
+          <MiniDataCard title="Gewichtstrend" subtitle="Letzte 7 Tage" value={lastW ? weightDisplayText(state, lastW.value) : '–'} unit={wUnit}
             chart={<WeightSparkMini weights={state.weights} />} onClick={() => onGo('weighttrend')} />
         </div>
 
         {/* ---- Habits ---------------------------------- */}
-        <div className="mf-section-head-row"><span className="mf-h2">Habits</span></div>
+        <div className="mf-section-head-row"><span className="mf-h2">Gewohnheiten</span></div>
         <div className="mf-card2grid">
-          <HabitCard title="Weigh-In" daysLogged={Math.min(30, state.weights.length)} thisWeek={weighThisWeek}
+          <HabitCard title="Wiegen" daysLogged={Math.min(30, state.weights.length)} thisWeek={weighThisWeek}
             color={MF.carb} onClick={() => onGo('weighin')} />
-          <HabitCard title="Food Logging" daysLogged={Math.min(30, foodDays)} thisWeek={foodThisWeek}
+          <HabitCard title="Food-Logging" daysLogged={Math.min(30, foodDays)} thisWeek={foodThisWeek}
             color={MF.energy} onClick={() => onGo('foodlogging')} />
         </div>
 
         {/* ---- Body Metrics ---------------------------- */}
-        <SectionHead title="Body Metrics" action="See All" onAction={() => onGo('metrics')} />
+        <SectionHead title="Körperdaten" action="Alle" onAction={() => onGo('metrics')} />
         <div className="mf-card2grid">
           <MiniDataCard title="Scale Weight" subtitle="Last 7 Entries"
             value={lastW ? weightDisplayText(state, lastW.value) : '–'} unit={wUnit}
@@ -290,7 +290,7 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
         </div>
 
         {/* ---- Nutrition -------------------------------- */}
-        <SectionHead title="Nutrition" action="See All" onAction={() => onGo('nutridata')} />
+        <SectionHead title="Nutrition" action="Alle" onAction={() => onGo('nutridata')} />
         <div className="mf-card2grid">
           <NutritionCard label="Calories" value={tot.energy} unit="kcal" color={MF.energy} goal={state.targets.energy} onClick={() => onGo('nutridata')} />
           <NutritionCard label="Protein" value={tot.protein} unit="g" color={MF.protein} goal={state.targets.protein} onClick={() => onGo('insights')} />
@@ -303,7 +303,7 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
         <div className="mf-card2grid">
           <button className="mf-datacard" onClick={() => onGo('steps')}>
             <div className="mf-datacard-title">Steps</div>
-            <div className="mf-datacard-sub">Last 7 Days</div>
+            <div className="mf-datacard-sub">Letzte 7 Tage</div>
             <StepsChart />
             <div className="mf-datacard-divider" />
             <div className="mf-datacard-footer">

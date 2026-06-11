@@ -40,17 +40,17 @@ function StatusBar({ dark }) {
 /* ---- Bottom navigation ---------------------------------- */
 const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
-  { id: 'foodlog',   label: 'Food Log',  icon: 'apple' },
+  { id: 'foodlog',   label: 'Tagebuch',  icon: 'apple' },
   { id: 'fab',       label: '',          icon: 'plus' },
-  { id: 'strategy',  label: 'Strategy',  icon: 'strategy-dots' },
-  { id: 'more',      label: 'More',      icon: 'more-horizontal' },
+  { id: 'strategy',  label: 'Strategie', icon: 'strategy-dots' },
+  { id: 'more',      label: 'Mehr',      icon: 'more-horizontal' },
 ];
 
 function BottomNav({ active, onNav, onFab }) {
   return (
     <div className="mf-bottomnav">
       {NAV.map(n => n.id === 'fab' ? (
-        <button key="fab" className="mf-fab" onClick={onFab} aria-label="Add">
+        <button key="fab" className="mf-fab" onClick={onFab} aria-label="Hinzufügen">
           <Icon name="plus" size={28} color="#000" />
         </button>
       ) : (
@@ -75,7 +75,7 @@ function SearchBar({ onTap, onAI }) {
     <div className="mf-searchrow">
       <button className="mf-searchbar" onClick={onTap}>
         <Icon name="search" size={22} color="var(--mf-fg-2)" />
-        <span className="mf-search-ph">Search for a food</span>
+        <span className="mf-search-ph">Food suchen</span>
         <Icon name="scan-barcode" size={24} color="var(--mf-fg-2)" />
       </button>
       {onAI && (

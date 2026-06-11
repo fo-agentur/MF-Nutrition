@@ -19,7 +19,7 @@ function currentWeekKeys(today = new Date()) {
 }
 
 const WEEK_KEYS = currentWeekKeys();
-const WEEK_LBL  = ['M','T','W','T','F','S','S'];
+const WEEK_LBL  = ['M','D','M','D','F','S','S'];
 
 function fmtEyebrow(key) {
   const d = new Date(key + 'T00:00:00');
@@ -45,10 +45,10 @@ function WeeklyChart({ mode, selected, onSelect }) {
               {MACRO_META.map(m => {
                 const goal = state.targets[m.key];
                 const tot = dayTotals(state, k)[m.key];
-                const shown = mode === 'Remaining' ? Math.max(0, goal - tot) : tot;
+                const shown = mode === 'Übrig' ? Math.max(0, goal - tot) : tot;
                 const scaleMax = Math.max(goal || 0, shown || 0) * 1.12;
                 const pct = Math.min(96, scaleMax ? (shown / scaleMax) * 100 : 0);
-                const goalPct = Math.min(94, scaleMax && mode === 'Consumed' ? (goal / scaleMax) * 100 : 0);
+                const goalPct = Math.min(94, scaleMax && mode === 'Gegessen' ? (goal / scaleMax) * 100 : 0);
                 return (
                   <div className={'mf-chart-bar' + (pct > 0 ? '' : ' empty')} key={m.key}>
                     {pct > 0 && <div className="mf-chart-fill" style={{ height: pct + '%', background: m.color }} />}
@@ -64,13 +64,13 @@ function WeeklyChart({ mode, selected, onSelect }) {
       <div className="mf-chart-meta">
         {MACRO_META.map(m => {
           const tot = dayTotals(state, selected)[m.key];
-          const shown = mode === 'Remaining' ? Math.max(0, state.targets[m.key] - tot) : tot;
+          const shown = mode === 'Übrig' ? Math.max(0, state.targets[m.key] - tot) : tot;
           return (
             <div className="mf-chart-meta-row" key={m.key}>
               <span className="mf-num mf-chart-meta-val" style={{ color: m.color }}>
                 {shown}<span className="mf-chart-meta-unit">{m.key === 'energy' ? '🔥' : m.unit}</span>
               </span>
-              <span className="mf-chart-meta-goal">of {state.targets[m.key]}</span>
+              <span className="mf-chart-meta-goal">von {state.targets[m.key]}</span>
             </div>
           );
         })}
@@ -97,7 +97,7 @@ function MiniInsight({ title, onClick, children }) {
   return (
     <button className="mf-insight" onClick={onClick}>
       <div className="mf-insight-title mf-h3">{title}</div>
-      <div className="mf-insight-sub">Last 7 Days</div>
+      <div className="mf-insight-sub">Letzte 7 Tage</div>
       <div className="mf-insight-chart">{children}</div>
     </button>
   );
@@ -137,7 +137,7 @@ function WeightSpark({ weights }) {
 
 function DashboardScreen({ onSearch, onGo }) {
   const { state, dispatch } = useApp();
-  const [mode, setMode] = React.useState('Consumed');
+  const [mode, setMode] = React.useState('Gegessen');
   const sel = state.selectedDate;
   return (
     <div className="mf-screen">
@@ -146,20 +146,20 @@ function DashboardScreen({ onSearch, onGo }) {
           <div className="mf-eyebrow">{fmtEyebrow(sel)}</div>
           <h1 className="mf-title">Dashboard</h1>
         </div>
-        <div className="mf-h2" style={{ margin: '14px 0 10px' }}>Weekly Nutrition</div>
+        <div className="mf-h2" style={{ margin: '14px 0 10px' }}>Wochenübersicht</div>
         <div key={mode} className="mf-weekly-mode-panel">
           <WeeklyChart mode={mode} selected={sel} onSelect={k => dispatch({ type: 'SET_DATE', date: k })} />
           <WeeklyDayLabels selected={sel} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0 6px' }}>
-          <Segmented options={['Consumed', 'Remaining']} value={mode} onChange={setMode} />
+          <Segmented options={['Gegessen', 'Übrig']} value={mode} onChange={setMode} />
         </div>
         <div className="mf-dots"><i className="on" /><i /><i /></div>
 
-        <SectionHead title="Insights & Analytics" action="See All" onAction={() => onGo('insights')} />
+        <SectionHead title="Insights & Analytics" action="Alle" onAction={() => onGo('insights')} />
         <div className="mf-insight-row">
-          <MiniInsight title="Expenditure" onClick={() => onGo('insights')}><ExpenditureChart /></MiniInsight>
-          <MiniInsight title="Weight Trend" onClick={() => onGo('metrics')}><WeightSpark weights={state.weights} /></MiniInsight>
+          <MiniInsight title="Verbrauch" onClick={() => onGo('insights')}><ExpenditureChart /></MiniInsight>
+          <MiniInsight title="Gewichtstrend" onClick={() => onGo('metrics')}><WeightSpark weights={state.weights} /></MiniInsight>
         </div>
         <div style={{ height: 14 }} />
       </div>
@@ -222,7 +222,7 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
             <MacroBadge letter="P" value={hourTots.protein} color={MF.protein} />
             <MacroBadge letter="F" value={hourTots.fat} color={MF.fat} />
             <MacroBadge letter="C" value={hourTots.carb} color={MF.carb} />
-            <button className="mf-tl-copy" onClick={() => onCopyHour && onCopyHour(entries)} aria-label="Copy meal">
+            <button className="mf-tl-copy" onClick={() => onCopyHour && onCopyHour(entries)} aria-label="Meal kopieren">
               <Icon name="copy" size={14} />
             </button>
           </div>
@@ -269,7 +269,7 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
         <button className="mf-iconbtn" onClick={onMenu}><Icon name="menu" size={24} /></button>
         <div className="mf-todaynav">
           <button className="mf-iconbtn" onClick={() => shiftDay(-1)}><Icon name="chevron-left" size={20} color="var(--mf-fg-2)" /></button>
-          <span className="mf-h3" style={{ fontWeight: 700, fontSize: 20 }}>{sel === TODAY ? 'Today' : fmtDayMonth(sel)}</span>
+          <span className="mf-h3" style={{ fontWeight: 700, fontSize: 20 }}>{sel === TODAY ? 'Heute' : fmtDayMonth(sel)}</span>
           <button className="mf-iconbtn" onClick={() => shiftDay(1)}><Icon name="chevron-right" size={20} color="var(--mf-fg-2)" /></button>
         </div>
         <span style={{ width: 24 }} />
