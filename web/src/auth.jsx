@@ -43,7 +43,16 @@ export function LoginScreen() {
     e.preventDefault();
     setError(''); setInfo(''); setBusy(true);
     try {
-      const creds = { email: email.trim(), password };
+      const id = email.trim();
+      // Shared accounts with the GymApp: it signs people up with a username
+      // that maps to a synthetic <username>@gymapp.local mail. Accept both
+      // here so the same account works in both apps.
+      const isEmail = id.includes('@');
+      if (!isEmail && !/^[a-zA-Z0-9_.]{3,30}$/.test(id)) {
+        setError('Benutzername: 3–30 Zeichen, nur Buchstaben, Zahlen, Punkt, Unterstrich.');
+        return;
+      }
+      const creds = { email: isEmail ? id.toLowerCase() : `${id.toLowerCase()}@gymapp.local`, password };
       const { error } =
         mode === 'login'
           ? await supabase.auth.signInWithPassword(creds)
@@ -51,8 +60,13 @@ export function LoginScreen() {
       if (error) {
         setError(translateError(error.message));
       } else if (mode === 'signup') {
-        setInfo('Konto erstellt. Du kannst dich jetzt anmelden.');
-        setMode('login');
+        // Signups are auto-confirmed (DB trigger), so log straight in instead
+        // of bouncing the user back to the login form.
+        const signin = await supabase.auth.signInWithPassword(creds);
+        if (signin.error) {
+          setInfo('Konto erstellt. Du kannst dich jetzt anmelden.');
+          setMode('login');
+        }
       }
       // on success, onAuthStateChange flips the app to the main UI
     } catch (err) {
@@ -73,8 +87,9 @@ export function LoginScreen() {
 
         <form className="mf-auth-form" onSubmit={submit}>
           <input
-            className="mf-auth-input" type="email" inputMode="email" autoComplete="email"
-            placeholder="E-Mail" value={email} onChange={e => setEmail(e.target.value)} required />
+            className="mf-auth-input" type="text" inputMode="email" autoComplete="username"
+            autoCapitalize="none" autoCorrect="off" spellCheck={false}
+            placeholder="E-Mail oder Benutzername" value={email} onChange={e => setEmail(e.target.value)} required />
           <input
             className="mf-auth-input" type="password"
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
@@ -98,7 +113,7 @@ export function LoginScreen() {
 
 function translateError(msg = '') {
   const m = msg.toLowerCase();
-  if (m.includes('invalid login')) return 'E-Mail oder Passwort falsch.';
+  if (m.includes('invalid login')) return 'Login oder Passwort falsch.';
   if (m.includes('email not confirmed')) return 'E-Mail noch nicht bestätigt.';
   if (m.includes('already registered') || m.includes('already exists')) return 'Dieses Konto existiert bereits.';
   if (m.includes('password') && m.includes('6')) return 'Passwort muss mindestens 6 Zeichen haben.';
