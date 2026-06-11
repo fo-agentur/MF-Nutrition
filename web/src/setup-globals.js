@@ -43,6 +43,11 @@ function snapWindowBack() {
     document.body.scrollTop = 0;
   }
 }
+function keyboardLikelyOpen() {
+  const ae = document.activeElement;
+  return !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable));
+}
+
 document.addEventListener('focusout', () => { setTimeout(snapWindowBack, 50); }, true);
 if (window.visualViewport) {
   let lastH = window.visualViewport.height;
@@ -51,4 +56,18 @@ if (window.visualViewport) {
     if (window.visualViewport.height > lastH) snapWindowBack();
     lastH = window.visualViewport.height;
   }, { passive: true });
+  // iOS can also pan the webview without a height change (visualViewport
+  // 'scroll' only). If no keyboard is up there is never a legit reason for
+  // the window to be displaced — snap straight back, otherwise the displaced
+  // strip stays visible below the nav until the next keyboard cycle.
+  window.visualViewport.addEventListener('scroll', () => {
+    if (!keyboardLikelyOpen()) snapWindowBack();
+  }, { passive: true });
 }
+// Returning to the PWA (app switch / lock screen) can resurface a webview that
+// iOS left panned while we were backgrounded — re-anchor on every resume.
+window.addEventListener('pageshow', () => { setTimeout(snapWindowBack, 50); });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) setTimeout(snapWindowBack, 50);
+});
+window.addEventListener('orientationchange', () => { setTimeout(snapWindowBack, 250); });

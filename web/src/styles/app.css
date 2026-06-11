@@ -106,6 +106,14 @@ input, textarea, button { font-family: inherit; }
 
   /* Inputs: keep iOS from zooming on focus (needs >=16px) */
   .mf-add-input, .mf-quick-input, .mf-onb-input, .mf-ai-input, .mf-quick-name, .mf-auth-input { font-size: 16px; }
+
+  /* Auth + splash live directly in the fixed #root. 100dvh mis-resolves in the
+     installed iOS PWA (same launch bug as the shell — see #root note above),
+     which left a strip below the login card. Inherit the root's height instead. */
+  .mf-auth {
+    height: 100%;
+    min-height: 100%;
+  }
 }
 
 /* Allow text selection inside editable fields even on device */
