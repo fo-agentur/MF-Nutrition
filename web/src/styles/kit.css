@@ -544,6 +544,50 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 .mf-detail-macro { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .mf-detail-macrolbl { font-size: 13px; color: var(--mf-fg-2); }
 
+/* ---- AI Plate sheet -------------------------------------- */
+.mf-aiplate { padding: 14px 18px 6px; overflow-y: auto; }
+.mf-aiplate::-webkit-scrollbar { width: 0; }
+.mf-aiplate-noterow { display: flex; align-items: center; gap: 9px; padding: 12px 2px 14px; }
+.mf-aiplate-entry {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--mf-surface-2); border-radius: 18px; padding: 12px 12px 12px 14px;
+}
+.mf-aiplate-entrymain { flex: 1; min-width: 0; }
+.mf-aiplate-name { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-aiplate-sub { font-size: 13px; color: var(--mf-fg-2); margin-top: 3px; }
+.mf-aiplate-sub .e { font-size: 11px; }
+.mf-aiplate-qty {
+  flex: none; display: flex; align-items: center; gap: 2px;
+  background: var(--mf-surface-3); border-radius: 999px; padding: 4px;
+}
+.mf-aiplate-qty button {
+  width: 28px; height: 28px; border-radius: 50%; border: 0; background: transparent;
+  color: var(--mf-fg); display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.mf-aiplate-qty span { min-width: 52px; text-align: center; font-size: 13px; font-weight: 700; }
+.mf-aiplate-expand {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: 0; color: var(--mf-fg); font-family: inherit;
+  font-size: 15px; font-weight: 600; padding: 14px 4px 12px; cursor: pointer;
+  border-bottom: 1px solid var(--mf-hairline);
+}
+.mf-aiplate-items { padding: 4px 4px 2px; }
+.mf-aiplate-item {
+  display: flex; align-items: baseline; justify-content: space-between;
+  font-size: 14px; color: var(--mf-fg-2); padding: 7px 0;
+}
+.mf-aiplate-item .mf-num { color: var(--mf-fg); font-weight: 600; }
+.mf-aiplate-note { font-size: 12px; color: var(--mf-fg-3); }
+.mf-aiplate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mf-aiplate-card { background: var(--mf-surface-2); border-radius: 16px; padding: 13px 14px 12px; }
+.mf-aiplate-cardlbl { font-size: 13px; color: var(--mf-fg-2); }
+.mf-aiplate-cardval { font-size: 18px; font-weight: 800; margin-top: 3px; }
+.mf-aiplate-bar { height: 5px; border-radius: 3px; background: var(--mf-surface-4); margin-top: 10px; overflow: hidden; }
+.mf-aiplate-bar i { display: block; height: 100%; border-radius: 3px; }
+.mf-aiplate-conf { font-size: 12px; font-weight: 600; color: var(--mf-fg-2); background: var(--mf-surface-3); border-radius: 999px; padding: 5px 10px; white-space: nowrap; }
+.mf-aiplate-conf.low { color: #F2BE3F; background: rgba(242, 190, 63, .12); }
+.mf-aiplate-conf.high { color: #57B36E; background: rgba(87, 179, 110, .12); }
+
 /* ---- AI estimate extras (fiber/sugar, components, low-confidence hint) ---- */
 .mf-detail-ai-extras { display: flex; justify-content: center; gap: 8px; font-size: 13px; color: var(--mf-fg-2); padding: 0 0 12px; }
 .mf-detail-ai-dot { color: var(--mf-fg-3); }

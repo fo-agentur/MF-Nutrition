@@ -189,7 +189,7 @@ function AppInner() {
         onQuickLog={quickLog}
         onQuickAdd={() => openSheet('quickadd')}
         onBarcode={() => openSheet('barcode')}
-        onAIResult={(food, hour) => openSheet('detail', { food, hour })}
+        onAIResult={(food, hour) => openSheet('aiplate', { food, hour })}
         onCustomFood={name => openSheet('customfood', { name, hour: sheet?.hour ?? new Date().getHours() })} />
 
       <FoodDetailSheet key={sheet?.id === 'detail'
@@ -202,6 +202,9 @@ function AppInner() {
         onLog={sheet?.entry ? saveEntry : logFood}
         onCopy={sheet?.entry ? () => copyEntries([sheet.entry], 'food') : null}
         onDelete={deleteEntry} />
+
+      <AIPlateSheet open={sheet?.id === 'aiplate'} food={sheet?.food} hour={sheet?.hour}
+        onClose={closeSheet} onLog={logFood} />
 
       <QuickAddSheet open={sheet?.id === 'quickadd'} hour={sheet?.hour}
         onBack={() => openSheet('add')} onClose={closeSheet} onLog={logFood} />

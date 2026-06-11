@@ -19,7 +19,7 @@ function Sheet({ open, onClose, children, title, headerRight, tall, onBack }) {
               <Icon name={onBack ? 'chevron-left' : 'x'} size={22} />
             </button>
             <span className="mf-h3" style={{ fontWeight: 700 }}>{title}</span>
-            <span className="mf-sheet-right">{headerRight}</span>
+            {headerRight ? <span className="mf-sheet-right">{headerRight}</span> : <span style={{ width: 36 }} />}
           </div>
         )}
         {children}
@@ -112,10 +112,11 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
   const [tab, setTab] = React.useState('Search');
   const [q, setQ] = React.useState('');
   const [customFoods, setCustomFoods] = React.useState([]);
+  // ids are logic values (tab state, initialTab prop) — only labels are German.
   const tabs = [
-    { id: 'Scan', icon: 'scan-barcode' }, { id: 'Search', icon: 'search' },
-    { id: 'AI', icon: 'sparkles' },
-    { id: 'Quick Add', icon: 'rocket' }, { id: 'Library', icon: 'book-open' },
+    { id: 'Scan', icon: 'scan-barcode', label: 'Scan' }, { id: 'Search', icon: 'search', label: 'Suche' },
+    { id: 'AI', icon: 'sparkles', label: 'AI' },
+    { id: 'Quick Add', icon: 'rocket', label: 'Quick Add' }, { id: 'Library', icon: 'book-open', label: 'Foods' },
   ];
   const totals = dayTotals(state, state.selectedDate);
   const [results, setResults] = React.useState([]);
@@ -179,7 +180,7 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
         {tabs.map(t => (
           <button key={t.id} className={'mf-add-tab' + (tab === t.id ? ' on' : '')}
             onClick={() => { if (t.id === 'Quick Add') onQuickAdd(); else if (t.id === 'Scan') onBarcode(); else setTab(t.id); }}>
-            <Icon name={t.icon} size={20} />{t.id}
+            <Icon name={t.icon} size={20} />{t.label}
           </button>
         ))}
       </div>
@@ -209,7 +210,7 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
           </React.Fragment>
         ) : (
           <React.Fragment>
-            <div className="mf-add-sec">Favorites</div>
+            <div className="mf-add-sec">Favoriten</div>
             <div className="mf-favrow">
               {favs.map(f => (
                 <button key={f.id} className="mf-fav" onClick={() => onPick(f, hour)}>
@@ -221,7 +222,7 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
                 </button>
               ))}
             </div>
-            <div className="mf-add-sec">{hourLabel(hour)} Smart History</div>
+            <div className="mf-add-sec">{hourLabel(hour)} Verlauf</div>
             {timePicks.map(f => <FoodRow key={f.id} food={f} onClick={() => onPick(f, hour)} right={plusBtn(f)} />)}
             {history.frequent.length > 0 && (
               <React.Fragment>
@@ -229,7 +230,7 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
                 {history.frequent.map(f => <FoodRow key={f.id} food={f} onClick={() => onPick(f, hour)} right={plusBtn(f)} />)}
               </React.Fragment>
             )}
-            <div className="mf-add-sec">Latest</div>
+            <div className="mf-add-sec">Zuletzt</div>
             {latest.map(f => <FoodRow key={f.id} food={f} onClick={() => onPick(f, hour)} right={plusBtn(f)} />)}
           </React.Fragment>
         )}
@@ -238,10 +239,10 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
         <div className="mf-add-footer">
           <div className="mf-add-searchfield">
             <Icon name="search" size={20} color="var(--mf-fg-2)" />
-            <input className="mf-add-input" placeholder="Search for a food" value={q}
+            <input className="mf-add-input" placeholder="Food suchen" value={q}
               onChange={e => setQ(e.target.value)} />
           </div>
-          <button className="mf-add-logbtn" onClick={onClose}>Log Foods</button>
+          <button className="mf-add-logbtn" onClick={onClose}>Fertig</button>
         </div>
       )}
     </Sheet>
@@ -281,7 +282,7 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
   const qtyNum = Math.max(1, Math.round(Number(qty) || 0));
   const m = scaleFood(food, qtyNum);
   return (
-    <Sheet open={open} onClose={onClose} onBack={onBack} title={editEntry ? 'Edit Entry' : 'Add Food'}>
+    <Sheet open={open} onClose={onClose} onBack={onBack} title={editEntry ? 'Eintrag bearbeiten' : 'Food hinzufügen'}>
       <div className="mf-detail">
         <div className="mf-detail-head">
           <span className="mf-detail-icon" style={{ background: food.color + '22' }}>
@@ -304,7 +305,7 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
           {['protein', 'fat', 'carb'].map(k => (
             <div className="mf-detail-macro" key={k}>
               <span className="mf-num" style={{ color: MF[k], fontWeight: 800, fontSize: 22 }}>{m[k]}g</span>
-              <span className="mf-detail-macrolbl">{k === 'protein' ? 'Protein' : k === 'fat' ? 'Fat' : 'Carbs'}</span>
+              <span className="mf-detail-macrolbl">{k === 'protein' ? 'Protein' : k === 'fat' ? 'Fett' : 'Carbs'}</span>
             </div>
           ))}
         </div>
@@ -330,7 +331,7 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
         )}
 
         <div className="mf-detail-field">
-          <span className="mf-detail-fieldlbl">Quantity</span>
+          <span className="mf-detail-fieldlbl">Menge</span>
           <div className="mf-stepper">
             <button onClick={() => setQty(Math.max(step, qtyNum - step))} aria-label="Weniger"><Icon name="minus" size={18} /></button>
             <span className="mf-stepper-val">
@@ -344,7 +345,7 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
           </div>
         </div>
         <div className="mf-detail-field">
-          <span className="mf-detail-fieldlbl">Time</span>
+          <span className="mf-detail-fieldlbl">Uhrzeit</span>
           <div className="mf-timepick">
             <button onClick={() => setH(x => Math.max(0, x - 1))}><Icon name="chevron-left" size={18} /></button>
             <span className="mf-num">{hourLabel(h)}</span>
@@ -356,7 +357,118 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
         {editEntry && <button className="mf-detail-delete" onClick={onDelete}><Icon name="trash-2" size={20} /></button>}
         {editEntry && onCopy && <button className="mf-detail-copy" onClick={onCopy}><Icon name="copy" size={20} /></button>}
         <button className="mf-detail-log" onClick={() => onLog(buildEntry(food, qtyNum, h))}>
-          {editEntry ? 'Save' : 'Log Food'}
+          {editEntry ? 'Speichern' : 'Loggen'}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+/* ---- AI Plate sheet (result of an AI food scan) ----------
+   Modeled on MacroFactor's AI Plate: the estimate is presented as a finished
+   plate you log with one tap. The portion stepper is a small, optional
+   correction on the entry row — never a required step. */
+function AIPlateSheet({ open, food, hour, onClose, onLog }) {
+  const [qty, setQty] = React.useState(1);
+  const [showItems, setShowItems] = React.useState(false);
+  const [h, setH] = React.useState(hour ?? 12);
+  React.useEffect(() => {
+    if (open && food) {
+      setQty(Math.max(1, Math.round(Number(food.per) || 1)));
+      setH(hour ?? new Date().getHours());
+      setShowItems(false);
+    }
+  }, [open, food, hour]);
+  if (!food) return <Sheet open={open} onClose={onClose} />;
+  const isMass = food.unit === 'g' || food.unit === 'ml';
+  const step = isMass ? 25 : 1;
+  const m = scaleFood(food, qty);
+  const meta = food.aiMeta || {};
+  const factor = qty / Math.max(1, Number(food.per) || 1);
+  const items = (meta.items || []).map(it => ({ name: it.name, grams: Math.round((Number(it.grams) || 0) * factor) }));
+  // Honest bars: each macro's share of the plate's energy.
+  const kcalOf = { protein: m.protein * 4, fat: m.fat * 9, carb: m.carb * 4 };
+  const kcalSum = Math.max(1, kcalOf.protein + kcalOf.fat + kcalOf.carb);
+  const conf = { low: 'niedrig', medium: 'mittel', high: 'hoch' }[meta.confidence] || null;
+  const cards = [
+    { lbl: 'Kalorien', val: `${m.energy} kcal`, color: MF.energy, pct: 100 },
+    { lbl: 'Protein', val: `${m.protein} g`, color: MF.protein, pct: (kcalOf.protein / kcalSum) * 100 },
+    { lbl: 'Fett', val: `${m.fat} g`, color: MF.fat, pct: (kcalOf.fat / kcalSum) * 100 },
+    { lbl: 'Carbs', val: `${m.carb} g`, color: MF.carb, pct: (kcalOf.carb / kcalSum) * 100 },
+  ];
+  return (
+    <Sheet open={open} onClose={onClose} title="AI Plate">
+      <div className="mf-aiplate">
+        <div className="mf-aiplate-entry">
+          <span className="mf-detail-icon" style={{ background: food.color + '22' }}>
+            <Icon name={food.icon || 'sparkles'} size={26} color={food.color} />
+          </span>
+          <div className="mf-aiplate-entrymain">
+            <div className="mf-aiplate-name">{food.name}</div>
+            <div className="mf-aiplate-sub mf-num">
+              {m.energy}<span className="e">🔥</span> {m.protein}P {m.fat}F {m.carb}C
+            </div>
+          </div>
+          <div className="mf-aiplate-qty">
+            <button onClick={() => setQty(q => Math.max(step, q - step))} aria-label="Weniger"><Icon name="minus" size={15} /></button>
+            <span className="mf-num">{qty}{isMass ? ` ${food.unit}` : ' Stk'}</span>
+            <button onClick={() => setQty(q => q + step)} aria-label="Mehr"><Icon name="plus" size={15} /></button>
+          </div>
+        </div>
+
+        {items.length > 0 && (
+          <>
+            <button className="mf-aiplate-expand" onClick={() => setShowItems(s => !s)}>
+              Zutaten {showItems ? 'ausblenden' : 'anzeigen'}
+              <Icon name={showItems ? 'chevron-up' : 'chevron-down'} size={17} />
+            </button>
+            {showItems && (
+              <div className="mf-aiplate-items">
+                {items.map((it, i) => (
+                  <div className="mf-aiplate-item" key={i}>
+                    <span>{it.name}</span>
+                    {it.grams > 0 && <span className="mf-num">{it.grams} g</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        <div className="mf-aiplate-noterow">
+          {conf && <span className={'mf-aiplate-conf ' + meta.confidence}>Sicherheit {conf}</span>}
+          <span className="mf-aiplate-note">Die KI kann sich irren — prüfe die Werte kurz.</span>
+        </div>
+
+        <div className="mf-aiplate-grid">
+          {cards.map(c => (
+            <div className="mf-aiplate-card" key={c.lbl}>
+              <div className="mf-aiplate-cardlbl">{c.lbl}</div>
+              <div className="mf-aiplate-cardval mf-num">{c.val}</div>
+              <div className="mf-aiplate-bar"><i style={{ width: `${Math.max(4, Math.round(c.pct))}%`, background: c.color }} /></div>
+            </div>
+          ))}
+        </div>
+        {(meta.fiber > 0 || meta.sugar > 0) && (
+          <div className="mf-detail-ai-extras mf-num" style={{ paddingTop: 12 }}>
+            {meta.fiber > 0 && <span>Ballaststoffe ca. {Math.round(meta.fiber * factor)} g</span>}
+            {meta.fiber > 0 && meta.sugar > 0 && <span className="mf-detail-ai-dot">·</span>}
+            {meta.sugar > 0 && <span>Zucker ca. {Math.round(meta.sugar * factor)} g</span>}
+          </div>
+        )}
+
+        <div className="mf-detail-field">
+          <span className="mf-detail-fieldlbl">Uhrzeit</span>
+          <div className="mf-timepick">
+            <button onClick={() => setH(x => Math.max(0, x - 1))}><Icon name="chevron-left" size={18} /></button>
+            <span className="mf-num">{hourLabel(h)}</span>
+            <button onClick={() => setH(x => Math.min(23, x + 1))}><Icon name="chevron-right" size={18} /></button>
+          </div>
+        </div>
+      </div>
+      <div className="mf-detail-actions">
+        <button className="mf-detail-log" onClick={() => onLog(buildEntry(food, Math.max(1, Math.round(Number(qty) || 1)), h))}>
+          Loggen
         </button>
       </div>
     </Sheet>
@@ -368,7 +480,7 @@ function QuickAddSheet({ open, hour, onBack, onClose, onLog }) {
   const [v, setV] = React.useState({ name: '', energy: '', protein: '', fat: '', carb: '' });
   React.useEffect(() => { if (open) setV({ name: '', energy: '', protein: '', fat: '', carb: '' }); }, [open]);
   const set = (k, val) => setV(s => ({ ...s, [k]: val }));
-  const fields = [['energy', 'Energy', '🔥'], ['protein', 'Protein', 'P'], ['fat', 'Fat', 'F'], ['carb', 'Carbs', 'C']];
+  const fields = [['energy', 'Energie', '🔥'], ['protein', 'Protein', 'P'], ['fat', 'Fett', 'F'], ['carb', 'Carbs', 'C']];
   const log = () => onLog({
     foodId: 'quick', name: v.name || 'Quick Add', time: HH(hour ?? 11), qty: 1, unit: 'serving',
     icon: 'rocket', color: MF.energy,
@@ -439,13 +551,13 @@ function CustomFoodSheet({ open, hour, initialName, onBack, onClose, onSave }) {
     }, hour);
   };
   return (
-    <Sheet open={open} onClose={onClose} onBack={onBack} title="Custom Food" headerRight={<Icon name="utensils" size={20} />}>
+    <Sheet open={open} onClose={onClose} onBack={onBack} title="Eigenes Food" headerRight={<Icon name="utensils" size={20} />}>
       <div className="mf-custom">
-        <input className="mf-quick-name" placeholder="Food name" value={v.name} onChange={e => set('name', e.target.value)} />
-        <input className="mf-custom-input" placeholder="Brand (optional)" value={v.brand} onChange={e => set('brand', e.target.value)} />
+        <input className="mf-quick-name" placeholder="Name" value={v.name} onChange={e => set('name', e.target.value)} />
+        <input className="mf-custom-input" placeholder="Marke (optional)" value={v.brand} onChange={e => set('brand', e.target.value)} />
         <div className="mf-custom-serving">
           <label>
-            <span>Serving</span>
+            <span>Portion</span>
             <input className="mf-custom-input mf-num" inputMode="decimal" value={v.per} onChange={e => set('per', digits(e.target.value))} />
           </label>
           <label>
@@ -902,6 +1014,6 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
 }
 
 Object.assign(window, {
-  Sheet, AddSheet, FoodDetailSheet, QuickAddSheet, CustomFoodSheet, FoodLogMenuSheet, BarcodeSheet, AIPanel, LabelScannerSheet,
+  Sheet, AddSheet, FoodDetailSheet, AIPlateSheet, QuickAddSheet, CustomFoodSheet, FoodLogMenuSheet, BarcodeSheet, AIPanel, LabelScannerSheet,
   buildEntry, HH, hourLabel, MacroDonut, analyzeFoodViaApi,
 });
