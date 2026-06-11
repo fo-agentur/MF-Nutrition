@@ -45,6 +45,23 @@ input, textarea, button { font-family: inherit; }
     inset: 0;
     background: var(--mf-safe-bg);
   }
+}
+
+/* Installed PWA only: the layout viewport can be reported SHORT at launch
+   (see setup-globals.js), which made fixed+inset:0 stop above the screen
+   bottom — the "dead band under the nav". Pin the shell to the real screen
+   height measured in JS; fall back to inset:0 when the var is absent. */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  #root {
+    inset: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--mf-shell-h, 100vh);
+  }
+}
+
+@media (max-width: 600px), (display-mode: standalone), (display-mode: fullscreen) {
 
   .mf-stage {
     height: 100%;

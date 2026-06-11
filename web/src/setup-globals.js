@@ -28,6 +28,30 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('scroll', syncAppViewportHeight, { passive: true });
 }
 
+/* Installed-PWA shell height. In standalone the WKWebView is exactly
+   fullscreen, but iOS regularly reports a SHORT layout viewport (launch bug),
+   and position:fixed/inset:0 inherits that short height — the shell then ends
+   ~60-100px above the screen bottom and the body background shows as a dead
+   band under the nav. screen.height is exact in standalone (no browser
+   chrome), so pin the shell to it. Never applied in Safari browser mode,
+   where toolbars legitimately shrink the viewport. */
+function isStandalone() {
+  return navigator.standalone === true
+    || (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches);
+}
+function syncShellHeight() {
+  if (!isStandalone()) {
+    document.documentElement.style.removeProperty('--mf-shell-h');
+    return;
+  }
+  const h = Math.max(window.innerHeight || 0, (window.screen && window.screen.height) || 0);
+  if (h) document.documentElement.style.setProperty('--mf-shell-h', `${h}px`);
+}
+syncShellHeight();
+window.addEventListener('resize', syncShellHeight, { passive: true });
+window.addEventListener('orientationchange', () => setTimeout(syncShellHeight, 250), { passive: true });
+window.addEventListener('pageshow', syncShellHeight);
+
 /* iOS keyboard bug: when an input near the bottom is focused, iOS scrolls the
    whole window up and often leaves it there after the keyboard closes. With an
    overflow:hidden shell this shows as "the app is shifted up / the bottom nav is
