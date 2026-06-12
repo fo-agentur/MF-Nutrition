@@ -50,8 +50,14 @@ input, textarea, button { font-family: inherit; }
 /* Installed PWA only: the layout viewport can be reported SHORT at launch
    (see setup-globals.js), which made fixed+inset:0 stop above the screen
    bottom — the "dead band under the nav". Pin the shell to the real screen
-   height measured in JS; fall back to inset:0 when the var is absent. */
+   height measured in JS; fall back to inset:0 when the var is absent.
+   html/body must get the same height: their overflow:hidden otherwise clips
+   children at the misreported viewport height, cutting the nav mid-icons
+   even though the shell itself reaches the bottom. */
 @media (display-mode: standalone), (display-mode: fullscreen) {
+  html, body {
+    height: var(--mf-shell-h, 100%);
+  }
   #root {
     inset: auto;
     top: 0;
