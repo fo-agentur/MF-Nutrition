@@ -8,6 +8,7 @@ import './styles/app.css';
 // food database + barcode scanner (expose window.searchFoods/lookupBarcode/startBarcodeScan)
 import './food.js';
 import './scanner.js';
+import './planner.js'; // Tagesplaner-Engine (window.planner)
 
 // ported prototype modules (order matters: later defs override earlier ones)
 import './store.jsx';
@@ -19,6 +20,7 @@ import './screens-more.jsx';
 import './screens-misc.jsx';
 import './screens-detail.jsx';
 import './screens-onboarding.jsx';
+import './screens-planner.jsx';
 import './app.jsx'; // defines window.App
 
 import React from 'react';

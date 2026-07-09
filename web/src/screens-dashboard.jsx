@@ -207,7 +207,7 @@ function StepsChart() {
 }
 
 /* ---- Dashboard main screen ------------------------------ */
-function DashboardScreen({ onSearch, onAI, onGo }) {
+function DashboardScreen({ onSearch, onAI, onGo, onPlanner }) {
   const { state } = useApp();
   const [ebMode, setEbMode] = React.useState('Verbrauch');
   const [slide, setSlide] = React.useState(0);
@@ -260,6 +260,9 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
               style={{ cursor: 'pointer' }} />
           ))}
         </div>
+
+        {/* ---- Tagesplaner-Einstieg -------------------- */}
+        {onPlanner && <PlannerCTA onOpen={onPlanner} />}
 
         {/* ---- Insights & Analytics -------------------- */}
         <SectionHead title="Insights & Analytics" action="Alle" onAction={() => onGo('insights')} />

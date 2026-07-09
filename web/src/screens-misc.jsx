@@ -159,15 +159,15 @@ function WeightSheet({ open, onClose, onSave, date = TODAY }) {
 }
 
 /* ---- Recipes (subpage) ---------------------------------- */
-function RecipesScreen({ onBack, onNew, onImport }) {
+function RecipesScreen({ onBack, onNew, onImport, onLog }) {
   const { state } = useApp();
   return (
     <div className="mf-screen">
-      <SubHeader title="Recipes" onBack={onBack}
+      <SubHeader title="Rezepte" onBack={onBack}
         right={
           <div style={{ display: 'flex', gap: 12 }}>
-            <button className="mf-iconbtn" onClick={onImport} aria-label="Import Recipe"><Icon name="link" size={22} /></button>
-            <button className="mf-iconbtn" onClick={onNew} aria-label="New Recipe"><Icon name="plus" size={24} /></button>
+            <button className="mf-iconbtn" onClick={onImport} aria-label="Rezept importieren"><Icon name="link" size={22} /></button>
+            <button className="mf-iconbtn" onClick={onNew} aria-label="Neues Rezept"><Icon name="plus" size={24} /></button>
           </div>
         } />
       <div className="mf-scroll">
@@ -177,14 +177,15 @@ function RecipesScreen({ onBack, onNew, onImport }) {
           <small>Link oder kopierten Rezepttext einlesen</small>
         </button>
         {state.recipes.map(r => (
-          <div key={r.id} className="mf-recipe">
+          <button key={r.id} className="mf-recipe" onClick={onLog ? () => onLog(r) : undefined}
+            style={{ cursor: onLog ? 'pointer' : 'default' }}>
             <span className="mf-recipe-icon" style={{ background: r.color + '22' }}><Icon name={r.icon} size={26} color={r.color} /></span>
             <div className="mf-recipe-mid">
               <div className="mf-recipe-name">{r.name}</div>
               <div className="mf-recipe-sub mf-num">{r.items} Zutaten · {r.energy}🔥 {r.protein}P {r.fat}F {r.carb}C</div>
             </div>
             <Icon name="chevron-right" size={20} color="var(--mf-fg-3)" />
-          </div>
+          </button>
         ))}
         <button className="mf-detail-log" style={{ margin: '18px 0' }} onClick={onNew}>Neues Rezept</button>
       </div>

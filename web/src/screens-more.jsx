@@ -239,6 +239,7 @@ function ShortcutsSheet({ open, onClose, onAction }) {
     { icon: 'scale', label: 'Gewicht', act: 'weight' },
   ];
   const list = [
+    { icon: 'utensils-crossed', label: 'Was soll ich noch essen?', act: 'planner' },
     { icon: 'chef-hat', label: 'Rezepte', act: 'recipes' },
     { icon: 'rocket', label: 'Quick Add', act: 'quickadd' },
     { icon: 'file-text', label: 'Label-Scanner', act: 'labelscan' },
