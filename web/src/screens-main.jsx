@@ -38,12 +38,13 @@ function WeeklyChart({ mode, selected, onSelect }) {
       <div className="mf-chart-cols">
         {WEEK_KEYS.map((k, i) => {
           const isSel = k === selected;
+          const dayGoals = targetsForDate(state, k);
           return (
             <button key={k} className={'mf-chart-col' + (isSel ? ' sel' : '')}
               style={{ '--mf-weekly-index': i }}
               onClick={() => onSelect(k)}>
               {MACRO_META.map(m => {
-                const goal = state.targets[m.key];
+                const goal = dayGoals[m.key];
                 const tot = dayTotals(state, k)[m.key];
                 const shown = mode === 'Übrig' ? Math.max(0, goal - tot) : tot;
                 const scaleMax = Math.max(goal || 0, shown || 0) * 1.12;
@@ -64,13 +65,14 @@ function WeeklyChart({ mode, selected, onSelect }) {
       <div className="mf-chart-meta">
         {MACRO_META.map(m => {
           const tot = dayTotals(state, selected)[m.key];
-          const shown = mode === 'Übrig' ? Math.max(0, state.targets[m.key] - tot) : tot;
+          const goal = targetsForDate(state, selected)[m.key];
+          const shown = mode === 'Übrig' ? Math.max(0, goal - tot) : tot;
           return (
             <div className="mf-chart-meta-row" key={m.key}>
               <span className="mf-num mf-chart-meta-val" style={{ color: m.color }}>
                 {shown}<span className="mf-chart-meta-unit">{m.key === 'energy' ? '🔥' : m.unit}</span>
               </span>
-              <span className="mf-chart-meta-goal">von {state.targets[m.key]}</span>
+              <span className="mf-chart-meta-goal">von {goal}</span>
             </div>
           );
         })}
@@ -253,6 +255,7 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
   const sel = state.selectedDate;
   const entries = (state.days[sel] || { entries: [] }).entries;
   const totals = dayTotals(state, sel);
+  const dayTargets = targetsForDate(state, sel);
   const entryHour = e => parseInt(e.time.split(':')[0], 10);
   const isViewingToday = sel === TODAY;
   const nowHour = new Date().getHours();
@@ -278,16 +281,16 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
       {/* Date strip */}
       <DateStrip selected={sel} onSelect={k => dispatch({ type: 'SET_DATE', date: k })} />
 
-      {/* Compact macro strip */}
+      {/* Compact macro strip (goals follow the Strategy program per day) */}
       <div className="mf-macrostrip">
         {MACRO_META.map(m => {
-          const v = totals[m.key], g = state.targets[m.key];
+          const v = totals[m.key], g = dayTargets[m.key];
           const pct = Math.min(100, g ? v / g * 100 : 0);
           return (
             <div className="mf-macrostrip-item" key={m.key}>
               <div className="mf-macrostrip-top mf-num">
-                <span style={{ color: m.color, fontWeight: 700 }}>{m.key === 'energy' ? '🔥 ' : m.unit + ' '}{v}</span>
-                <span style={{ color: 'var(--mf-fg-3)', fontSize: 11 }}> / {g}</span>
+                <span style={{ color: m.color, fontWeight: 700 }}>{(m.key === 'energy' ? '🔥' : m.unit) + ' ' + v}</span>
+                <span style={{ color: 'var(--mf-fg-3)', fontSize: 11 }}>/{g}</span>
               </div>
               <div className="mf-track" style={{ height: 3, marginTop: 4 }}>
                 <span style={{ width: pct + '%', background: m.color }} />

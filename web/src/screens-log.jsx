@@ -119,6 +119,7 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
     { id: 'Quick Add', icon: 'rocket', label: 'Quick Add' }, { id: 'Library', icon: 'book-open', label: 'Foods' },
   ];
   const totals = dayTotals(state, state.selectedDate);
+  const dayTargets = targetsForDate(state, state.selectedDate);
   const [results, setResults] = React.useState([]);
   const [searching, setSearching] = React.useState(false);
   const favs = FOOD_DB.filter(f => f.fav);
@@ -159,14 +160,14 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
     </span>
   );
 
-  const kcalPct = Math.max(0, Math.min(100, Math.round((totals.energy / (state.targets.energy || 1)) * 100)));
+  const kcalPct = Math.max(0, Math.min(100, Math.round((totals.energy / (dayTargets.energy || 1)) * 100)));
 
   return (
     <Sheet open={open} onClose={onClose} tall>
       <div className="mf-add-chips">
         <button className="mf-add-chip round" onClick={onClose} aria-label="Close food search"><Icon name="x" size={20} /></button>
         <span className="mf-add-chip">{hourLabel(hour)}</span>
-        <span className="mf-add-chip kcal mf-num" style={{ '--pct': kcalPct }}>{totals.energy} / {state.targets.energy}</span>
+        <span className="mf-add-chip kcal mf-num" style={{ '--pct': kcalPct }}>{totals.energy} / {dayTargets.energy}</span>
         <span className="mf-add-chip duo">
           <button className="mf-add-duo-btn" onClick={() => setTab('Library')} aria-label="Library">
             <Icon name="utensils" size={18} color="var(--mf-fg-3)" />
@@ -276,9 +277,10 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
   }, [open, food, editEntry, hour]);
   if (!food) return <Sheet open={open} onClose={onClose} />;
   // Step size: fine-grained for weights/volumes (5/10/25 g·ml) so a photo's
-  // gram estimate can be nudged precisely; whole units otherwise (e.g. 1 Stück).
+  // gram estimate can be nudged precisely; count units (Stück, Flasche, …)
+  // always move one at a time — per is the serving definition, not the step.
   const isMass = food.unit === 'g' || food.unit === 'ml';
-  const step = isMass ? (food.per >= 200 ? 25 : food.per >= 80 ? 10 : 5) : Math.max(1, Math.round(food.per || 1));
+  const step = isMass ? (food.per >= 200 ? 25 : food.per >= 80 ? 10 : 5) : 1;
   const qtyNum = Math.max(1, Math.round(Number(qty) || 0));
   const m = scaleFood(food, qtyNum);
   return (

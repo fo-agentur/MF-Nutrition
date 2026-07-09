@@ -23,7 +23,9 @@ const MACRO_META = [
    Logged entries are persisted to Supabase food_logs regardless. */
 const FOOD_DB = [
   { id: 'muesli',  name: 'Knusper Müsli Schoko By Spar', brand: 'Spar',  icon: 'utensils',   color: MF.teal,    per: 100, unit: 'g',       energy: 447, protein: 10, fat: 15, carb: 64, fav: false },
-  { id: 'pro35',   name: 'Pro 35 Erdbeere By Nöm',       brand: 'Nöm',   icon: 'milk',       color: '#E8761E',  per: 350, unit: 'serving', energy: 217, protein: 35, fat: 2,  carb: 19, fav: false },
+  /* Portion = 1 Flasche (350 ml); Makros gelten pro Flasche. per>1 mit
+     Zähl-Einheit ließ den Stepper in 350er-Schritten springen („350 serving"). */
+  { id: 'pro35',   name: 'Pro 35 Erdbeere By Nöm',       brand: 'Nöm · 350 ml', icon: 'milk',  color: '#E8761E',  per: 1,   unit: 'Flasche', energy: 217, protein: 35, fat: 2,  carb: 19, fav: false },
   { id: 'burrito', name: 'Bomben Borito',                brand: 'Eigen', icon: 'drumstick',  color: '#E0A45A',  per: 1,   unit: 'serving', energy: 620, protein: 38, fat: 22, carb: 58, fav: true  },
   { id: 'banana',  name: 'Banane',                       brand: 'Frisch',icon: 'banana',     color: '#F2BE3F',  per: 1,   unit: 'Stück',   energy: 105, protein: 1,  fat: 0,  carb: 27, fav: true  },
   { id: 'chicken', name: 'Hähnchenbrust gegrillt',       brand: 'Frisch',icon: 'drumstick',  color: '#E0A45A',  per: 100, unit: 'g',       energy: 165, protein: 31, fat: 4,  carb: 0,  fav: false },
@@ -633,6 +635,54 @@ function checkInReadiness(state, endKey = TODAY) {
   };
 }
 
+/* ---- Program → per-day target propagation ----------------
+   Single source of truth for the Strategy program math. The weekly sum is
+   preserved: patternEnergy distributes targets.energy across the week
+   (weekday/weekend or fasting days), styleTargets derives the macro split.
+   Every screen that shows a day's goal should use targetsForDate(). */
+function patternEnergy(base, pattern, dayIndex) {
+  if (pattern === 'fasting') {
+    const low = roundToFive(base * 0.65);
+    const high = roundToFive((base * 7 - low * 2) / 5);
+    return dayIndex === 1 || dayIndex === 4 ? low : high;
+  }
+  if (pattern === 'weekdayWeekend') {
+    const weekend = roundToFive(base * 1.10);
+    const weekday = roundToFive((base * 7 - weekend * 2) / 5);
+    return dayIndex >= 5 ? weekend : weekday;
+  }
+  return base; // sameDaily
+}
+function styleTargets(baseTargets, style, energy) {
+  const protein = Math.max(1, Math.round(baseTargets.protein));
+  if (style === 'keto') {
+    const carb = 30;
+    const fat = Math.max(35, Math.round((energy - protein * 4 - carb * 4) / 9));
+    return { energy, protein, fat, carb };
+  }
+  const fatPct = style === 'lowCarb' ? 0.36 : style === 'carbFocused' ? 0.20 : 0.27;
+  const fat = Math.max(35, Math.round((energy * fatPct) / 9));
+  const carb = Math.max(0, Math.round((energy - protein * 4 - fat * 9) / 4));
+  return { energy, protein, fat, carb };
+}
+function programDayTargets(baseTargets, program, dayIndex) {
+  const p = { ...DEFAULT_PROGRAM, ...(program || {}) };
+  const energy = patternEnergy(baseTargets.energy, p.caloriePattern, dayIndex);
+  // Keep the user's own macro split whenever this day runs on the base
+  // energy with the balanced style — only derive a split when the program
+  // actually shifts the day.
+  if (energy === baseTargets.energy && p.macroStyle === 'balanced') return { ...baseTargets };
+  return styleTargets(baseTargets, p.macroStyle, energy);
+}
+function programColsFor(targets, program) {
+  return Array.from({ length: 7 }).map((_, i) => programDayTargets(targets, program, i));
+}
+function targetsForDate(state, dateKey) {
+  const key = dateKey || state.selectedDate || TODAY;
+  const dow = (new Date(key + 'T00:00:00').getDay() + 6) % 7; // 0=Mon … 6=Sun
+  return programDayTargets(state.targets, state.program, dow);
+}
+
 function macroTargetsFromEnergy(energy, currentTargets = DEFAULT_TARGETS) {
   const protein = Math.max(1, Math.round(currentTargets.protein || DEFAULT_TARGETS.protein));
   const fat = Math.max(35, Math.round((energy * 0.27) / 9));
@@ -691,4 +741,5 @@ Object.assign(window, {
   weightDisplayValue, weightDisplayText, weightInputToKg, trendWeights,
   currentTrendWeight, estimateExpenditure, checkInReadiness,
   computeCheckInRecommendation,
+  patternEnergy, styleTargets, programDayTargets, programColsFor, targetsForDate,
 });

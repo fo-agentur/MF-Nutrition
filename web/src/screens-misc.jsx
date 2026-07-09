@@ -49,7 +49,7 @@ function InsightsScreen({ onBack }) {
           <div className="mf-h3" style={{ marginBottom: 14 }}>Macro Adherence</div>
           {MACRO_META.map(m => {
             const tot = dayTotals(state, state.selectedDate)[m.key];
-            const goal = state.targets[m.key];
+            const goal = targetsForDate(state, state.selectedDate)[m.key];
             const pct = Math.min(100, Math.round(tot / goal * 100));
             return (
               <div key={m.key} className="mf-adh">
