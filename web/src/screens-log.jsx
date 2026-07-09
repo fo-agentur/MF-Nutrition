@@ -5,12 +5,28 @@ import { estimateLocalMealFromText, normalizeAiTextForMatch } from './ai-estimat
    Sheet shell + Add, Food Detail, Quick Add, Barcode, AI
    ============================================================ */
 
-/* ---- Bottom sheet shell --------------------------------- */
+/* ---- Bottom sheet shell ----------------------------------
+   Weiches Ein-/Ausblenden: beim Öffnen erst mounten, dann im
+   nächsten Frame die .open-Klasse setzen (CSS-Transition läuft);
+   beim Schließen Klasse entfernen und nach der Transition
+   unmounten. Die open-Prop bleibt die einzige API. */
 function Sheet({ open, onClose, children, title, headerRight, tall, onBack }) {
-  if (!open) return null;
+  const [mounted, setMounted] = React.useState(open);
+  const [shown, setShown] = React.useState(false);
+  React.useEffect(() => {
+    if (open) {
+      setMounted(true);
+      const raf = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)));
+      return () => cancelAnimationFrame(raf);
+    }
+    setShown(false);
+    const t = setTimeout(() => setMounted(false), 300); // = CSS .28s + Puffer
+    return () => clearTimeout(t);
+  }, [open]);
+  if (!mounted) return null;
 
   return (
-    <div className="mf-sheet-scrim open" onClick={onClose}>
+    <div className={'mf-sheet-scrim' + (shown ? ' open' : '')} onClick={onClose}>
       <div className={'mf-sheet' + (tall ? ' tall' : '')} onClick={e => e.stopPropagation()}>
         <div className="mf-sheet-grab" />
         {title !== undefined && (
@@ -1019,5 +1035,5 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
 
 Object.assign(window, {
   Sheet, AddSheet, FoodDetailSheet, AIPlateSheet, QuickAddSheet, CustomFoodSheet, FoodLogMenuSheet, BarcodeSheet, AIPanel, LabelScannerSheet,
-  buildEntry, HH, hourLabel, MacroDonut, analyzeFoodViaApi,
+  buildEntry, HH, hourLabel, MacroDonut, analyzeFoodViaApi, smartHistory,
 });

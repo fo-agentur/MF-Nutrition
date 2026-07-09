@@ -169,6 +169,8 @@ function AppInner() {
                   onMenu={() => openSheet('foodlogmenu')}
                   onAddAt={h => openSheet('add', { hour: h })}
                   onCopyHour={(entries) => copyEntries(entries, 'meal')}
+                  onQuickLog={quickLog}
+                  onPlanner={() => openSheet('planner')}
                   onEditEntry={e => { const food = FOOD_DB.find(f => f.id === e.foodId) || { ...e, per: e.qty || 1, brand: '' }; openSheet('detail', { food, hour: parseInt(e.time, 10), entry: e }); }} />,
     strategy:  <StrategyScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })} onCheckIn={() => openSheet('checkin')}
                   onNewGoal={() => setOnboarding(true)}

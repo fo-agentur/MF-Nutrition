@@ -250,7 +250,7 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
   );
 }
 
-function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHour }) {
+function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHour, onQuickLog, onPlanner }) {
   const { state, dispatch } = useApp();
   const sel = state.selectedDate;
   const entries = (state.days[sel] || { entries: [] }).entries;
@@ -264,6 +264,17 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
     .sort((a, b) => a - b);
   const idx = WEEK_KEYS.indexOf(sel);
   const shiftDay = d => { const n = idx + d; if (n >= 0 && n < WEEK_KEYS.length) dispatch({ type: 'SET_DATE', date: WEEK_KEYS[n] }); };
+  // One-Tap-Re-Log: zuletzt geloggte Foods (dedupliziert) als Chips.
+  // Nicht anzeigen, was heute schon geloggt ist — Chips sollen fehlende Dinge nachreichen.
+  const relogFoods = React.useMemo(() => {
+    const dayNames = new Set(entries.map(e => String(e.name).toLowerCase()));
+    const seen = new Set();
+    return smartHistory(state, nowHour).latest
+      .filter(f => f.unit !== 'day' && f.energy > 0)          // keine Tages-Aggregate
+      .filter(f => !dayNames.has(String(f.name).toLowerCase()))
+      .filter(f => { const k = String(f.name).toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+      .slice(0, 6);
+  }, [state.days, sel, entries.length]);
 
   return (
     <div className="mf-screen">
@@ -304,6 +315,32 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
       {/* Timeline */}
       <div className="mf-scroll mf-timeline">
         <div className="mf-tl-line" />
+        {entries.length === 0 && (
+          <div className="mf-day-empty">
+            <span className="mf-day-empty-emoji">🍽️</span>
+            <b>Noch nichts geloggt</b>
+            <span>Tippe + bei einer Uhrzeit, nutze die Suche — oder hol dir Vorschläge, die genau in deine Ziele passen.</span>
+            {onPlanner && (
+              <button className="mf-day-empty-btn" onClick={onPlanner}>
+                <Icon name="utensils-crossed" size={17} /> Was soll ich essen?
+              </button>
+            )}
+          </div>
+        )}
+        {onQuickLog && relogFoods.length > 0 && (
+          <div className="mf-relog">
+            <span className="mf-relog-label">Nochmal loggen</span>
+            <div className="mf-relog-row">
+              {relogFoods.map(f => (
+                <button key={f.id} className="mf-relog-chip" onClick={() => onQuickLog(f, isViewingToday ? nowHour : 12)}>
+                  <Icon name={f.icon || 'utensils'} size={16} color={f.color} />
+                  <span>{f.name.split(' ').slice(0, 2).join(' ')}</span>
+                  <span className="mf-relog-plus"><Icon name="plus" size={13} /></span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {hours.map(h => (
           <HourRow
             key={h} hour={h}

@@ -225,25 +225,43 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
   );
 }
 
-/* ---- Dashboard-Einstieg ----------------------------------- */
+/* ---- Dashboard-Einstieg: „Rest heute"-Hero ----------------
+   Die eine Zahl, die Florian wirklich braucht: was ist heute noch
+   offen. Groß, tabellarisch, tappbar — führt direkt in den Planer. */
 function PlannerCTA({ onOpen }) {
   const { state } = useApp();
   const targets = targetsForDate(state, state.selectedDate);
   const totals = dayTotals(state, state.selectedDate);
-  const restE = Math.max(0, targets.energy - totals.energy);
-  const restP = Math.max(0, targets.protein - totals.protein);
+  const restE = targets.energy - totals.energy;
+  const restP = targets.protein - totals.protein;
+  const pctE = Math.max(0, Math.min(100, (totals.energy / (targets.energy || 1)) * 100));
+  const pctP = Math.max(0, Math.min(100, (totals.protein / (targets.protein || 1)) * 100));
+  const over = restE < -30;
   return (
-    <button className="mf-plan-cta" onClick={onOpen}>
-      <span className="mf-plan-ctaicon"><Icon name="utensils-crossed" size={22} color="#000" /></span>
-      <span className="mf-plan-ctamain">
-        <b>Was soll ich noch essen?</b>
-        <span className="mf-num">
-          {restE > 0
-            ? <>Noch <b style={{ color: MF.energy }}>{restE} kcal</b> · <b style={{ color: MF.protein }}>{restP} g Protein</b> übrig</>
-            : 'Tagesziel erreicht — Plan für morgen holen'}
+    <button className="mf-resthero" onClick={onOpen}>
+      <div className="mf-resthero-head">
+        <span className="mf-eyebrow">Rest heute</span>
+        <Icon name="chevron-right" size={18} color="var(--mf-fg-3)" />
+      </div>
+      {restE > 0 ? (
+        <div className="mf-resthero-big mf-num">{restE}<small> kcal übrig</small></div>
+      ) : (
+        <div className="mf-resthero-big mf-num">
+          {over ? <>{Math.abs(restE)}<small> kcal über Ziel</small></> : <>Ziel erreicht<small> 🎉</small></>}
+        </div>
+      )}
+      <div className="mf-resthero-track"><span style={{ width: pctE + '%', background: over ? MF.protein : MF.energy }} /></div>
+      <div className="mf-resthero-protein mf-num">
+        <span>
+          <b style={{ color: MF.protein }}>P</b>{' '}
+          {restP > 0 ? <>noch <b>{restP} g</b> Protein</> : <>Protein-Ziel erreicht ✓</>}
         </span>
+        <span className="mf-resthero-minitrack"><span style={{ width: pctP + '%', background: MF.protein }} /></span>
+      </div>
+      <span className="mf-resthero-btn">
+        <Icon name="utensils-crossed" size={18} color="#000" />
+        Was soll ich noch essen?
       </span>
-      <Icon name="chevron-right" size={20} color="var(--mf-fg-3)" />
     </button>
   );
 }

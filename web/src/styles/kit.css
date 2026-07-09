@@ -1454,18 +1454,61 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 }
 .mf-plan-log { flex: 1; }
 
-/* Dashboard-Einstieg */
-.mf-plan-cta {
-  width: 100%; display: flex; align-items: center; gap: 13px;
+/* Dashboard-Einstieg: Rest-heute-Hero */
+.mf-resthero {
+  width: 100%; display: flex; flex-direction: column; gap: 8px;
   background: var(--mf-surface-2); border: 1px solid var(--mf-hairline);
-  border-radius: var(--mf-r-lg); padding: 14px 16px; margin: 4px 0 14px;
+  border-radius: var(--mf-r-lg); padding: 16px 16px 14px; margin: 4px 0 14px;
   font-family: inherit; color: inherit; text-align: left; cursor: pointer;
 }
-.mf-plan-ctaicon {
-  width: 42px; height: 42px; border-radius: 50%; background: var(--mf-accent);
-  display: flex; align-items: center; justify-content: center; flex: none;
+.mf-resthero-head { display: flex; align-items: center; justify-content: space-between; }
+.mf-resthero-big { font-size: 34px; font-weight: 800; line-height: 1.02; letter-spacing: -0.01em; }
+.mf-resthero-big small { font-size: 15px; font-weight: 600; color: var(--mf-fg-2); margin-left: 4px; }
+.mf-resthero-track { height: 5px; border-radius: 3px; background: var(--mf-surface-4); overflow: hidden; }
+.mf-resthero-track span { display: block; height: 100%; border-radius: 3px; transition: width .4s ease; }
+.mf-resthero-protein { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--mf-fg-2); }
+.mf-resthero-protein > span:first-child { white-space: nowrap; }
+.mf-resthero-protein b { color: var(--mf-fg); font-weight: 700; }
+.mf-resthero-minitrack {
+  flex: 1; height: 3px; border-radius: 2px; background: var(--mf-surface-4);
+  overflow: hidden;
 }
-.mf-plan-ctamain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.mf-plan-ctamain > b { font-size: 16.5px; font-weight: 700; }
-.mf-plan-ctamain > span { font-size: 13px; color: var(--mf-fg-2); }
-.mf-plan-ctamain > span b { font-weight: 700; }
+.mf-resthero-minitrack span { display: block; height: 100%; border-radius: 2px; transition: width .4s ease; }
+.mf-resthero-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--mf-accent); color: #000; border-radius: 999px;
+  padding: 12px; font-size: 15px; font-weight: 700; margin-top: 4px;
+}
+
+/* ---- Food Log: One-Tap-Re-Log + Empty-State --------------- */
+.mf-relog { padding: 2px 0 10px; }
+.mf-relog-label { display: block; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--mf-fg-3); margin-bottom: 8px; }
+.mf-relog-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.mf-relog-row::-webkit-scrollbar { height: 0; }
+.mf-relog-chip {
+  display: inline-flex; align-items: center; gap: 7px; flex: none;
+  background: var(--mf-surface-2); border: 1px solid var(--mf-hairline);
+  border-radius: 999px; padding: 8px 8px 8px 12px;
+  font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--mf-fg);
+  cursor: pointer; max-width: 210px;
+}
+.mf-relog-chip > span:first-of-type { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-relog-plus {
+  width: 22px; height: 22px; border-radius: 50%; background: var(--mf-surface-4);
+  display: inline-flex; align-items: center; justify-content: center; flex: none; color: #fff;
+}
+.mf-relog-chip:active { background: var(--mf-surface-3); }
+
+.mf-day-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  text-align: center; background: var(--mf-surface-1);
+  border: 1px dashed var(--mf-hairline); border-radius: var(--mf-r-lg);
+  padding: 22px 20px; margin: 2px 0 14px; color: var(--mf-fg-2); font-size: 13.5px; line-height: 1.45;
+}
+.mf-day-empty b { color: var(--mf-fg); font-size: 16px; }
+.mf-day-empty-emoji { font-size: 30px; }
+.mf-day-empty-btn {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 6px;
+  background: var(--mf-surface-3); color: #fff; border: 0; border-radius: 999px;
+  padding: 11px 18px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
