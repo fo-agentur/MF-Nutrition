@@ -61,6 +61,15 @@ function AppInner() {
     flash('Gewicht gespeichert');
   };
   const saveRecipe = r => { dispatch({ type: 'ADD_RECIPE', recipe: r }); replacePage('recipes', true); flash('Rezept gespeichert'); };
+  const logRecipe = r => openSheet('detail', { food: window.planner.recipeToFood(r), hour: new Date().getHours() });
+  const logPlan = (items, mode) => {
+    const hours = window.planner.planHours(items.length, mode);
+    items.forEach((it, i) => {
+      dispatch({ type: 'LOG_FOOD', entry: buildEntry(it.food, it.qty, hours[i]) });
+    });
+    closeSheet();
+    flash(items.length === 1 ? '1 Mahlzeit geloggt' : `${items.length} Mahlzeiten geloggt`);
+  };
   const saveCustomFood = async (food, h) => {
     const saved = window.saveCustomFood ? await window.saveCustomFood(food) : food;
     openSheet('detail', { food: saved, hour: h ?? sheet?.hour ?? new Date().getHours() });
@@ -114,7 +123,7 @@ function AppInner() {
     else if (act === 'metrics') { closeSheet(); openPage('metrics'); }
     else if (act === 'weight') openWeight(TODAY);
     else if (act === 'ai') openSheet('add', { tab: 'AI' });
-    else openSheet(act);
+    else openSheet(act); // inkl. 'planner'
   };
 
   /* ----- onboarding gate ----- */
@@ -143,7 +152,7 @@ function AppInner() {
     foodlogging:  <FoodLoggingScreen onBack={back} />,
     nutridata:    <NutritionDataScreen onBack={back} onAdd={() => openSheet('quickadd')} />,
     customize:    <CustomizeDashboardScreen onBack={back} />,
-    recipes:      <RecipesScreen onBack={back} onNew={() => openPage('recipe-new')} onImport={() => openPage('recipe-import')} />,
+    recipes:      <RecipesScreen onBack={back} onNew={() => openPage('recipe-new')} onImport={() => openPage('recipe-import')} onLog={logRecipe} />,
     'recipe-new': <RecipeNewScreen onBack={back} onSave={saveRecipe} />,
     'recipe-import': <RecipeImportScreen onBack={back} onSave={saveRecipe} />,
     account:      <AccountScreen onBack={back} />,
@@ -154,11 +163,14 @@ function AppInner() {
 
   /* ----- tabs ----- */
   const tabs = {
-    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })} onGo={openPage} />,
+    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })} onGo={openPage}
+                  onPlanner={() => openSheet('planner')} />,
     foodlog:   <FoodLogScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })}
                   onMenu={() => openSheet('foodlogmenu')}
                   onAddAt={h => openSheet('add', { hour: h })}
                   onCopyHour={(entries) => copyEntries(entries, 'meal')}
+                  onQuickLog={quickLog}
+                  onPlanner={() => openSheet('planner')}
                   onEditEntry={e => { const food = FOOD_DB.find(f => f.id === e.foodId) || { ...e, per: e.qty || 1, brand: '' }; openSheet('detail', { food, hour: parseInt(e.time, 10), entry: e }); }} />,
     strategy:  <StrategyScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })} onCheckIn={() => openSheet('checkin')}
                   onNewGoal={() => setOnboarding(true)}
@@ -235,6 +247,8 @@ function AppInner() {
       <CheckInSheet open={sheet?.id === 'checkin'} onClose={closeSheet}
         onLogWeight={() => openWeight(TODAY)}
         onApply={t => dispatch({ type: 'SET_TARGETS', targets: t })} />
+
+      <PlannerSheet open={sheet?.id === 'planner'} onClose={closeSheet} onLogPlan={logPlan} />
 
       <Toast show={!!toast}>{toast}</Toast>
     </div>

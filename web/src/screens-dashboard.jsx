@@ -60,7 +60,8 @@ function EnergyBalanceChart({ mode }) {
 function DailyNutritionSlide({ mode, onMode }) {
   const { state } = useApp();
   const tot = dayTotals(state, state.selectedDate);
-  const consumed = tot.energy, target = state.targets.energy;
+  const dayTargets = targetsForDate(state, state.selectedDate);
+  const consumed = tot.energy, target = dayTargets.energy;
   const remaining = Math.max(0, target - consumed);
   const pct = Math.min(1, consumed / target);
   const R = 80, CX = 110, CY = 100;
@@ -91,7 +92,7 @@ function DailyNutritionSlide({ mode, onMode }) {
       <div className="mf-ring-macros">
         {[['protein', tot.protein], ['fat', tot.fat], ['carb', tot.carb]].map(([k, v]) => {
           const m = MACRO_META.find(x => x.key === k);
-          const g = state.targets[k];
+          const g = dayTargets[k];
           const pct = Math.min(100, v / g * 100);
           return (
             <div className="mf-ring-macrow" key={k}>
@@ -163,7 +164,7 @@ function HabitCard({ title, daysLogged, thisWeek, color, onClick }) {
       <HabitGrid daysLogged={daysLogged} total={30} color={color} />
       <div className="mf-datacard-divider" />
       <div className="mf-datacard-footer">
-        <span className="mf-num mf-datacard-val">{thisWeek}/7 <span className="mf-datacard-unit">this week</span></span>
+        <span className="mf-num mf-datacard-val">{thisWeek}/7 <span className="mf-datacard-unit">diese Woche</span></span>
         <Icon name="chevron-right" size={16} color="var(--mf-fg-3)" />
       </div>
     </button>
@@ -176,7 +177,7 @@ function NutritionCard({ label, value, unit, color, goal, onClick }) {
   return (
     <button className="mf-nutcard" onClick={onClick}>
       <div className="mf-nutcard-label">{label}</div>
-      <div className="mf-nutcard-sub">Today</div>
+      <div className="mf-nutcard-sub">Heute</div>
       <div className="mf-nutbar">
         <div className="mf-nutbar-fill" style={{ width: pct + '%', background: color }} />
         <div className="mf-nutbar-tick" style={{ left: '100%' }} />
@@ -206,11 +207,12 @@ function StepsChart() {
 }
 
 /* ---- Dashboard main screen ------------------------------ */
-function DashboardScreen({ onSearch, onAI, onGo }) {
+function DashboardScreen({ onSearch, onAI, onGo, onPlanner }) {
   const { state } = useApp();
   const [ebMode, setEbMode] = React.useState('Verbrauch');
   const [slide, setSlide] = React.useState(0);
   const tot = dayTotals(state, state.selectedDate);
+  const dayGoals = targetsForDate(state, state.selectedDate);
   const expEstimate = estimateExpenditure(state);
 
   // Primary Focus order (configurable via Customize Dashboard; default Weekly Nutrition)
@@ -259,6 +261,9 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
           ))}
         </div>
 
+        {/* ---- Tagesplaner-Einstieg -------------------- */}
+        {onPlanner && <PlannerCTA onOpen={onPlanner} />}
+
         {/* ---- Insights & Analytics -------------------- */}
         <SectionHead title="Insights & Analytics" action="Alle" onAction={() => onGo('insights')} />
         <div className="mf-card2grid">
@@ -280,10 +285,10 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
         {/* ---- Body Metrics ---------------------------- */}
         <SectionHead title="Körperdaten" action="Alle" onAction={() => onGo('metrics')} />
         <div className="mf-card2grid">
-          <MiniDataCard title="Scale Weight" subtitle="Last 7 Entries"
+          <MiniDataCard title="Waagen-Gewicht" subtitle="Letzte 7 Einträge"
             value={lastW ? weightDisplayText(state, lastW.value) : '–'} unit={wUnit}
             chart={<WeightSparkMini weights={state.weights} color={MF.carb} />} onClick={() => onGo('metrics')} />
-          <MiniDataCard title="Visual Body Fat" subtitle="Last 7 Entries"
+          <MiniDataCard title="Körperfett (visuell)" subtitle="Letzte 7 Einträge"
             value="–" unit="%"
             chart={<div style={{ height: 40 }} />}
             onClick={() => onGo('bodyfat')} />
@@ -292,32 +297,32 @@ function DashboardScreen({ onSearch, onAI, onGo }) {
         {/* ---- Nutrition -------------------------------- */}
         <SectionHead title="Nutrition" action="Alle" onAction={() => onGo('nutridata')} />
         <div className="mf-card2grid">
-          <NutritionCard label="Calories" value={tot.energy} unit="kcal" color={MF.energy} goal={state.targets.energy} onClick={() => onGo('nutridata')} />
-          <NutritionCard label="Protein" value={tot.protein} unit="g" color={MF.protein} goal={state.targets.protein} onClick={() => onGo('insights')} />
-          <NutritionCard label="Fat" value={tot.fat} unit="g" color={MF.fat} goal={state.targets.fat} onClick={() => onGo('insights')} />
-          <NutritionCard label="Carbs" value={tot.carb} unit="g" color={MF.carb} goal={state.targets.carb} onClick={() => onGo('insights')} />
+          <NutritionCard label="Kalorien" value={tot.energy} unit="kcal" color={MF.energy} goal={dayGoals.energy} onClick={() => onGo('nutridata')} />
+          <NutritionCard label="Protein" value={tot.protein} unit="g" color={MF.protein} goal={dayGoals.protein} onClick={() => onGo('insights')} />
+          <NutritionCard label="Fett" value={tot.fat} unit="g" color={MF.fat} goal={dayGoals.fat} onClick={() => onGo('insights')} />
+          <NutritionCard label="Carbs" value={tot.carb} unit="g" color={MF.carb} goal={dayGoals.carb} onClick={() => onGo('insights')} />
         </div>
 
         {/* ---- General --------------------------------- */}
-        <div className="mf-section-head-row"><span className="mf-h2">General</span></div>
+        <div className="mf-section-head-row"><span className="mf-h2">Allgemein</span></div>
         <div className="mf-card2grid">
           <button className="mf-datacard" onClick={() => onGo('steps')}>
-            <div className="mf-datacard-title">Steps</div>
+            <div className="mf-datacard-title">Schritte</div>
             <div className="mf-datacard-sub">Letzte 7 Tage</div>
             <StepsChart />
             <div className="mf-datacard-divider" />
             <div className="mf-datacard-footer">
-              <span className="mf-num mf-datacard-val">4037 <span className="mf-datacard-unit">steps</span></span>
+              <span className="mf-num mf-datacard-val">4037 <span className="mf-datacard-unit">Schritte</span></span>
               <Icon name="chevron-right" size={16} color="var(--mf-fg-3)" />
             </div>
           </button>
         </div>
 
         {/* ---- More ------------------------------------ */}
-        <div className="mf-section-head-row"><span className="mf-h2">More</span></div>
+        <div className="mf-section-head-row"><span className="mf-h2">Mehr</span></div>
         <div className="mf-setcard" style={{ marginBottom: 18 }}>
-          <SettingRow icon="layout-dashboard" label="Customize Dashboard" onClick={() => onGo('customize')} />
-          <SettingRow icon="database" label="Nutrition Data Manager" last onClick={() => onGo('nutridata')} />
+          <SettingRow icon="layout-dashboard" label="Dashboard anpassen" onClick={() => onGo('customize')} />
+          <SettingRow icon="database" label="Nutrition-Daten verwalten" last onClick={() => onGo('nutridata')} />
         </div>
       </div>
 

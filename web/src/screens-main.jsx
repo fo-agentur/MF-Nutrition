@@ -38,12 +38,13 @@ function WeeklyChart({ mode, selected, onSelect }) {
       <div className="mf-chart-cols">
         {WEEK_KEYS.map((k, i) => {
           const isSel = k === selected;
+          const dayGoals = targetsForDate(state, k);
           return (
             <button key={k} className={'mf-chart-col' + (isSel ? ' sel' : '')}
               style={{ '--mf-weekly-index': i }}
               onClick={() => onSelect(k)}>
               {MACRO_META.map(m => {
-                const goal = state.targets[m.key];
+                const goal = dayGoals[m.key];
                 const tot = dayTotals(state, k)[m.key];
                 const shown = mode === 'Übrig' ? Math.max(0, goal - tot) : tot;
                 const scaleMax = Math.max(goal || 0, shown || 0) * 1.12;
@@ -64,13 +65,14 @@ function WeeklyChart({ mode, selected, onSelect }) {
       <div className="mf-chart-meta">
         {MACRO_META.map(m => {
           const tot = dayTotals(state, selected)[m.key];
-          const shown = mode === 'Übrig' ? Math.max(0, state.targets[m.key] - tot) : tot;
+          const goal = targetsForDate(state, selected)[m.key];
+          const shown = mode === 'Übrig' ? Math.max(0, goal - tot) : tot;
           return (
             <div className="mf-chart-meta-row" key={m.key}>
               <span className="mf-num mf-chart-meta-val" style={{ color: m.color }}>
                 {shown}<span className="mf-chart-meta-unit">{m.key === 'energy' ? '🔥' : m.unit}</span>
               </span>
-              <span className="mf-chart-meta-goal">von {state.targets[m.key]}</span>
+              <span className="mf-chart-meta-goal">von {goal}</span>
             </div>
           );
         })}
@@ -248,11 +250,12 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
   );
 }
 
-function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHour }) {
+function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHour, onQuickLog, onPlanner }) {
   const { state, dispatch } = useApp();
   const sel = state.selectedDate;
   const entries = (state.days[sel] || { entries: [] }).entries;
   const totals = dayTotals(state, sel);
+  const dayTargets = targetsForDate(state, sel);
   const entryHour = e => parseInt(e.time.split(':')[0], 10);
   const isViewingToday = sel === TODAY;
   const nowHour = new Date().getHours();
@@ -261,6 +264,17 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
     .sort((a, b) => a - b);
   const idx = WEEK_KEYS.indexOf(sel);
   const shiftDay = d => { const n = idx + d; if (n >= 0 && n < WEEK_KEYS.length) dispatch({ type: 'SET_DATE', date: WEEK_KEYS[n] }); };
+  // One-Tap-Re-Log: zuletzt geloggte Foods (dedupliziert) als Chips.
+  // Nicht anzeigen, was heute schon geloggt ist — Chips sollen fehlende Dinge nachreichen.
+  const relogFoods = React.useMemo(() => {
+    const dayNames = new Set(entries.map(e => String(e.name).toLowerCase()));
+    const seen = new Set();
+    return smartHistory(state, nowHour).latest
+      .filter(f => f.unit !== 'day' && f.energy > 0)          // keine Tages-Aggregate
+      .filter(f => !dayNames.has(String(f.name).toLowerCase()))
+      .filter(f => { const k = String(f.name).toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+      .slice(0, 6);
+  }, [state.days, sel, entries.length]);
 
   return (
     <div className="mf-screen">
@@ -278,16 +292,16 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
       {/* Date strip */}
       <DateStrip selected={sel} onSelect={k => dispatch({ type: 'SET_DATE', date: k })} />
 
-      {/* Compact macro strip */}
+      {/* Compact macro strip (goals follow the Strategy program per day) */}
       <div className="mf-macrostrip">
         {MACRO_META.map(m => {
-          const v = totals[m.key], g = state.targets[m.key];
+          const v = totals[m.key], g = dayTargets[m.key];
           const pct = Math.min(100, g ? v / g * 100 : 0);
           return (
             <div className="mf-macrostrip-item" key={m.key}>
               <div className="mf-macrostrip-top mf-num">
-                <span style={{ color: m.color, fontWeight: 700 }}>{m.key === 'energy' ? '🔥 ' : m.unit + ' '}{v}</span>
-                <span style={{ color: 'var(--mf-fg-3)', fontSize: 11 }}> / {g}</span>
+                <span style={{ color: m.color, fontWeight: 700 }}>{(m.key === 'energy' ? '🔥' : m.unit) + ' ' + v}</span>
+                <span style={{ color: 'var(--mf-fg-3)', fontSize: 11 }}>/{g}</span>
               </div>
               <div className="mf-track" style={{ height: 3, marginTop: 4 }}>
                 <span style={{ width: pct + '%', background: m.color }} />
@@ -301,6 +315,32 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
       {/* Timeline */}
       <div className="mf-scroll mf-timeline">
         <div className="mf-tl-line" />
+        {entries.length === 0 && (
+          <div className="mf-day-empty">
+            <span className="mf-day-empty-emoji">🍽️</span>
+            <b>Noch nichts geloggt</b>
+            <span>Tippe + bei einer Uhrzeit, nutze die Suche — oder hol dir Vorschläge, die genau in deine Ziele passen.</span>
+            {onPlanner && (
+              <button className="mf-day-empty-btn" onClick={onPlanner}>
+                <Icon name="utensils-crossed" size={17} /> Was soll ich essen?
+              </button>
+            )}
+          </div>
+        )}
+        {onQuickLog && relogFoods.length > 0 && (
+          <div className="mf-relog">
+            <span className="mf-relog-label">Nochmal loggen</span>
+            <div className="mf-relog-row">
+              {relogFoods.map(f => (
+                <button key={f.id} className="mf-relog-chip" onClick={() => onQuickLog(f, isViewingToday ? nowHour : 12)}>
+                  <Icon name={f.icon || 'utensils'} size={16} color={f.color} />
+                  <span>{f.name.split(' ').slice(0, 2).join(' ')}</span>
+                  <span className="mf-relog-plus"><Icon name="plus" size={13} /></span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {hours.map(h => (
           <HourRow
             key={h} hour={h}

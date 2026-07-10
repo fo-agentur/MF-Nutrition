@@ -122,6 +122,21 @@ function normalizeRecipe(json) {
   };
 }
 
+/* Day-planner proposals: the model only PICKS candidate ids and portion
+   quantities — it never returns nutrition numbers. The client recomputes
+   all macros from its own candidate pool and re-balances portions. */
+function normalizePlan(json) {
+  const raw = Array.isArray(json.meals) ? json.meals : Array.isArray(json.plan) ? json.plan : [];
+  const meals = raw
+    .slice(0, 6)
+    .map((m) => ({
+      id: text(m && (m.id ?? m.candidate ?? m.food)).slice(0, 80),
+      qty: Math.max(0, Number(m && (m.qty ?? m.quantity ?? m.grams)) || 0),
+    }))
+    .filter((m) => m.id && m.qty > 0);
+  return { meals };
+}
+
 function promptFor(task, userText) {
   const base = [
     'Return only a compact JSON object.',
@@ -145,6 +160,21 @@ function promptFor(task, userText) {
       'Return keys: name, items, energy, protein, fat, carb.',
       'If only per-serving data is available, return that serving.',
       base,
+      `Context: ${userText}`,
+    ].join(' ');
+  }
+
+  if (task === 'plan') {
+    return [
+      'You are a meal planner for a macro tracking app.',
+      'The context JSON contains: goal (kcal_max hard limit, protein_min, fat_target, carb_target),',
+      'mode, avoid (dish names to skip), and candidates',
+      '(lines of "id | name | portion | macros per portion").',
+      'Pick 2-4 items ONLY from the candidate list that together make realistic meals for the rest of the day:',
+      'stay under kcal_max, reach protein_min first, prefer dishes over single ingredients, vary the picks.',
+      'qty semantics: for candidates whose portion is in g or ml, qty = grams/ml; otherwise qty = number of portions.',
+      'Return ONLY JSON: {"meals":[{"id":"<candidate id>","qty":<number>}]}.',
+      'Do NOT invent ids. Do NOT return any nutrition numbers or totals.',
       `Context: ${userText}`,
     ].join(' ');
   }
@@ -238,8 +268,8 @@ async function handler(req, res) {
 
   try {
     const body = await readBody(req);
-    const task = ['meal', 'label', 'recipe'].includes(body.task) ? body.task : 'meal';
-    const userText = text(body.text).slice(0, task === 'recipe' ? 16_000 : 2_000);
+    const task = ['meal', 'label', 'recipe', 'plan'].includes(body.task) ? body.task : 'meal';
+    const userText = text(body.text).slice(0, task === 'recipe' ? 16_000 : task === 'plan' ? 8_000 : 2_000);
     const imageData = body.imageData ? String(body.imageData) : '';
 
     if (!userText && !imageData) return res.status(400).json({ error: 'Text or image is required' });
@@ -248,7 +278,9 @@ async function handler(req, res) {
     const json = await callOpenRouter({ task, text: userText, imageData, model: body.model });
     const payload = task === 'recipe'
       ? { recipe: normalizeRecipe(json), raw: json }
-      : { food: normalizeFood(json, task), raw: json };
+      : task === 'plan'
+        ? { plan: normalizePlan(json), raw: json }
+        : { food: normalizeFood(json, task), raw: json };
     return res.status(200).json(payload);
   } catch (error) {
     const status = error.statusCode && error.statusCode >= 400 && error.statusCode < 600 ? error.statusCode : 500;
@@ -264,6 +296,7 @@ module.exports = {
   handler,
   normalizeFood,
   normalizeRecipe,
+  normalizePlan,
   promptFor,
   validImageDataUrl,
 };

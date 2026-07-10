@@ -18,36 +18,8 @@ const CALORIE_PATTERNS = [
   ['weekdayWeekend', 'Weekday / Weekend'],
   ['fasting', 'Fasting Days'],
 ];
-const roundFive = v => Math.round(v / 5) * 5;
-function patternEnergy(base, pattern, dayIndex) {
-  if (pattern === 'sameDaily') return base;
-  if (pattern === 'fasting') {
-    const low = roundFive(base * 0.65);
-    const high = roundFive((base * 7 - low * 2) / 5);
-    return dayIndex === 1 || dayIndex === 4 ? low : high;
-  }
-  const weekend = roundFive(base * 1.10);
-  const weekday = roundFive((base * 7 - weekend * 2) / 5);
-  return dayIndex >= 5 ? weekend : weekday;
-}
-function styleTargets(baseTargets, style, energy) {
-  const protein = Math.max(1, Math.round(baseTargets.protein));
-  if (style === 'keto') {
-    const carb = 30;
-    const fat = Math.max(35, Math.round((energy - protein * 4 - carb * 4) / 9));
-    return { energy, protein, fat, carb };
-  }
-  const fatPct = style === 'lowCarb' ? 0.36 : style === 'carbFocused' ? 0.20 : 0.27;
-  const fat = Math.max(35, Math.round((energy * fatPct) / 9));
-  const carb = Math.max(0, Math.round((energy - protein * 4 - fat * 9) / 4));
-  return { energy, protein, fat, carb };
-}
-function programColsFor(targets, program) {
-  return Array.from({ length: 7 }).map((_, i) => {
-    const energy = patternEnergy(targets.energy, program.caloriePattern, i);
-    return styleTargets(targets, program.macroStyle, energy);
-  });
-}
+/* patternEnergy/styleTargets/programColsFor live in store.jsx now, so the
+   Strategy chart and the per-day targets (targetsForDate) can never drift. */
 function goalLabel(goal) {
   if (!goal || goal.type === 'maintain') return 'Ziel: Gewicht halten';
   return goal.type === 'lose' ? 'Ziel: Abnehmen' : 'Ziel: Zunehmen';
@@ -267,6 +239,7 @@ function ShortcutsSheet({ open, onClose, onAction }) {
     { icon: 'scale', label: 'Gewicht', act: 'weight' },
   ];
   const list = [
+    { icon: 'utensils-crossed', label: 'Was soll ich noch essen?', act: 'planner' },
     { icon: 'chef-hat', label: 'Rezepte', act: 'recipes' },
     { icon: 'rocket', label: 'Quick Add', act: 'quickadd' },
     { icon: 'file-text', label: 'Label-Scanner', act: 'labelscan' },
