@@ -80,7 +80,7 @@ function DailyNutritionSlide({ mode, onMode }) {
           <circle cx={CX} cy={CY} r={R} fill="none" stroke={MF.energy} strokeWidth="10"
             strokeDasharray={`${filled} ${C - filled}`} strokeDashoffset="0"
             strokeLinecap="round" transform={transform} />
-          <text x={CX} y={CY - 10} textAnchor="middle" fill="#fff" fontSize="26" fontWeight="800"
+          <text x={CX} y={CY - 10} textAnchor="middle" fill="#fff" fontSize="22" fontWeight="800"
             style={{ fontVariantNumeric: 'tabular-nums' }}>{consumed}</text>
           <text x={CX} y={CY + 12} textAnchor="middle" fill="rgba(255,255,255,.45)" fontSize="12">Gegessen</text>
         </svg>

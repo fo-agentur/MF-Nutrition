@@ -216,7 +216,7 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
           {label(hour)}{isNow ? <span className="mf-tl-nowdot">•</span> : null}
         </span>
         <button className="mf-tl-add" onClick={() => onAdd(hour)}>
-          <Icon name="plus" size={18} />
+          <Icon name="plus" size={16} />
         </button>
         {hasMacros && (
           <div className="mf-tl-macros">
@@ -234,7 +234,7 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
         <div key={e.id} className="mf-tl-entry">
           <span className="mf-tl-stamp mf-num">{e.time}</span>
           <button className="mf-foodentry" onClick={() => onEditEntry(e)}>
-            <span className="mf-foodicon"><Icon name={e.icon} size={28} color={e.color} /></span>
+            <span className="mf-foodicon"><Icon name={e.icon} size={24} color={e.color} /></span>
             <div className="mf-foodmid">
               <div className="mf-foodname">{e.name}</div>
               <div className="mf-foodmacros mf-num">
@@ -242,7 +242,7 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
                 <span className="dot"> • </span>{e.qty} {e.unit}
               </div>
             </div>
-            <span className="mf-foodedit"><Icon name="pencil" size={16} /></span>
+            <span className="mf-foodedit"><Icon name="pencil" size={14} /></span>
           </button>
         </div>
       ))}
@@ -280,10 +280,10 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
     <div className="mf-screen">
       {/* Top nav */}
       <div className="mf-foodlog-head">
-        <button className="mf-iconbtn" onClick={onMenu}><Icon name="menu" size={24} /></button>
+        <button className="mf-iconbtn" onClick={onMenu}><Icon name="menu" size={22} /></button>
         <div className="mf-todaynav">
           <button className="mf-iconbtn" onClick={() => shiftDay(-1)}><Icon name="chevron-left" size={20} color="var(--mf-fg-2)" /></button>
-          <span className="mf-h3" style={{ fontWeight: 700, fontSize: 20 }}>{sel === TODAY ? 'Heute' : fmtDayMonth(sel)}</span>
+          <span className="mf-h3" style={{ fontWeight: 700, fontSize: 17 }}>{sel === TODAY ? 'Heute' : fmtDayMonth(sel)}</span>
           <button className="mf-iconbtn" onClick={() => shiftDay(1)}><Icon name="chevron-right" size={20} color="var(--mf-fg-2)" /></button>
         </div>
         <span style={{ width: 24 }} />

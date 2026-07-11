@@ -74,13 +74,13 @@ function SearchBar({ onTap, onAI }) {
   return (
     <div className="mf-searchrow">
       <button className="mf-searchbar" onClick={onTap}>
-        <Icon name="search" size={22} color="var(--mf-fg-2)" />
+        <Icon name="search" size={20} color="var(--mf-fg-2)" />
         <span className="mf-search-ph">Food suchen</span>
-        <Icon name="scan-barcode" size={24} color="var(--mf-fg-2)" />
+        <Icon name="scan-barcode" size={22} color="var(--mf-fg-2)" />
       </button>
       {onAI && (
         <button className="mf-search-ai" onClick={onAI} aria-label="Mit KI loggen">
-          <Icon name="sparkles" size={22} />
+          <Icon name="sparkles" size={20} />
         </button>
       )}
     </div>
@@ -146,7 +146,7 @@ function ScreenTitle({ eyebrow, title, right }) {
 function SubHeader({ title, onBack, right }) {
   return (
     <div className="mf-subheader">
-      <button className="mf-iconbtn" onClick={onBack}><Icon name="chevron-left" size={26} /></button>
+      <button className="mf-iconbtn" onClick={onBack}><Icon name="chevron-left" size={23} /></button>
       <span className="mf-subheader-title">{title}</span>
       <span className="mf-subheader-right">{right}</span>
     </div>
@@ -163,7 +163,7 @@ function FoodRow({ food, right, onClick, subtitle }) {
   return (
     <button className="mf-add-item" onClick={onClick}>
       <span className="mf-add-thumb" style={{ background: food.color + '22' }}>
-        <Icon name={food.icon} size={22} color={food.color} />
+        <Icon name={food.icon} size={19} color={food.color} />
       </span>
       <div className="mf-add-mid">
         <div className="mf-add-name">{food.name}</div>

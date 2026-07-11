@@ -217,7 +217,7 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
           </React.Fragment>
         ) : tab === 'Library' ? (
           <React.Fragment>
-            <div className="mf-add-sec">Your Foods</div>
+            <div className="mf-add-sec">Deine Foods</div>
             <button className="mf-create-food" onClick={() => onCustomFood('')}>
               <span><Icon name="plus" size={20} /></span>
               <b>Custom Food erstellen</b>
@@ -243,7 +243,7 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
             {timePicks.map(f => <FoodRow key={f.id} food={f} onClick={() => onPick(f, hour)} right={plusBtn(f)} />)}
             {history.frequent.length > 0 && (
               <React.Fragment>
-                <div className="mf-add-sec">Frequent</div>
+                <div className="mf-add-sec">Häufig</div>
                 {history.frequent.map(f => <FoodRow key={f.id} food={f} onClick={() => onPick(f, hour)} right={plusBtn(f)} />)}
               </React.Fragment>
             )}
@@ -270,14 +270,14 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
 function MacroDonut({ p, f, c }) {
   const total = p * 4 + f * 9 + c * 4 || 1;
   const seg = [['protein', p * 4], ['fat', f * 9], ['carb', c * 4]];
-  let acc = 0; const R = 52, C = 2 * Math.PI * R;
+  let acc = 0; const R = 46, C = 2 * Math.PI * R;
   return (
-    <svg width="130" height="130" viewBox="0 0 130 130">
-      <circle cx="65" cy="65" r={R} fill="none" stroke="#2A2A2D" strokeWidth="12" />
+    <svg width="114" height="114" viewBox="0 0 114 114">
+      <circle cx="57" cy="57" r={R} fill="none" stroke="#2A2A2D" strokeWidth="11" />
       {seg.map(([k, v], i) => {
         const len = (v / total) * C; const off = acc; acc += len;
-        return <circle key={i} cx="65" cy="65" r={R} fill="none" stroke={MF[k]} strokeWidth="12"
-          strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-off} transform="rotate(-90 65 65)" />;
+        return <circle key={i} cx="57" cy="57" r={R} fill="none" stroke={MF[k]} strokeWidth="11"
+          strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-off} transform="rotate(-90 57 57)" />;
       })}
     </svg>
   );
@@ -304,7 +304,7 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
       <div className="mf-detail">
         <div className="mf-detail-head">
           <span className="mf-detail-icon" style={{ background: food.color + '22' }}>
-            <Icon name={food.icon} size={30} color={food.color} />
+            <Icon name={food.icon} size={26} color={food.color} />
           </span>
           <div>
             <div className="mf-detail-name">{food.name}</div>
@@ -322,7 +322,7 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
         <div className="mf-detail-macros">
           {['protein', 'fat', 'carb'].map(k => (
             <div className="mf-detail-macro" key={k}>
-              <span className="mf-num" style={{ color: MF[k], fontWeight: 800, fontSize: 22 }}>{m[k]}g</span>
+              <span className="mf-num" style={{ color: MF[k], fontWeight: 800, fontSize: 19 }}>{m[k]}g</span>
               <span className="mf-detail-macrolbl">{k === 'protein' ? 'Protein' : k === 'fat' ? 'Fett' : 'Carbs'}</span>
             </div>
           ))}

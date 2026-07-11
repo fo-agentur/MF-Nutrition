@@ -179,7 +179,7 @@ function RecipesScreen({ onBack, onNew, onImport, onLog }) {
         {state.recipes.map(r => (
           <button key={r.id} className="mf-recipe" onClick={onLog ? () => onLog(r) : undefined}
             style={{ cursor: onLog ? 'pointer' : 'default' }}>
-            <span className="mf-recipe-icon" style={{ background: r.color + '22' }}><Icon name={r.icon} size={26} color={r.color} /></span>
+            <span className="mf-recipe-icon" style={{ background: r.color + '22' }}><Icon name={r.icon} size={22} color={r.color} /></span>
             <div className="mf-recipe-mid">
               <div className="mf-recipe-name">{r.name}</div>
               <div className="mf-recipe-sub mf-num">{r.items} Zutaten · {r.energy}🔥 {r.protein}P {r.fat}F {r.carb}C</div>
@@ -453,9 +453,9 @@ function SubscriptionScreen({ onBack }) {
   return (
     <SettingsPage title="Subscription" onBack={onBack}>
       <div className="mf-card-lg" style={{ textAlign: 'center' }}>
-        <div className="mf-title" style={{ fontSize: 30 }}>MacroFactor Pro</div>
+        <div className="mf-title" style={{ fontSize: 24 }}>MacroFactor Pro</div>
         <div className="mf-insight-sub" style={{ marginTop: 8 }}>Aktiv · verlängert am 6. Juli 2026</div>
-        <div className="mf-num" style={{ fontSize: 40, fontWeight: 800, margin: '14px 0' }}>11,99 €<small style={{ fontSize: 16, color: 'var(--mf-fg-2)' }}> /Monat</small></div>
+        <div className="mf-num" style={{ fontSize: 32, fontWeight: 800, margin: '12px 0' }}>11,99 €<small style={{ fontSize: 14, color: 'var(--mf-fg-2)' }}> /Monat</small></div>
         <button className="mf-pill" style={{ width: '100%', justifyContent: 'center' }}
           onClick={() => setMessage('Aboverwaltung ist in diesem Prototyp lokal markiert.')}>Plan verwalten</button>
         {message && <div className="mf-auth-info" style={{ marginTop: 12, textAlign: 'left' }}>{message}</div>}

@@ -73,21 +73,21 @@
 
   /* ---- Type scale (semantic) ----------------------------- */
   /* Screen title — wide, black, uppercase */
-  --mf-title-size: 38px;
+  --mf-title-size: 29px;
   --mf-title-weight: 800;
   --mf-title-tracking: 0.01em;
 
   /* Section header — bold, normal width */
-  --mf-h2-size: 20px;
+  --mf-h2-size: 17px;
   --mf-h2-weight: 700;
 
-  --mf-h3-size: 17px;
+  --mf-h3-size: 15px;
   --mf-h3-weight: 600;
 
-  --mf-body-size: 15px;
+  --mf-body-size: 14px;
   --mf-body-weight: 400;
 
-  --mf-label-size: 14px;
+  --mf-label-size: 13px;
   --mf-caption-size: 12px;
   --mf-micro-size: 11px;
 }

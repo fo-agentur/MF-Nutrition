@@ -52,7 +52,7 @@ function PlannerItem({ item, onQty, onRemove }) {
   return (
     <div className="mf-plan-item">
       <span className="mf-plan-itemicon" style={{ background: (food.color || MF.teal) + '22' }}>
-        <Icon name={food.icon || 'utensils'} size={24} color={food.color || MF.teal} />
+        <Icon name={food.icon || 'utensils'} size={21} color={food.color || MF.teal} />
       </span>
       <div className="mf-plan-itemmain">
         <div className="mf-plan-itemname">{food.name}</div>

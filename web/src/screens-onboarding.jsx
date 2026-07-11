@@ -45,7 +45,7 @@ function Onboarding({ onDone }) {
     (
       <div className="mf-onb-center">
         <div className="mf-onb-mark">MF</div>
-        <h1 className="mf-title" style={{ fontSize: 52, textAlign: 'center' }}>Empower<br />Every Body</h1>
+        <h1 className="mf-title" style={{ fontSize: 40, textAlign: 'center' }}>Empower<br />Every Body</h1>
         <p className="mf-onb-lede">Wissenschaftsbasiertes Tracking, das sich an dich anpasst. Lass uns dein Ziel einrichten.</p>
         <button className="mf-onb-btn" onClick={next}>Los geht's</button>
       </div>
@@ -154,7 +154,7 @@ function CheckInSheet({ open, onClose, onApply }) {
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Weekly Check-In" headerRight={<Icon name="circle-check" size={20} />} tall>
+    <Sheet open={open} onClose={onClose} title="Wochen-Check-In" headerRight={<Icon name="circle-check" size={20} />} tall>
       {stage === 'weigh' ? (
         <div className="mf-checkin-body" style={{ textAlign: 'center' }}>
           <div className="mf-checkin-illus"><Icon name="scale" size={46} /></div>
@@ -162,7 +162,7 @@ function CheckInSheet({ open, onClose, onApply }) {
           <p className="mf-onb-lede" style={{ textAlign: 'center' }}>
             Trag dein heutiges Gewicht ein. Daraus schätzt MacroFactor deinen Verbrauch und passt im nächsten Schritt dein Kalorienziel an.
           </p>
-          <div className="mf-weight-display mf-num" style={{ fontSize: 46, padding: '14px 0 10px' }}>{wInput || '0'}<small> {wUnit}</small></div>
+          <div className="mf-weight-display mf-num" style={{ fontSize: 38, padding: '12px 0 8px' }}>{wInput || '0'}<small> {wUnit}</small></div>
           <input className="mf-onb-input mf-num" inputMode="decimal" style={{ textAlign: 'center' }}
             value={wInput}
             onChange={e => setWInput(e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.').slice(0, 6))}

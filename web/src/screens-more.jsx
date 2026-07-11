@@ -30,9 +30,9 @@ function goalEta(state) {
   const current = latestWeight(state);
   const target = Number(goal.targetWeight);
   const rate = Math.abs(Number(goal.rateKgPerWeek) || 0);
-  if (!current || !target || !rate) return 'Log weight for ETA';
+  if (!current || !target || !rate) return 'Gewicht loggen für ETA';
   const weeks = Math.ceil(Math.abs(target - current) / rate);
-  return weeks <= 0 ? 'At goal' : `${weeks} wk · ${addDaysISO(TODAY, weeks * 7)}`;
+  return weeks <= 0 ? 'Ziel erreicht' : `${weeks} Wo. · ${addDaysISO(TODAY, weeks * 7)}`;
 }
 
 function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onReopenGoal }) {
@@ -53,20 +53,20 @@ function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onRe
   const ratePrefix = goal.type === 'lose' ? '-' : goal.type === 'gain' && rate > 0 ? '+' : '';
   const rateShown = rate ? weightDisplayText(state, Math.abs(rate)) : '0.0';
   const ratePct = currentWeight && rate ? Math.abs(rate / currentWeight * 100) : null;
-  const days = ['M','T','W','T','F','S','S'];
+  const days = ['M','D','M','D','F','S','S'];
   // Calorie-proportional stacked bars (MacroFactor style): the whole stack height
   // tracks the day's kcal vs the highest day, and P/F/C segments are sized by their
   // calorie share (P·4, F·9, C·4) so higher-calorie days visibly stand taller.
   const maxEnergy = Math.max(...program.cols.map(c => c.energy), 1);
-  const STACK_MAX = 132;
+  const STACK_MAX = 112;
   const segHeights = col => {
-    const stack = Math.max(56, Math.round(STACK_MAX * (col.energy / maxEnergy)));
+    const stack = Math.max(48, Math.round(STACK_MAX * (col.energy / maxEnergy)));
     const cals = { p: col.protein * 4, f: col.fat * 9, c: col.carb * 4 };
     const tot = cals.p + cals.f + cals.c || 1;
     return {
-      p: Math.max(16, Math.round(stack * cals.p / tot)),
-      f: Math.max(16, Math.round(stack * cals.f / tot)),
-      c: Math.max(16, Math.round(stack * cals.c / tot)),
+      p: Math.max(14, Math.round(stack * cals.p / tot)),
+      f: Math.max(14, Math.round(stack * cals.f / tot)),
+      c: Math.max(14, Math.round(stack * cals.c / tot)),
     };
   };
   return (
@@ -133,21 +133,21 @@ function StrategyScreen({ onSearch, onAI, onCheckIn, onNewGoal, onEditGoal, onRe
           <div className="mf-goal-stats">
             <div className="mf-goal-stat">
               <span className="mf-num mf-goal-val">{weightDisplayText(state, goal.targetWeight || 0)}<small> {wUnit}</small></span>
-              <span className="mf-goal-lbl">Goal Weight</span>
+              <span className="mf-goal-lbl">Zielgewicht</span>
             </div>
             <div className="mf-goal-stat">
               <span className="mf-num mf-goal-val">{ratePrefix}{rateShown}<small> {wUnit}</small></span>
-              <span className="mf-goal-lbl">Goal Rate</span>
+              <span className="mf-goal-lbl">Rate / Woche</span>
             </div>
             <div className="mf-goal-stat">
               <span className="mf-num mf-goal-val">{ratePct == null ? '–' : (ratePct > 0 ? '+' : '') + ratePct.toFixed(1)}<small> %</small></span>
-              <span className="mf-goal-lbl">Goal Rate</span>
+              <span className="mf-goal-lbl">Rate / Woche</span>
             </div>
           </div>
           <div className="mf-strategy-pills" style={{ marginTop: 14, borderTop: '1px solid var(--mf-hairline)', paddingTop: 14, marginBottom: 0 }}>
             <button className="mf-pill" onClick={onNewGoal}><Icon name="plus" size={15} />Neues Ziel</button>
             <button className="mf-pill" onClick={onEditGoal}><Icon name="pencil" size={14} />Ziel bearbeiten</button>
-            <button className="mf-pill" onClick={onReopenGoal}><Icon name="undo-2" size={14} />Reopen Prev</button>
+            <button className="mf-pill" onClick={onReopenGoal}><Icon name="undo-2" size={14} />Voriges Ziel</button>
           </div>
         </div>
 
@@ -183,7 +183,7 @@ function SettingRow({ icon, label, value, last, onClick }) {
   const Tag = onClick ? 'button' : 'div';
   return (
     <Tag className={'mf-setrow' + (last ? ' last' : '') + (!onClick ? ' static' : '')} onClick={onClick}>
-      <span className="mf-set-ic"><Icon name={icon} size={24} /></span>
+      <span className="mf-set-ic"><Icon name={icon} size={21} /></span>
       <span className="mf-set-label">{label}</span>
       {value && <span className="mf-set-value">{value}</span>}
       {onClick && <Icon name="chevron-right" size={20} color="var(--mf-fg-3)" />}
@@ -252,7 +252,7 @@ function ShortcutsSheet({ open, onClose, onAction }) {
       <div className="mf-shortcut-quick">
         {quick.map(q => (
           <button className="mf-shortcut" key={q.label} onClick={() => onAction(q.act)}>
-            <span className="mf-shortcut-btn"><Icon name={q.icon} size={26} /></span>
+            <span className="mf-shortcut-btn"><Icon name={q.icon} size={22} /></span>
             <span className="mf-shortcut-lbl">{q.label}</span>
           </button>
         ))}
@@ -261,7 +261,7 @@ function ShortcutsSheet({ open, onClose, onAction }) {
         {list.map((l, i) => (
           <button className={'mf-shortcut-row' + (i === list.length - 1 ? ' last' : '')} key={l.label}
             onClick={() => onAction(l.act)}>
-            <span className="mf-shortcut-rowic"><Icon name={l.icon} size={24} /></span>
+            <span className="mf-shortcut-rowic"><Icon name={l.icon} size={21} /></span>
             <span className="mf-shortcut-rowlbl">{l.label}</span>
             <Icon name="chevron-right" size={20} color="var(--mf-fg-3)" />
           </button>
