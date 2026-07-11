@@ -19,7 +19,7 @@ function LineChart({ values, color, height = 150, fill }) {
     <svg viewBox={`0 0 ${W} ${height}`} width="100%" height={height}>
       {fill && <path d={area} fill={color} opacity="0.12" />}
       <path d={d} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-      {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill="#1E1E20" stroke={color} strokeWidth="2" />)}
+      {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill="#101216" stroke={color} strokeWidth="2" />)}
     </svg>
   );
 }
@@ -38,7 +38,7 @@ function InsightsScreen({ onBack }) {
         <div className="mf-card-lg">
           <div className="mf-h3">Expenditure</div>
           <div className="mf-insight-sub">{exp ? 'Geschätzter Tagesverbrauch' : 'Noch nicht genug Daten — logge Gewicht & Mahlzeiten ein paar Tage'}</div>
-          <div className="mf-metric-big mf-num" style={{ marginTop: 8 }}>{exp ? exp : '–'}<small> 🔥 kcal</small></div>
+          <div className="mf-metric-big mf-num" style={{ marginTop: 8 }}>{exp ? exp : '–'}<small> kcal</small></div>
         </div>
         <div className="mf-card-lg">
           <div className="mf-h3">Weight Trend</div>
@@ -182,7 +182,7 @@ function RecipesScreen({ onBack, onNew, onImport, onLog }) {
             <span className="mf-recipe-icon" style={{ background: r.color + '22' }}><Icon name={r.icon} size={22} color={r.color} /></span>
             <div className="mf-recipe-mid">
               <div className="mf-recipe-name">{r.name}</div>
-              <div className="mf-recipe-sub mf-num">{r.items} Zutaten · {r.energy}🔥 {r.protein}P {r.fat}F {r.carb}C</div>
+              <div className="mf-recipe-sub mf-num">{r.items} Zutaten · {r.energy}E {r.protein}P {r.fat}F {r.carb}C</div>
             </div>
             <Icon name="chevron-right" size={20} color="var(--mf-fg-3)" />
           </button>
@@ -208,7 +208,7 @@ function RecipeNewScreen({ onBack, onSave }) {
       <div className="mf-scroll">
         <input className="mf-quick-name" placeholder="Rezeptname" value={name} onChange={e => setName(e.target.value)} />
         <div className="mf-recipe-totals mf-num">
-          <b style={{ color: MF.energy }}>{tot.energy}🔥</b>
+          <b style={{ color: MF.energy }}>{tot.energy}E</b>
           <b style={{ color: MF.protein }}>{tot.protein}P</b>
           <b style={{ color: MF.fat }}>{tot.fat}F</b>
           <b style={{ color: MF.carb }}>{tot.carb}C</b>

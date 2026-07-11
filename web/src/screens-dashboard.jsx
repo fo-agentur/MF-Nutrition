@@ -34,7 +34,7 @@ function EnergyBalanceChart({ mode }) {
             rx="2" fill={MF.energy} opacity="0.85" />
         ) : null)}
         {hasData && showExp && (
-          <line x1={pad} y1={refY} x2={W - pad} y2={refY} stroke="#EF6A45" strokeWidth="1.5"
+          <line x1={pad} y1={refY} x2={W - pad} y2={refY} stroke="#C4674C" strokeWidth="1.5"
             strokeDasharray="4 3" strokeLinecap="round" />
         )}
         <text x={W - pad} y={H - 2} textAnchor="end" fill="rgba(255,255,255,.35)" fontSize="11">Letzte 30 Tage</text>
@@ -74,13 +74,13 @@ function DailyNutritionSlide({ mode, onMode }) {
       <div className="mf-slide-title">Tagesübersicht</div>
       <div className="mf-ring-wrap">
         <svg width="220" height="130" viewBox="0 0 220 130">
-          <circle cx={CX} cy={CY} r={R} fill="none" stroke="#2C2C30" strokeWidth="10"
+          <circle cx={CX} cy={CY} r={R} fill="none" stroke="#232730" strokeWidth="10"
             strokeDasharray={`${arcLen} ${C - arcLen}`} strokeDashoffset="0"
             strokeLinecap="round" transform={transform} />
           <circle cx={CX} cy={CY} r={R} fill="none" stroke={MF.energy} strokeWidth="10"
             strokeDasharray={`${filled} ${C - filled}`} strokeDashoffset="0"
             strokeLinecap="round" transform={transform} />
-          <text x={CX} y={CY - 10} textAnchor="middle" fill="#fff" fontSize="22" fontWeight="800"
+          <text x={CX} y={CY - 10} textAnchor="middle" fill="#E8E5DB" fontSize="22" fontWeight="800"
             style={{ fontVariantNumeric: 'tabular-nums' }}>{consumed}</text>
           <text x={CX} y={CY + 12} textAnchor="middle" fill="rgba(255,255,255,.45)" fontSize="12">Gegessen</text>
         </svg>
@@ -149,7 +149,7 @@ function HabitGrid({ daysLogged, total = 30, color }) {
     <div className="mf-habit-grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
       {Array.from({ length: total }).map((_, i) => (
         <span key={i} className="mf-habit-dot"
-          style={{ background: i < daysLogged ? color : '#2C2C30' }} />
+          style={{ background: i < daysLogged ? color : '#232730' }} />
       ))}
     </div>
   );
@@ -199,7 +199,7 @@ function StepsChart() {
     <div className="mf-steps-bars">
       {STEPS_7D.map((s, i) => (
         <div key={i} className="mf-steps-bar-wrap">
-          <div className="mf-steps-bar" style={{ height: (s / max * 100) + '%', background: '#EF6A45' }} />
+          <div className="mf-steps-bar" style={{ height: (s / max * 100) + '%', background: '#C4674C' }} />
         </div>
       ))}
     </div>
@@ -335,10 +335,10 @@ function DashboardScreen({ onSearch, onAI, onGo, onPlanner }) {
 function ExpenditureChartMini() {
   return (
     <svg viewBox="0 0 180 50" width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block', minHeight: 44 }}>
-      <rect x="4" y="18" width="172" height="12" rx="4" fill="rgba(224,122,78,0.22)" />
-      <line x1="4" y1="28" x2="176" y2="20" stroke="#E07A4E" strokeWidth="1.5" />
+      <rect x="4" y="18" width="172" height="12" rx="4" fill="rgba(176,122,80,0.2)" />
+      <line x1="4" y1="28" x2="176" y2="20" stroke="#B07A50" strokeWidth="1.5" />
       {[[4,27],[30,26],[56,25],[82,24],[108,23],[134,22],[160,20]].map(([x, y], i) => (
-        <rect key={i} x={x - 2.5} y={y - 3} width="5" height="6" rx="1" fill="#252528" stroke="#E07A4E" strokeWidth="1.2" />
+        <rect key={i} x={x - 2.5} y={y - 3} width="5" height="6" rx="1" fill="#14161A" stroke="#B07A50" strokeWidth="1.2" />
       ))}
     </svg>
   );
@@ -352,7 +352,7 @@ function WeightSparkMini({ weights, color }) {
     return (
       <svg viewBox="0 0 180 50" width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block', minHeight: 44 }}>
         <line x1="8" y1="25" x2="172" y2="25" stroke={c} strokeWidth="1.5" strokeDasharray="4 5" opacity="0.35" />
-        {vals.length === 1 && <circle cx="90" cy="25" r="2.5" fill="#252528" stroke={c} strokeWidth="1.5" />}
+        {vals.length === 1 && <circle cx="90" cy="25" r="2.5" fill="#14161A" stroke={c} strokeWidth="1.5" />}
       </svg>
     );
   }
@@ -363,7 +363,7 @@ function WeightSparkMini({ weights, color }) {
   return (
     <svg viewBox="0 0 180 50" width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block', minHeight: 44 }}>
       <path d={d} fill="none" stroke={c} strokeWidth="1.8" strokeLinejoin="round" />
-      {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r="2.5" fill="#252528" stroke={c} strokeWidth="1.5" />)}
+      {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r="2.5" fill="#14161A" stroke={c} strokeWidth="1.5" />)}
     </svg>
   );
 }

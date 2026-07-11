@@ -7,13 +7,13 @@
 import { supabase } from './supabaseClient.js';
 
 const MF = {
-  energy:  '#4A78F0', protein: '#EF6A45', fat: '#F2BE3F',
-  carb:    '#57B36E', purple:  '#9B7FE8', teal: '#2BA89F',
+  energy:  '#E3A83D', protein: '#C4674C', fat: '#B3A05F',
+  carb:    '#7C9E85', purple:  '#8E93AC', teal: '#6E9A94',
 };
 
 /* Macro meta (order matters for rendering) */
 const MACRO_META = [
-  { key: 'energy',  letter: '🔥', unit: '',  color: MF.energy,  goalKey: 'energy'  },
+  { key: 'energy',  letter: 'E',  unit: 'E', color: MF.energy,  goalKey: 'energy'  },
   { key: 'protein', letter: 'P',  unit: 'P', color: MF.protein, goalKey: 'protein' },
   { key: 'fat',     letter: 'F',  unit: 'F', color: MF.fat,     goalKey: 'fat'     },
   { key: 'carb',    letter: 'C',  unit: 'C', color: MF.carb,    goalKey: 'carb'    },
@@ -25,25 +25,25 @@ const FOOD_DB = [
   { id: 'muesli',  name: 'Knusper Müsli Schoko By Spar', brand: 'Spar',  icon: 'utensils',   color: MF.teal,    per: 100, unit: 'g',       energy: 447, protein: 10, fat: 15, carb: 64, fav: false },
   /* Portion = 1 Flasche (350 ml); Makros gelten pro Flasche. per>1 mit
      Zähl-Einheit ließ den Stepper in 350er-Schritten springen („350 serving"). */
-  { id: 'pro35',   name: 'Pro 35 Erdbeere By Nöm',       brand: 'Nöm · 350 ml', icon: 'milk',  color: '#E8761E',  per: 1,   unit: 'Flasche', energy: 217, protein: 35, fat: 2,  carb: 19, fav: false },
-  { id: 'burrito', name: 'Bomben Borito',                brand: 'Eigen', icon: 'drumstick',  color: '#E0A45A',  per: 1,   unit: 'serving', energy: 620, protein: 38, fat: 22, carb: 58, fav: true  },
-  { id: 'banana',  name: 'Banane',                       brand: 'Frisch',icon: 'banana',     color: '#F2BE3F',  per: 1,   unit: 'Stück',   energy: 105, protein: 1,  fat: 0,  carb: 27, fav: true  },
-  { id: 'chicken', name: 'Hähnchenbrust gegrillt',       brand: 'Frisch',icon: 'drumstick',  color: '#E0A45A',  per: 100, unit: 'g',       energy: 165, protein: 31, fat: 4,  carb: 0,  fav: false },
-  { id: 'rice',    name: 'Reis gekocht',                 brand: 'Basis', icon: 'wheat',      color: '#D8C28A',  per: 100, unit: 'g',       energy: 130, protein: 3,  fat: 0,  carb: 28, fav: false },
-  { id: 'eggs',    name: 'Eier',                         brand: 'Frisch',icon: 'egg',        color: '#E9D08A',  per: 1,   unit: 'Stück',   energy: 78,  protein: 6,  fat: 5,  carb: 1,  fav: false },
-  { id: 'yogurt',  name: 'Skyr Natur',                   brand: 'Milbona',icon: 'milk',      color: '#EDEDED',  per: 100, unit: 'g',       energy: 63,  protein: 11, fat: 0,  carb: 4,  fav: false },
-  { id: 'oats',    name: 'Haferflocken',                 brand: 'Kölln', icon: 'wheat',      color: '#D8C28A',  per: 100, unit: 'g',       energy: 372, protein: 13, fat: 7,  carb: 60, fav: false },
-  { id: 'almond',  name: 'Mandeln',                      brand: 'Snack', icon: 'nut',        color: '#C99B6E',  per: 30,  unit: 'g',       energy: 173, protein: 6,  fat: 15, carb: 6,  fav: false },
-  { id: 'apple',   name: 'Apfel',                        brand: 'Frisch',icon: 'apple',      color: '#57B36E',  per: 1,   unit: 'Stück',   energy: 95,  protein: 0,  fat: 0,  carb: 25, fav: false },
-  { id: 'salmon',  name: 'Lachsfilet',                   brand: 'Frisch',icon: 'fish',       color: '#EF8E6A',  per: 100, unit: 'g',       energy: 208, protein: 20, fat: 13, carb: 0,  fav: false },
-  { id: 'coffee',  name: 'Kaffee mit Milch',             brand: 'Basis', icon: 'coffee',     color: '#B98A5E',  per: 1,   unit: 'Tasse',   energy: 42,  protein: 2,  fat: 2,  carb: 4,  fav: false },
-  { id: 'choc',    name: 'Zartbitterschokolade',         brand: 'Lindt', icon: 'candy',      color: '#9B6B45',  per: 30,  unit: 'g',       energy: 160, protein: 2,  fat: 11, carb: 13, fav: false },
+  { id: 'pro35',   name: 'Pro 35 Erdbeere By Nöm',       brand: 'Nöm · 350 ml', icon: 'milk',  color: '#C08552',  per: 1,   unit: 'Flasche', energy: 217, protein: 35, fat: 2,  carb: 19, fav: false },
+  { id: 'burrito', name: 'Bomben Borito',                brand: 'Eigen', icon: 'drumstick',  color: '#B58F63',  per: 1,   unit: 'serving', energy: 620, protein: 38, fat: 22, carb: 58, fav: true  },
+  { id: 'banana',  name: 'Banane',                       brand: 'Frisch',icon: 'banana',     color: '#C7AC5F',  per: 1,   unit: 'Stück',   energy: 105, protein: 1,  fat: 0,  carb: 27, fav: true  },
+  { id: 'chicken', name: 'Hähnchenbrust gegrillt',       brand: 'Frisch',icon: 'drumstick',  color: '#B58F63',  per: 100, unit: 'g',       energy: 165, protein: 31, fat: 4,  carb: 0,  fav: false },
+  { id: 'rice',    name: 'Reis gekocht',                 brand: 'Basis', icon: 'wheat',      color: '#B0A47E',  per: 100, unit: 'g',       energy: 130, protein: 3,  fat: 0,  carb: 28, fav: false },
+  { id: 'eggs',    name: 'Eier',                         brand: 'Frisch',icon: 'egg',        color: '#BFB284',  per: 1,   unit: 'Stück',   energy: 78,  protein: 6,  fat: 5,  carb: 1,  fav: false },
+  { id: 'yogurt',  name: 'Skyr Natur',                   brand: 'Milbona',icon: 'milk',      color: '#C9C7BE',  per: 100, unit: 'g',       energy: 63,  protein: 11, fat: 0,  carb: 4,  fav: false },
+  { id: 'oats',    name: 'Haferflocken',                 brand: 'Kölln', icon: 'wheat',      color: '#B0A47E',  per: 100, unit: 'g',       energy: 372, protein: 13, fat: 7,  carb: 60, fav: false },
+  { id: 'almond',  name: 'Mandeln',                      brand: 'Snack', icon: 'nut',        color: '#AE9070',  per: 30,  unit: 'g',       energy: 173, protein: 6,  fat: 15, carb: 6,  fav: false },
+  { id: 'apple',   name: 'Apfel',                        brand: 'Frisch',icon: 'apple',      color: '#7C9E85',  per: 1,   unit: 'Stück',   energy: 95,  protein: 0,  fat: 0,  carb: 25, fav: false },
+  { id: 'salmon',  name: 'Lachsfilet',                   brand: 'Frisch',icon: 'fish',       color: '#C08268',  per: 100, unit: 'g',       energy: 208, protein: 20, fat: 13, carb: 0,  fav: false },
+  { id: 'coffee',  name: 'Kaffee mit Milch',             brand: 'Basis', icon: 'coffee',     color: '#A3865F',  per: 1,   unit: 'Tasse',   energy: 42,  protein: 2,  fat: 2,  carb: 4,  fav: false },
+  { id: 'choc',    name: 'Zartbitterschokolade',         brand: 'Lindt', icon: 'candy',      color: '#96755A',  per: 30,  unit: 'g',       energy: 160, protein: 2,  fat: 11, carb: 13, fav: false },
 ];
 
 const RECIPES_SEED = [
-  { id: 'r1', name: 'Protein Overnight Oats', items: 4, energy: 412, protein: 32, fat: 9,  carb: 52, icon: 'wheat',  color: '#D8C28A' },
-  { id: 'r2', name: 'Hähnchen Reis Bowl',     items: 5, energy: 560, protein: 48, fat: 12, carb: 62, icon: 'drumstick', color: '#E0A45A' },
-  { id: 'r3', name: 'Skyr Beeren Bowl',       items: 3, energy: 240, protein: 22, fat: 3,  carb: 30, icon: 'milk',   color: '#EDEDED' },
+  { id: 'r1', name: 'Protein Overnight Oats', items: 4, energy: 412, protein: 32, fat: 9,  carb: 52, icon: 'wheat',  color: '#B0A47E' },
+  { id: 'r2', name: 'Hähnchen Reis Bowl',     items: 5, energy: 560, protein: 48, fat: 12, carb: 62, icon: 'drumstick', color: '#B58F63' },
+  { id: 'r3', name: 'Skyr Beeren Bowl',       items: 3, energy: 240, protein: 22, fat: 3,  carb: 30, icon: 'milk',   color: '#C9C7BE' },
 ];
 
 const DEFAULT_TARGETS = { energy: 2565, protein: 169, fat: 84, carb: 281 };
@@ -65,20 +65,20 @@ const TODAY = localISO();
 
 /* ---- icon / colour heuristic for DB-loaded foods -------- */
 const ICON_RULES = [
-  [/müsli|cereal|granola|knusper/i, 'utensils', '#2BA89F'],
-  [/banane|banana/i,                'banana',   '#F2BE3F'],
-  [/ei(er)?\b|egg/i,                'egg',      '#E9D08A'],
-  [/reis|rice/i,                    'wheat',    '#D8C28A'],
-  [/hafer|oat/i,                    'wheat',    '#D8C28A'],
-  [/skyr|joghurt|yogurt|milch|milk|quark|pro \d/i, 'milk', '#EDEDED'],
-  [/hähnchen|huhn|chicken|pute/i,   'drumstick','#E0A45A'],
-  [/lachs|fisch|salmon|fish/i,      'fish',     '#EF8E6A'],
-  [/apfel|apple/i,                  'apple',    '#57B36E'],
-  [/mandel|nuss|nut|almond/i,       'nut',      '#C99B6E'],
-  [/kaffee|coffee/i,                'coffee',   '#B98A5E'],
-  [/schoko|chocolate|candy|süß/i,   'candy',    '#9B6B45'],
-  [/kartoffel|potato|pommes/i,      'utensils', '#E0A45A'],
-  [/empanada|borito|burrito|wrap/i, 'drumstick','#E0A45A'],
+  [/müsli|cereal|granola|knusper/i, 'utensils', '#6E9A94'],
+  [/banane|banana/i,                'banana',   '#C7AC5F'],
+  [/ei(er)?\b|egg/i,                'egg',      '#BFB284'],
+  [/reis|rice/i,                    'wheat',    '#B0A47E'],
+  [/hafer|oat/i,                    'wheat',    '#B0A47E'],
+  [/skyr|joghurt|yogurt|milch|milk|quark|pro \d/i, 'milk', '#C9C7BE'],
+  [/hähnchen|huhn|chicken|pute/i,   'drumstick','#B58F63'],
+  [/lachs|fisch|salmon|fish/i,      'fish',     '#C08268'],
+  [/apfel|apple/i,                  'apple',    '#7C9E85'],
+  [/mandel|nuss|nut|almond/i,       'nut',      '#AE9070'],
+  [/kaffee|coffee/i,                'coffee',   '#A3865F'],
+  [/schoko|chocolate|candy|süß/i,   'candy',    '#96755A'],
+  [/kartoffel|potato|pommes/i,      'utensils', '#B58F63'],
+  [/empanada|borito|burrito|wrap/i, 'drumstick','#B58F63'],
 ];
 function iconForName(name = '') {
   for (const [re, icon] of ICON_RULES) if (re.test(name)) return icon;

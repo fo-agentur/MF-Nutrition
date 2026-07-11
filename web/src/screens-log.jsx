@@ -273,7 +273,7 @@ function MacroDonut({ p, f, c }) {
   let acc = 0; const R = 46, C = 2 * Math.PI * R;
   return (
     <svg width="114" height="114" viewBox="0 0 114 114">
-      <circle cx="57" cy="57" r={R} fill="none" stroke="#2A2A2D" strokeWidth="11" />
+      <circle cx="57" cy="57" r={R} fill="none" stroke="#232730" strokeWidth="11" />
       {seg.map(([k, v], i) => {
         const len = (v / total) * C; const off = acc; acc += len;
         return <circle key={i} cx="57" cy="57" r={R} fill="none" stroke={MF[k]} strokeWidth="11"
@@ -315,7 +315,7 @@ function FoodDetailSheet({ open, food, hour, onBack, onClose, onLog, editEntry, 
         <div className="mf-detail-donut">
           <MacroDonut p={m.protein} f={m.fat} c={m.carb} />
           <div className="mf-detail-cal mf-num">
-            <b>{m.energy}</b><span>🔥 kcal</span>
+            <b>{m.energy}</b><span>kcal</span>
           </div>
         </div>
 
@@ -424,7 +424,7 @@ function AIPlateSheet({ open, food, hour, onClose, onLog }) {
           <div className="mf-aiplate-entrymain">
             <div className="mf-aiplate-name">{food.name}</div>
             <div className="mf-aiplate-sub mf-num">
-              {m.energy}<span className="e">🔥</span> {m.protein}P {m.fat}F {m.carb}C
+              {m.energy}E {m.protein}P {m.fat}F {m.carb}C
               {meta.servingLabel ? <span> · {meta.servingLabel}</span> : null}
             </div>
           </div>
@@ -499,7 +499,7 @@ function QuickAddSheet({ open, hour, onBack, onClose, onLog }) {
   const [v, setV] = React.useState({ name: '', energy: '', protein: '', fat: '', carb: '' });
   React.useEffect(() => { if (open) setV({ name: '', energy: '', protein: '', fat: '', carb: '' }); }, [open]);
   const set = (k, val) => setV(s => ({ ...s, [k]: val }));
-  const fields = [['energy', 'Energie', '🔥'], ['protein', 'Protein', 'P'], ['fat', 'Fett', 'F'], ['carb', 'Carbs', 'C']];
+  const fields = [['energy', 'Energie', 'E'], ['protein', 'Protein', 'P'], ['fat', 'Fett', 'F'], ['carb', 'Carbs', 'C']];
   const log = () => onLog({
     foodId: 'quick', name: v.name || 'Quick Add', time: HH(hour ?? 11), qty: 1, unit: 'serving',
     icon: 'rocket', color: MF.energy,

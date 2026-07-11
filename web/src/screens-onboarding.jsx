@@ -97,7 +97,7 @@ function Onboarding({ onDone }) {
       <div className="mf-onb-step">
         <div className="mf-eyebrow">Dein Startpunkt</div>
         <h2 className="mf-onb-q">Dein täglicher Plan</h2>
-        <div className="mf-onb-target mf-num">{targets.energy}<small> 🔥 kcal</small></div>
+        <div className="mf-onb-target mf-num">{targets.energy}<small> kcal</small></div>
         <div className="mf-onb-macros">
           {[['protein', targets.protein], ['fat', targets.fat], ['carb', targets.carb]].map(([k, v]) => (
             <div key={k} className="mf-onb-macro">
@@ -175,7 +175,7 @@ function CheckInSheet({ open, onClose, onApply }) {
         </div>
       ) : stage === 'review' ? (
         <div className="mf-checkin-body mf-checkin-review">
-          <div className="mf-checkin-illus">📊</div>
+          <div className="mf-checkin-illus"><Icon name="activity" size={38} color="var(--mf-signal)" /></div>
           <h2 className="mf-onb-q" style={{ textAlign: 'center' }}>Schritt 2 · Dein Update</h2>
           <p className="mf-onb-lede mf-checkin-reason" style={{ textAlign: 'center' }}>{rec.reason}</p>
           <div className="mf-checkin-modules">
@@ -212,9 +212,9 @@ function CheckInSheet({ open, onClose, onApply }) {
             </div>
           </div>
           <div className="mf-checkin-row">
-            <div><div className="mf-insight-sub">Bisher</div><div className="mf-num mf-checkin-num">{state.targets.energy} 🔥</div></div>
+            <div><div className="mf-insight-sub">Bisher</div><div className="mf-num mf-checkin-num">{state.targets.energy}</div></div>
             <Icon name="arrow-right" size={24} color="var(--mf-fg-2)" />
-            <div><div className="mf-insight-sub">Neu</div><div className="mf-num mf-checkin-num" style={{ color: rec.ready ? MF.energy : 'var(--mf-fg)' }}>{newTargets.energy} 🔥</div></div>
+            <div><div className="mf-insight-sub">Neu</div><div className="mf-num mf-checkin-num" style={{ color: rec.ready ? MF.energy : 'var(--mf-fg)' }}>{newTargets.energy}</div></div>
           </div>
           {rec.ready && (
             <div className="mf-checkin-macros">
@@ -234,7 +234,7 @@ function CheckInSheet({ open, onClose, onApply }) {
         </div>
       ) : (
         <div className="mf-checkin-body" style={{ textAlign: 'center' }}>
-          <div className="mf-checkin-illus">🚀</div>
+          <div className="mf-checkin-illus"><Icon name="circle-check" size={38} color="var(--mf-carb)" /></div>
           <h2 className="mf-onb-q">Check-In abgeschlossen!</h2>
           <p className="mf-onb-lede" style={{ textAlign: 'center' }}>Dein neues Ziel ist aktiv. Bis nächste Woche!</p>
           <div className="mf-detail-actions" style={{ padding: '20px 0 0' }}>

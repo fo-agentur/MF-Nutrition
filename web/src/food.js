@@ -12,24 +12,24 @@ const OFF_FIELDS =
 
 /* icon/colour heuristic so OFF foods get a sensible icon */
 const ICON_RULES = [
-  [/müsli|cereal|granola|knusper|porridge/i, 'utensils', '#2BA89F'],
-  [/banane|banana/i, 'banana', '#F2BE3F'],
-  [/ei(er)?\b|egg/i, 'egg', '#E9D08A'],
-  [/reis|rice/i, 'wheat', '#D8C28A'],
-  [/hafer|oat/i, 'wheat', '#D8C28A'],
-  [/brot|bread|toast|semmel|weckerl/i, 'sandwich', '#E0A45A'],
-  [/skyr|joghurt|yogurt|milch|milk|quark|topfen|whey|protein/i, 'milk', '#EDEDED'],
-  [/hähnchen|huhn|chicken|pute|fleisch|wurst|schinken|ham/i, 'drumstick', '#E0A45A'],
-  [/lachs|fisch|salmon|fish|thunfisch|tuna/i, 'fish', '#EF8E6A'],
-  [/apfel|apple|frucht|fruit|beere|berry|himbeer|erdbeer/i, 'apple', '#57B36E'],
-  [/mandel|nuss|nut|almond|erdnuss|peanut/i, 'nut', '#C99B6E'],
-  [/kaffee|coffee|tee|tea/i, 'coffee', '#B98A5E'],
-  [/schoko|chocolate|candy|riegel|bar|süß|keks|cookie/i, 'candy', '#9B6B45'],
-  [/wasser|water|saft|juice|cola|limo|drink|getränk/i, 'cup-soda', '#4A78F0'],
-  [/kartoffel|potato|pommes|chips/i, 'utensils', '#E0A45A'],
+  [/müsli|cereal|granola|knusper|porridge/i, 'utensils', '#6E9A94'],
+  [/banane|banana/i, 'banana', '#C7AC5F'],
+  [/ei(er)?\b|egg/i, 'egg', '#BFB284'],
+  [/reis|rice/i, 'wheat', '#B0A47E'],
+  [/hafer|oat/i, 'wheat', '#B0A47E'],
+  [/brot|bread|toast|semmel|weckerl/i, 'sandwich', '#B58F63'],
+  [/skyr|joghurt|yogurt|milch|milk|quark|topfen|whey|protein/i, 'milk', '#C9C7BE'],
+  [/hähnchen|huhn|chicken|pute|fleisch|wurst|schinken|ham/i, 'drumstick', '#B58F63'],
+  [/lachs|fisch|salmon|fish|thunfisch|tuna/i, 'fish', '#C08268'],
+  [/apfel|apple|frucht|fruit|beere|berry|himbeer|erdbeer/i, 'apple', '#7C9E85'],
+  [/mandel|nuss|nut|almond|erdnuss|peanut/i, 'nut', '#AE9070'],
+  [/kaffee|coffee|tee|tea/i, 'coffee', '#A3865F'],
+  [/schoko|chocolate|candy|riegel|bar|süß|keks|cookie/i, 'candy', '#96755A'],
+  [/wasser|water|saft|juice|cola|limo|drink|getränk/i, 'cup-soda', '#8E93AC'],
+  [/kartoffel|potato|pommes|chips/i, 'utensils', '#B58F63'],
 ];
 function iconFor(name = '') { for (const [re, i] of ICON_RULES) if (re.test(name)) return i; return 'utensils'; }
-function colorFor(name = '') { for (const [re, , c] of ICON_RULES) if (re.test(name)) return c; return '#2BA89F'; }
+function colorFor(name = '') { for (const [re, , c] of ICON_RULES) if (re.test(name)) return c; return '#6E9A94'; }
 
 function slug(s = '') { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40); }
 

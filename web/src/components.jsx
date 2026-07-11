@@ -51,7 +51,7 @@ function BottomNav({ active, onNav, onFab }) {
     <div className="mf-bottomnav">
       {NAV.map(n => n.id === 'fab' ? (
         <button key="fab" className="mf-fab" onClick={onFab} aria-label="Hinzufügen">
-          <Icon name="plus" size={28} color="#000" />
+          <Icon name="plus" size={26} color="#0B0C0E" />
         </button>
       ) : (
         <button key={n.id} className={'mf-navitem' + (active === n.id ? ' on' : '')}
@@ -168,7 +168,7 @@ function FoodRow({ food, right, onClick, subtitle }) {
       <div className="mf-add-mid">
         <div className="mf-add-name">{food.name}</div>
         <div className="mf-add-macros mf-num">
-          {subtitle || <span>{food.energy}🔥 {food.protein}P {food.fat}F {food.carb}C <span className="dot">•</span> {food.per} {food.unit}</span>}
+          {subtitle || <span>{food.energy}E {food.protein}P {food.fat}F {food.carb}C <span className="dot">•</span> {food.per} {food.unit}</span>}
         </div>
       </div>
       {right}

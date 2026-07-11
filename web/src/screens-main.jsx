@@ -70,7 +70,7 @@ function WeeklyChart({ mode, selected, onSelect }) {
           return (
             <div className="mf-chart-meta-row" key={m.key}>
               <span className="mf-num mf-chart-meta-val" style={{ color: m.color }}>
-                {shown}<span className="mf-chart-meta-unit">{m.key === 'energy' ? '🔥' : m.unit}</span>
+                {shown}<span className="mf-chart-meta-unit">{m.key === 'energy' ? 'kcal' : m.unit}</span>
               </span>
               <span className="mf-chart-meta-goal">von {goal}</span>
             </div>
@@ -108,10 +108,10 @@ function MiniInsight({ title, onClick, children }) {
 function ExpenditureChart() {
   return (
     <svg viewBox="0 0 200 56" width="100%" height="56" preserveAspectRatio="none">
-      <rect x="6" y="22" width="188" height="13" rx="5" fill="rgba(224,122,78,0.22)" />
-      <line x1="8" y1="28.5" x2="192" y2="28.5" stroke="#E07A4E" strokeWidth="2" />
+      <rect x="6" y="22" width="188" height="13" rx="5" fill="rgba(176,122,80,0.2)" />
+      <line x1="8" y1="28.5" x2="192" y2="28.5" stroke="#B07A50" strokeWidth="2" />
       {[8, 38, 68, 98, 128, 158, 190].map((x, i) => (
-        <rect key={i} x={x - 3.5} y={25} width="7" height="7" rx="1.5" fill="#252528" stroke="#E07A4E" strokeWidth="1.5" />
+        <rect key={i} x={x - 3.5} y={25} width="7" height="7" rx="1.5" fill="#14161A" stroke="#B07A50" strokeWidth="1.5" />
       ))}
     </svg>
   );
@@ -131,7 +131,7 @@ function WeightSpark({ weights }) {
     <svg viewBox="0 0 200 56" width="100%" height="56" preserveAspectRatio="none">
       <path d={d} fill="none" stroke={MF.purple} strokeWidth="2" strokeLinejoin="round" />
       {pts.map((p, i) => (
-        <circle key={i} cx={p[0]} cy={p[1]} r="3" fill="#252528" stroke={MF.purple} strokeWidth="1.5" />
+        <circle key={i} cx={p[0]} cy={p[1]} r="3" fill="#14161A" stroke={MF.purple} strokeWidth="1.5" />
       ))}
     </svg>
   );
@@ -192,7 +192,7 @@ function DateStrip({ selected, onSelect }) {
 }
 
 function MacroBadge({ letter, value, color }) {
-  if (letter === '🔥') return <span className="mf-mbadge-energy mf-num" style={{ color }}>{value}<span style={{ marginLeft: 2 }}>🔥</span></span>;
+  if (letter === 'E') return <span className="mf-mbadge-energy mf-num" style={{ color }}>{value}<span className="mf-mbadge-letter" style={{ marginLeft: 4, background: color + '28', color }}>E</span></span>;
   return (
     <span className="mf-mbadge mf-num">
       <span>{value}</span>
@@ -220,7 +220,7 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
         </button>
         {hasMacros && (
           <div className="mf-tl-macros">
-            <MacroBadge letter="🔥" value={hourTots.energy} color={MF.energy} />
+            <MacroBadge letter="E" value={hourTots.energy} color={MF.energy} />
             <MacroBadge letter="P" value={hourTots.protein} color={MF.protein} />
             <MacroBadge letter="F" value={hourTots.fat} color={MF.fat} />
             <MacroBadge letter="C" value={hourTots.carb} color={MF.carb} />
@@ -238,7 +238,7 @@ function HourRow({ hour, entries, onAdd, onEditEntry, onCopyHour, isNow }) {
             <div className="mf-foodmid">
               <div className="mf-foodname">{e.name}</div>
               <div className="mf-foodmacros mf-num">
-                <b>{e.energy}</b>🔥 <b>{e.protein}</b>P <b>{e.fat}</b>F <b>{e.carb}</b>C
+                <b>{e.energy}</b>E <b>{e.protein}</b>P <b>{e.fat}</b>F <b>{e.carb}</b>C
                 <span className="dot"> • </span>{e.qty} {e.unit}
               </div>
             </div>
@@ -300,7 +300,7 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
           return (
             <div className="mf-macrostrip-item" key={m.key}>
               <div className="mf-macrostrip-top mf-num">
-                <span style={{ color: m.color, fontWeight: 700 }}>{(m.key === 'energy' ? '🔥' : m.unit) + ' ' + v}</span>
+                <span style={{ color: m.color, fontWeight: 700 }}>{(m.key === 'energy' ? 'E' : m.unit) + ' ' + v}</span>
                 <span style={{ color: 'var(--mf-fg-3)', fontSize: 11 }}>/{g}</span>
               </div>
               <div className="mf-track" style={{ height: 3, marginTop: 4 }}>
@@ -317,7 +317,7 @@ function FoodLogScreen({ onSearch, onAI, onAddAt, onEditEntry, onMenu, onCopyHou
         <div className="mf-tl-line" />
         {entries.length === 0 && (
           <div className="mf-day-empty">
-            <span className="mf-day-empty-emoji">🍽️</span>
+            <span className="mf-day-empty-emoji"><Icon name="utensils" size={26} color="var(--mf-fg-3)" /></span>
             <b>Noch nichts geloggt</b>
             <span>Tippe + bei einer Uhrzeit, nutze die Suche — oder hol dir Vorschläge, die genau in deine Ziele passen.</span>
             {onPlanner && (

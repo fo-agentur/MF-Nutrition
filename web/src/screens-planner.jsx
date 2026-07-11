@@ -15,7 +15,7 @@ function PlannerSummary({ totals, rest }) {
   const checks = window.planner.planChecks(totals, rest);
   const cap = window.planner.energyCap(rest);
   const cells = [
-    { key: 'energy', icon: '🔥', now: totals.energy, goal: cap, color: MF.energy, ok: checks.energy },
+    { key: 'energy', icon: 'E', now: totals.energy, goal: cap, color: MF.energy, ok: checks.energy },
     { key: 'protein', icon: 'P', now: totals.protein, goal: Math.max(0, rest.protein), color: MF.protein, ok: checks.protein },
     { key: 'fat', icon: 'F', now: totals.fat, goal: Math.max(0, rest.fat), color: MF.fat, ok: checks.fat },
     { key: 'carb', icon: 'C', now: totals.carb, goal: Math.max(0, rest.carb), color: MF.carb, ok: checks.carb },
@@ -58,7 +58,7 @@ function PlannerItem({ item, onQty, onRemove }) {
         <div className="mf-plan-itemname">{food.name}</div>
         {sourceLabel ? <div className="mf-plan-itemsrc">{sourceLabel}</div> : null}
         <div className="mf-plan-itemmacros mf-num">
-          <b style={{ color: MF.energy }}>{macros.energy}</b>🔥{' '}
+          <b style={{ color: MF.energy }}>{macros.energy}</b>E{' '}
           <b style={{ color: MF.protein }}>{macros.protein}</b>P{' '}
           <b style={{ color: MF.fat }}>{macros.fat}</b>F{' '}
           <b style={{ color: MF.carb }}>{macros.carb}</b>C
@@ -170,13 +170,13 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
             </div>
           ) : done ? (
             <div className="mf-plan-done">
-              <div className="mf-plan-doneicon">🎉</div>
+              <div className="mf-plan-doneicon"><Icon name="circle-check" size={34} color="var(--mf-carb)" /></div>
               <b>Tagesziel erreicht!</b>
               <span>Für heute ist nichts mehr offen. Du kannst trotzdem den ganzen Tag neu planen.</span>
             </div>
           ) : items.length === 0 ? (
             <div className="mf-plan-done">
-              <div className="mf-plan-doneicon">🤷</div>
+              <div className="mf-plan-doneicon"><Icon name="search-x" size={34} color="var(--mf-fg-3)" /></div>
               <b>Kein passender Vorschlag</b>
               <span>Logge ein paar Mahlzeiten oder lege Rezepte an — daraus baut der Planer seine Vorschläge.</span>
             </div>
@@ -259,7 +259,7 @@ function PlannerCTA({ onOpen }) {
         <span className="mf-resthero-minitrack"><span style={{ width: pctP + '%', background: MF.protein }} /></span>
       </div>
       <span className="mf-resthero-btn">
-        <Icon name="utensils-crossed" size={18} color="#000" />
+        <Icon name="utensils-crossed" size={17} color="#0B0C0E" />
         Was soll ich noch essen?
       </span>
     </button>

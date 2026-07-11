@@ -1,61 +1,63 @@
 /* ============================================================
-   MacroFactor — Colors & Type
-   Brand identity by Pentagram. Custom typeface: MacroSans
-   (variable, architectural yet fluid — Reset Type Studio).
-   MacroSans is proprietary; substituted here with Archivo +
-   Archivo Expanded (variable grotesque, weight + width axes).
+   MF Nutrition — „Instrument" Design Language
+   Richtung: Cockpit/HUD statt Consumer-App. Kühles Graphit,
+   Knochenweiß, gedeckte Funktionsfarben, Mono-Ziffern,
+   kantige Flächen mit Hairlines. Keine Verläufe, kein Lila,
+   keine Emojis — präzise, technisch, ruhig.
+   Fonts: Space Grotesk (UI) + IBM Plex Mono (Daten).
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Archivo+Expanded:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
   /* ---- Type families ------------------------------------- */
-  /* Display = wide/extended, used for screen titles (uppercase). */
-  --mf-font-display: 'Archivo Expanded', 'Archivo', system-ui, sans-serif;
-  /* UI/body = normal-width grotesque, used for everything else. */
-  --mf-font-body: 'Archivo', system-ui, -apple-system, sans-serif;
+  --mf-font-display: 'Space Grotesk', system-ui, sans-serif;
+  --mf-font-body: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  /* Alle Zahlen/Daten laufen über Mono — Instrumenten-Optik. */
+  --mf-font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
 
-  /* ---- Surfaces (dark warm-gray) ------------------------- */
-  --mf-bg:          #181818;  /* app canvas — dark charcoal, NOT pure black */
-  --mf-nav-bg:      #1A1A1A;  /* bottom nav + iOS home-indicator fill */
-  --mf-safe-bg:     #1A1A1A;  /* iOS safe-area / PWA edge fill */
-  --mf-surface-0:   #1A1A1A;  /* primary content bg */
-  --mf-surface-1:   #1E1E20;  /* raised section bg */
-  --mf-surface-2:   #252528;  /* card */
-  --mf-surface-3:   #2C2C30;  /* card on card / control */
-  --mf-surface-4:   #383840;  /* pressed / pill track */
-  --mf-hairline:    rgba(255,255,255,0.07); /* dividers */
+  /* ---- Surfaces (kühles Graphit, fast schwarz) ------------ */
+  --mf-bg:          #0B0C0E;
+  --mf-nav-bg:      #0E0F12;
+  --mf-safe-bg:     #0E0F12;
+  --mf-surface-0:   #0E0F12;
+  --mf-surface-1:   #121419;
+  --mf-surface-2:   #171A1F;
+  --mf-surface-3:   #1E222A;
+  --mf-surface-4:   #2A2F38;
+  --mf-hairline:    rgba(232,229,219,0.10);
+  --mf-line-strong: rgba(232,229,219,0.20);
 
-  /* ---- Text ---------------------------------------------- */
-  --mf-fg:          #FFFFFF;  /* primary */
-  --mf-fg-2:        #A6A6AC;  /* secondary */
-  --mf-fg-3:        #6E6E75;  /* tertiary / disabled */
-  --mf-fg-inverse:  #000000;  /* on white surfaces */
+  /* ---- Text (Knochenweiß statt Reinweiß) ------------------ */
+  --mf-fg:          #E8E5DB;
+  --mf-fg-2:        #9EA1A8;
+  --mf-fg-3:        #62666E;
+  --mf-fg-inverse:  #0B0C0E;
 
-  /* ---- Macro system (the signature palette) -------------- */
-  --mf-energy:   #4A78F0;  /* Calories / Energy — blue (flame) */
-  --mf-protein:  #EF6A45;  /* Protein — coral */
-  --mf-fat:      #F2BE3F;  /* Fat — gold */
-  --mf-carb:     #57B36E;  /* Carbs — green */
+  /* ---- Funktionsfarben (gedeckt, instrumentenartig) ------- */
+  --mf-energy:   #E3A83D;  /* Energie — Amber */
+  --mf-protein:  #C4674C;  /* Protein — gebrannter Ton */
+  --mf-fat:      #B3A05F;  /* Fett — Sand */
+  --mf-carb:     #7C9E85;  /* Carbs — Salbei */
 
-  /* Muted track versions (behind progress) */
-  --mf-energy-track:  rgba(74,120,240,0.20);
-  --mf-protein-track: rgba(239,106,69,0.20);
-  --mf-fat-track:     rgba(242,190,63,0.20);
-  --mf-carb-track:    rgba(87,179,110,0.20);
+  --mf-energy-track:  rgba(227,168,61,0.16);
+  --mf-protein-track: rgba(196,103,76,0.16);
+  --mf-fat-track:     rgba(179,160,95,0.16);
+  --mf-carb-track:    rgba(124,158,133,0.16);
 
-  /* ---- Accent / data-viz --------------------------------- */
-  --mf-accent:    #FFFFFF;  /* FAB, selected toggle, CTAs */
-  --mf-purple:    #9B7FE8;  /* weight-trend line */
-  --mf-teal:      #2BA89F;  /* food-entry / category icon */
-  --mf-info:      #4A78F0;  /* notification dot, info */
+  /* ---- Akzente -------------------------------------------- */
+  --mf-accent:    #E8E5DB;  /* CTAs: Knochenweiß auf Graphit */
+  --mf-signal:    #E3A83D;  /* Signal/aktiv — Amber, sparsam */
+  --mf-purple:    #8E93AC;  /* Gewichtstrend — entsättigtes Schieferblau */
+  --mf-teal:      #6E9A94;  /* Kategorie-Icons — gedecktes Petrol */
+  --mf-info:      #E3A83D;
 
-  /* ---- Radii --------------------------------------------- */
-  --mf-r-sm:  10px;  /* small chips */
-  --mf-r-md:  16px;  /* buttons, search */
-  --mf-r-lg:  22px;  /* cards */
-  --mf-r-xl:  28px;  /* sheets, large cards */
-  --mf-r-pill: 999px;
+  /* ---- Radii (kantig, technisch) --------------------------- */
+  --mf-r-sm:  4px;
+  --mf-r-md:  8px;
+  --mf-r-lg:  10px;
+  --mf-r-xl:  14px;
+  --mf-r-pill: 8px;   /* „Pillen" sind jetzt präzise Rechtecke */
 
   /* ---- Spacing scale (4pt base) -------------------------- */
   --mf-s-1: 4px;
@@ -67,21 +69,19 @@
   --mf-s-8: 32px;
   --mf-s-10: 40px;
 
-  /* ---- Elevation ----------------------------------------- */
-  --mf-shadow-sheet: 0 -8px 40px rgba(0,0,0,0.55);
-  --mf-shadow-fab:   0 6px 18px rgba(0,0,0,0.45);
+  /* ---- Elevation (flach; Tiefe über Linien, nicht Schatten) */
+  --mf-shadow-sheet: 0 -10px 40px rgba(0,0,0,0.6);
+  --mf-shadow-fab:   0 4px 14px rgba(0,0,0,0.5);
 
-  /* ---- Type scale (semantic) ----------------------------- */
-  /* Screen title — wide, black, uppercase */
-  --mf-title-size: 29px;
-  --mf-title-weight: 800;
-  --mf-title-tracking: 0.01em;
+  /* ---- Type scale ----------------------------------------- */
+  --mf-title-size: 27px;
+  --mf-title-weight: 700;
+  --mf-title-tracking: 0.05em;
 
-  /* Section header — bold, normal width */
-  --mf-h2-size: 17px;
+  --mf-h2-size: 16px;
   --mf-h2-weight: 700;
 
-  --mf-h3-size: 15px;
+  --mf-h3-size: 14.5px;
   --mf-h3-weight: 600;
 
   --mf-body-size: 14px;
@@ -89,7 +89,7 @@
 
   --mf-label-size: 13px;
   --mf-caption-size: 12px;
-  --mf-micro-size: 11px;
+  --mf-micro-size: 10.5px;
 }
 
 /* ============================================================
@@ -103,7 +103,7 @@
   letter-spacing: var(--mf-title-tracking);
   text-transform: uppercase;
   color: var(--mf-fg);
-  line-height: 0.98;
+  line-height: 1.02;
 }
 
 .mf-h2 {
@@ -112,6 +112,7 @@
   font-size: var(--mf-h2-size);
   color: var(--mf-fg);
   line-height: 1.1;
+  letter-spacing: 0.01em;
 }
 
 .mf-h3 {
@@ -126,7 +127,7 @@
   font-weight: var(--mf-body-weight);
   font-size: var(--mf-body-size);
   color: var(--mf-fg);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .mf-label {
@@ -143,19 +144,21 @@
   color: var(--mf-fg-2);
 }
 
-/* Tabular numerals — used everywhere for data (447 / 2505). */
+/* Daten/Zahlen: Mono mit Tabellenziffern — das Erkennungszeichen
+   der Instrument-Sprache. Minimal enger gesetzt, da Mono breiter läuft. */
 .mf-num {
-  font-family: var(--mf-font-body);
+  font-family: var(--mf-font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.02em;
 }
 
-/* Eyebrow above titles (e.g. DIENSTAG, 2. JUNI) */
+/* Eyebrow / Mikro-Label: Mono, uppercase, weit gesperrt. */
 .mf-eyebrow {
-  font-family: var(--mf-font-body);
-  font-weight: 600;
-  font-size: var(--mf-caption-size);
-  letter-spacing: 0.08em;
+  font-family: var(--mf-font-mono);
+  font-weight: 500;
+  font-size: var(--mf-micro-size);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--mf-fg-2);
+  color: var(--mf-fg-3);
 }

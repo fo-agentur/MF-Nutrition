@@ -84,7 +84,7 @@ function BigLineChart({ values, color, emptyHint }) {
           return <line key={i} x1="0" y1={y} x2={W} y2={y} stroke="rgba(255,255,255,.06)" strokeDasharray="3 4" />;
         })}
         <path d={d} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-        {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={i === pts.length - 1 ? 4 : 0} fill="#1A1A1A" stroke={color} strokeWidth="2" />)}
+        {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={i === pts.length - 1 ? 4 : 0} fill="#101216" stroke={color} strokeWidth="2" />)}
       </svg>
       <div className="mf-bigchart-labels">
         {ticks.map((t, i) => <span key={i}>{t.toFixed(1)}</span>)}
@@ -213,7 +213,7 @@ function BodyFatScreen({ onBack, onAdd }) {
         <RangeTabs value="1M" />
         <div className="mf-legend-chip"><span className="mf-legend-dot" style={{ borderColor: MF.carb }} /> Visual Body Fat</div>
         <div className="mf-tut-card">
-          <div className="mf-tut-title">🙋 Tracking Your Progress</div>
+          <div className="mf-tut-title">Fortschritt tracken</div>
           <div className="mf-tut-body">Fortschrittsfotos und Körpermaße sind ein nützliches Werkzeug, um deinen Fortschritt zu verfolgen.</div>
           <div className="mf-tut-actions">
             <span className="mf-tut-dismiss">Dismiss Tutorial</span>
@@ -237,9 +237,9 @@ function ExpenditureScreen({ onBack }) {
       <SubHeader title="Expenditure" onBack={onBack} />
       <div className="mf-scroll">
         <MetricHero average={avg} unit="kcal" range={'Letzte 7 Tage'} />
-        <BigLineChart values={vals} color="#E07A4E" />
+        <BigLineChart values={vals} color="#B07A50" />
         <RangeTabs value="1W" />
-        <div className="mf-legend-chip"><span className="mf-legend-dot" style={{ borderColor: '#E07A4E' }} /> Expenditure</div>
+        <div className="mf-legend-chip"><span className="mf-legend-dot" style={{ borderColor: '#B07A50' }} /> Expenditure</div>
         <div style={{ height: 16 }} />
       </div>
     </div>
@@ -259,9 +259,9 @@ function StepsScreen({ onBack, onAdd }) {
         right={<button className="mf-iconbtn" onClick={onAdd}><Icon name="plus" size={24} /></button>} />
       <div className="mf-scroll">
         <MetricHero average={avg} unit="steps" range={'27. Mai – ' + new Date(TODAY + 'T00:00:00').getDate() + '. ' + D_MONTHS[new Date(TODAY + 'T00:00:00').getMonth()] + ' ' + new Date(TODAY + 'T00:00:00').getFullYear()} />
-        <BigBarChart values={vals} labels={labels} color="#EF8E6A" maxLine={10000} />
+        <BigBarChart values={vals} labels={labels} color="#C08268" maxLine={10000} />
         <RangeTabs value="1W" />
-        <div className="mf-legend-chip"><Icon name="bar-chart-3" size={16} color="#EF8E6A" /> Steps</div>
+        <div className="mf-legend-chip"><Icon name="bar-chart-3" size={16} color="#C08268" /> Steps</div>
         <div className="mf-group-label" style={{ marginTop: 18 }}>{D_MONTHS[new Date(TODAY + 'T00:00:00').getMonth()]} {new Date(TODAY + 'T00:00:00').getFullYear()}</div>
         <div className="mf-setcard">
           <div className="mf-setrow"><span className="mf-set-ic"><Icon name="footprints" size={22} /></span><span className="mf-set-label mf-num">4037 steps</span><span className="mf-set-value">Di., 2. Juni</span></div>
@@ -414,7 +414,7 @@ function CustomizeDashboardScreen({ onBack }) {
 
         <div className="mf-section-head-row" style={{ marginTop: 20 }}><span className="mf-h2">Insights &amp; Analytics</span></div>
         <div className="mf-setcard">
-          <div className="mf-setrow"><span className="mf-set-ic" style={{ color: '#E07A4E' }}><Icon name="trending-up" size={20} /></span><span className="mf-set-label">Expenditure</span><Icon name="menu" size={18} color="var(--mf-fg-3)" /></div>
+          <div className="mf-setrow"><span className="mf-set-ic" style={{ color: '#B07A50' }}><Icon name="trending-up" size={20} /></span><span className="mf-set-label">Expenditure</span><Icon name="menu" size={18} color="var(--mf-fg-3)" /></div>
           <div className="mf-setrow last"><span className="mf-set-ic" style={{ color: MF.purple }}><Icon name="trending-up" size={20} /></span><span className="mf-set-label">Weight Trend</span><Icon name="menu" size={18} color="var(--mf-fg-3)" /></div>
         </div>
         <button className="mf-pill" style={{ width: '100%', justifyContent: 'center', marginTop: 10 }}
