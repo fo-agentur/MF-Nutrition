@@ -20,7 +20,7 @@ function Sheet({ open, onClose, children, title, headerRight, tall, onBack }) {
       return () => cancelAnimationFrame(raf);
     }
     setShown(false);
-    const t = setTimeout(() => setMounted(false), 300); // = CSS .28s + Puffer
+    const t = setTimeout(() => setMounted(false), 210); // = CSS .2s + Puffer
     return () => clearTimeout(t);
   }, [open]);
   if (!mounted) return null;
@@ -45,7 +45,7 @@ function Sheet({ open, onClose, children, title, headerRight, tall, onBack }) {
 }
 
 const HH = h => String(h).padStart(2, '0') + ':00';
-const hourLabel = h => (h === 0 ? '12 AM' : h < 12 ? h + ' AM' : h === 12 ? '12 PM' : (h - 12) + ' PM');
+const hourLabel = h => h + ' Uhr';
 
 function buildEntry(food, qty, hour) {
   const s = scaleFood(food, qty);
@@ -123,7 +123,7 @@ function smartHistory(state, hour) {
 }
 
 /* ---- Add / Log sheet ------------------------------------ */
-function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuickAdd, onBarcode, onAIResult, onLabelScan, onCustomFood }) {
+function AddSheet({ open, onClose, hour, initialTab, aiImage, aiAuto, onPick, onQuickLog, onQuickAdd, onBarcode, onAIResult, onLabelScan, onCustomFood }) {
   const { state } = useApp();
   const [tab, setTab] = React.useState('Search');
   const [q, setQ] = React.useState('');
@@ -157,6 +157,16 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
     }
   }, [open, initialTab]);
 
+  // Sofort-Treffer aus der lokalen Datenbank — ohne Debounce, bei jedem
+  // Tastendruck. Die Remote-Suche füllt danach auf.
+  const localHits = React.useMemo(() => {
+    const query = q.trim().toLowerCase();
+    if (query.length < 2) return [];
+    return [...customFoods, ...FOOD_DB]
+      .filter(f => `${f.name} ${f.brand || ''}`.toLowerCase().includes(query))
+      .slice(0, 6);
+  }, [q, customFoods]);
+
   // Live OpenFoodFacts search (debounced)
   React.useEffect(() => {
     const query = q.trim();
@@ -166,7 +176,7 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
     const t = setTimeout(async () => {
       const r = await window.searchFoods(query);
       if (alive) { setResults(r); setSearching(false); }
-    }, 350);
+    }, 250);
     return () => { alive = false; clearTimeout(t); };
   }, [q]);
 
@@ -203,19 +213,23 @@ function AddSheet({ open, onClose, hour, initialTab, onPick, onQuickLog, onQuick
       </div>
       <div className="mf-add-body">
         {tab === 'AI' ? (
-          <AIPanel hour={hour} onResult={onAIResult} />
-        ) : q.trim().length >= 2 ? (
-          <React.Fragment>
-            <div className="mf-add-sec">{searching ? 'Suche…' : results.length + ' Treffer'}</div>
-            {results.map(f => <FoodRow key={f.id} food={f} onClick={() => onPick(f, hour)} right={plusBtn(f)} />)}
-            <button className="mf-create-food" onClick={() => onCustomFood(q)}>
-              <span><Icon name="plus" size={20} /></span>
-              <b>Custom Food erstellen</b>
-              <small>{q.trim()}</small>
-            </button>
-            {!searching && !results.length && <div className="mf-empty">Keine Treffer für „{q}"</div>}
-          </React.Fragment>
-        ) : tab === 'Library' ? (
+          <AIPanel hour={hour} onResult={onAIResult} initialImage={aiImage} autoStart={aiAuto} />
+        ) : q.trim().length >= 2 ? (() => {
+          const seen = new Set(localHits.map(f => f.name.toLowerCase()));
+          const merged = [...localHits, ...results.filter(f => !seen.has(f.name.toLowerCase()))];
+          return (
+            <React.Fragment>
+              <div className="mf-add-sec">{merged.length + ' Treffer'}{searching ? ' · Suche…' : ''}</div>
+              {merged.map(f => <FoodRow key={f.id} food={f} onClick={() => onPick(f, hour)} right={plusBtn(f)} />)}
+              <button className="mf-create-food" onClick={() => onCustomFood(q)}>
+                <span><Icon name="plus" size={20} /></span>
+                <b>Custom Food erstellen</b>
+                <small>{q.trim()}</small>
+              </button>
+              {!searching && !merged.length && <div className="mf-empty">Keine Treffer für „{q}"</div>}
+            </React.Fragment>
+          );
+        })() : tab === 'Library' ? (
           <React.Fragment>
             <div className="mf-add-sec">Deine Foods</div>
             <button className="mf-create-food" onClick={() => onCustomFood('')}>
@@ -689,42 +703,6 @@ function BarcodeSheet({ open, hour, onClose, onFound, onLabelScan }) {
   );
 }
 
-/* ---- AI logging sheet ----------------------------------- */
-function LegacyAISheet({ open, hour, onClose, onResult }) {
-  const [text, setText] = React.useState('');
-  const [busy, setBusy] = React.useState(false);
-  React.useEffect(() => { if (open) { setText(''); setBusy(false); } }, [open]);
-  const samples = ['2 Eier mit Toast', 'Skyr mit Banane', 'Hähnchen mit Reis'];
-  const analyze = () => {
-    setBusy(true);
-    setTimeout(() => {
-      const t = text.toLowerCase();
-      const f = FOOD_DB.find(x => t.includes(x.name.toLowerCase().split(' ')[0].toLowerCase()))
-        || FOOD_DB.find(x => x.id === 'eggs');
-      setBusy(false);
-      onResult(f, hour);
-    }, 1400);
-  };
-  return (
-    <Sheet open={open} onClose={onClose} title="AI" headerRight={<Icon name="sparkles" size={20} />}>
-      <div className="mf-ai">
-        <div className="mf-ai-prompt">Beschreibe deine Mahlzeit — die KI schätzt die Makros.</div>
-        <textarea className="mf-ai-input" rows="3" placeholder="z. B. „Skyr mit Banane und Honig…"
-          value={text} onChange={e => setText(e.target.value)} />
-        <div className="mf-ai-samples">
-          {samples.map(s => <button key={s} className="mf-ai-chip" onClick={() => setText(s)}>{s}</button>)}
-        </div>
-      </div>
-      <div className="mf-detail-actions">
-        <button className="mf-detail-log" onClick={analyze} disabled={busy || !text.trim()}
-          style={{ opacity: busy || !text.trim() ? 0.5 : 1 }}>
-          {busy ? 'Analysiere…' : 'Makros schätzen'}
-        </button>
-      </div>
-    </Sheet>
-  );
-}
-
 function fileToImageData(file, maxSide = 1280, quality = 0.84) {
   return new Promise((resolve, reject) => {
     if (!file) return resolve('');
@@ -801,7 +779,7 @@ function aiFoodToAppFood(food, task = 'meal') {
   };
 }
 
-function AIPanel({ hour, onResult }) {
+function AIPanel({ hour, onResult, initialImage, autoStart }) {
   const [text, setText] = React.useState('');
   const [imageData, setImageData] = React.useState('');
   const [busy, setBusy] = React.useState(false);
@@ -813,6 +791,20 @@ function AIPanel({ hour, onResult }) {
   React.useEffect(() => () => {
     if (recognitionRef.current) recognitionRef.current.stop();
   }, []);
+
+  // Foto vom globalen Kamera-Einstieg (FAB/Dashboard): direkt übernehmen und
+  // ohne weiteren Tap analysieren. autoStart ist ein Zeitstempel, damit ein
+  // zweites Foto wieder triggert — derselbe aber nicht doppelt (Ref-Guard).
+  const autoRef = React.useRef(0);
+  React.useEffect(() => {
+    if (!initialImage) return;
+    setError('');
+    setImageData(initialImage);
+    if (autoStart && autoRef.current !== autoStart) {
+      autoRef.current = autoStart;
+      analyze(initialImage);
+    }
+  }, [initialImage, autoStart]);
 
   const samples = ['2 Eier mit Toast', 'Skyr mit Banane', 'Hähnchen mit Reis'];
 
@@ -829,7 +821,9 @@ function AIPanel({ hour, onResult }) {
     if (!file) return;
     setError('');
     try {
-      setImageData(await fileToImageData(file));
+      const img = await fileToImageData(file);
+      setImageData(img);
+      analyze(img); // Foto gewählt = Analyse startet sofort, kein Extra-Tap
     } catch (err) {
       setError(err.message || 'Foto konnte nicht geladen werden.');
     }
@@ -869,16 +863,16 @@ function AIPanel({ hour, onResult }) {
     rec.start();
   };
 
-  const analyze = async () => {
+  const analyze = async (img = imageData) => {
     setError('');
     setBusy(true);
     try {
-      const data = await analyzeFoodViaApi({ task: 'meal', text, imageData });
+      const data = await analyzeFoodViaApi({ task: 'meal', text, imageData: img });
       setBusy(false);
       onResult(data.food ? aiFoodToAppFood(data.food, 'meal') : localFallback(), hour);
     } catch (e) {
       setBusy(false);
-      if (text.trim() && !imageData) {
+      if (text.trim() && !img) {
         onResult(localFallback(), hour);
         return;
       }
@@ -888,11 +882,17 @@ function AIPanel({ hour, onResult }) {
 
   return (
     <div className="mf-ai mf-ai-panel">
-      <div className="mf-ai-prompt">Beschreibe deine Mahlzeit, sprich sie ein, oder lade ein Foto hoch.</div>
+      <div className="mf-ai-prompt">Fotografier dein Essen, sprich es ein, oder beschreib es kurz.</div>
       <div className="mf-ai-tools">
         <label className={'mf-ai-photo' + (imageData ? ' on' : '')}>
           <Icon name={imageData ? 'image-check' : 'camera'} size={20} />
-          {imageData ? 'Foto bereit' : 'Foto'}
+          {imageData ? 'Foto bereit' : 'Kamera'}
+          {/* capture öffnet auf dem Handy DIREKT die Kamera statt des Auswahldialogs */}
+          <input type="file" accept="image/*" capture="environment" onChange={onImage} />
+        </label>
+        <label className="mf-ai-photo">
+          <Icon name="images" size={20} />
+          Galerie
           <input type="file" accept="image/*" onChange={onImage} />
         </label>
         <button className={'mf-ai-photo' + (listening ? ' on' : '')} type="button" onClick={toggleSpeech} aria-pressed={listening}>
@@ -907,7 +907,7 @@ function AIPanel({ hour, onResult }) {
       </div>
       {error && <div className="mf-ai-error">{error}</div>}
       <div className="mf-ai-actionrow">
-        <button className="mf-detail-log" onClick={analyze} disabled={busy || (!text.trim() && !imageData)}
+        <button className="mf-detail-log" onClick={() => analyze()} disabled={busy || (!text.trim() && !imageData)}
           style={{ opacity: busy || (!text.trim() && !imageData) ? 0.5 : 1 }}>
           {busy ? 'Analysiere…' : 'Makros schätzen'}
         </button>
@@ -982,22 +982,24 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
     if (!file) return;
     setError('');
     try {
-      setImageData(await fileToImageData(file));
+      const img = await fileToImageData(file);
+      setImageData(img);
+      analyze(img); // Label fotografiert = sofort auslesen
     } catch (err) {
       setError(err.message || 'Foto konnte nicht geladen werden.');
     }
   };
 
-  const analyze = async () => {
+  const analyze = async (img = imageData) => {
     setBusy(true);
     setError('');
     try {
-      const data = imageData
-        ? await analyzeFoodViaApi({ task: 'label', text, imageData })
+      const data = img
+        ? await analyzeFoodViaApi({ task: 'label', text, imageData: img })
         : null;
       const food = data?.food ? aiFoodToAppFood(data.food, 'label') : parseLabelText(text);
       if (!food.energy && !food.protein && !food.fat && !food.carb) {
-        throw new Error(imageData ? 'Keine verwertbaren Label-Daten gefunden.' : 'Foto hochladen oder Label-Text einfügen.');
+        throw new Error(img ? 'Keine verwertbaren Label-Daten gefunden.' : 'Foto hochladen oder Label-Text einfügen.');
       }
       setBusy(false);
       onResult(food, hour);
@@ -1020,8 +1022,8 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
         <div className="mf-ai-prompt">Foto vom Nutrition Label hochladen oder Label-Text einfügen.</div>
         <label className={'mf-ai-photo' + (imageData ? ' on' : '')}>
           <Icon name={imageData ? 'image-check' : 'camera'} size={20} />
-          {imageData ? 'Label-Foto bereit' : 'Label-Foto'}
-          <input type="file" accept="image/*" onChange={onImage} />
+          {imageData ? 'Label-Foto bereit' : 'Label fotografieren'}
+          <input type="file" accept="image/*" capture="environment" onChange={onImage} />
         </label>
         <textarea className="mf-ai-input" rows="5"
           placeholder={'Beispiel:\nProtein Bar\nServing 60g\nEnergy 220 kcal\nProtein 20g\nFat 7g\nCarbs 22g'}
@@ -1029,7 +1031,7 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
         {error && <div className="mf-ai-error">{error}</div>}
       </div>
       <div className="mf-detail-actions">
-        <button className="mf-detail-log" onClick={analyze} disabled={busy || (!imageData && !text.trim())}
+        <button className="mf-detail-log" onClick={() => analyze()} disabled={busy || (!imageData && !text.trim())}
           style={{ opacity: busy || (!imageData && !text.trim()) ? 0.5 : 1 }}>
           {busy ? 'Analysiere…' : 'Label auslesen'}
         </button>
@@ -1040,5 +1042,5 @@ function LabelScannerSheet({ open, hour, onClose, onResult }) {
 
 Object.assign(window, {
   Sheet, AddSheet, FoodDetailSheet, AIPlateSheet, QuickAddSheet, CustomFoodSheet, FoodLogMenuSheet, BarcodeSheet, AIPanel, LabelScannerSheet,
-  buildEntry, HH, hourLabel, MacroDonut, analyzeFoodViaApi, smartHistory,
+  buildEntry, HH, hourLabel, MacroDonut, analyzeFoodViaApi, smartHistory, fileToImageData,
 });

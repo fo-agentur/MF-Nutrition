@@ -118,11 +118,39 @@ function AppInner() {
     flash('Tag eingefügt');
   };
 
+  /* ----- KI-Kamera-Direkteinstieg ----- */
+  // Der Klick auf den versteckten Input muss synchron in der Tap-Geste
+  // passieren, sonst öffnet iOS die Kamera nicht. Das AI-Panel wird parallel
+  // geöffnet: Wer die Kamera abbricht, landet dort (Text/Sprache/Galerie).
+  const cameraRef = React.useRef(null);
+  const cameraHourRef = React.useRef(null);
+  const openAiCamera = (hour = new Date().getHours()) => {
+    cameraHourRef.current = hour;
+    openSheet('add', { tab: 'AI', hour });
+    const input = cameraRef.current;
+    if (input) { input.value = ''; input.click(); }
+  };
+  const onCameraFile = async e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const image = await window.fileToImageData(file);
+      openSheet('add', {
+        tab: 'AI',
+        hour: cameraHourRef.current ?? new Date().getHours(),
+        image,
+        auto: Date.now(), // Zeitstempel: jedes neue Foto triggert die Auto-Analyse
+      });
+    } catch (err) {
+      flash('Foto konnte nicht geladen werden');
+    }
+  };
+
   const shortcutAction = act => {
     if (act === 'recipes') { closeSheet(); openPage('recipes'); }
     else if (act === 'metrics') { closeSheet(); openPage('metrics'); }
     else if (act === 'weight') openWeight(TODAY);
-    else if (act === 'ai') openSheet('add', { tab: 'AI' });
+    else if (act === 'ai') openAiCamera();
     else openSheet(act); // inkl. 'planner'
   };
 
@@ -163,16 +191,16 @@ function AppInner() {
 
   /* ----- tabs ----- */
   const tabs = {
-    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })} onGo={openPage}
+    dashboard: <DashboardScreen onSearch={() => openSheet('add')} onAI={() => openAiCamera()} onGo={openPage}
                   onPlanner={() => openSheet('planner')} />,
-    foodlog:   <FoodLogScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })}
+    foodlog:   <FoodLogScreen onSearch={() => openSheet('add')} onAI={() => openAiCamera()}
                   onMenu={() => openSheet('foodlogmenu')}
                   onAddAt={h => openSheet('add', { hour: h })}
                   onCopyHour={(entries) => copyEntries(entries, 'meal')}
                   onQuickLog={quickLog}
                   onPlanner={() => openSheet('planner')}
                   onEditEntry={e => { const food = FOOD_DB.find(f => f.id === e.foodId) || { ...e, per: e.qty || 1, brand: '' }; openSheet('detail', { food, hour: parseInt(e.time, 10), entry: e }); }} />,
-    strategy:  <StrategyScreen onSearch={() => openSheet('add')} onAI={() => openSheet('add', { tab: 'AI' })} onCheckIn={() => openSheet('checkin')}
+    strategy:  <StrategyScreen onSearch={() => openSheet('add')} onAI={() => openAiCamera()} onCheckIn={() => openSheet('checkin')}
                   onNewGoal={() => setOnboarding(true)}
                   onEditGoal={() => setOnboarding(true)}
                   onReopenGoal={() => {
@@ -196,7 +224,7 @@ function AppInner() {
 
       {/* sheets */}
       <AddSheet open={sheet?.id === 'add'} hour={sheet?.hour ?? new Date().getHours()} onClose={closeSheet}
-        initialTab={sheet?.tab}
+        initialTab={sheet?.tab} aiImage={sheet?.image} aiAuto={sheet?.auto}
         onPick={(food, hour) => { if (window.cacheFood) window.cacheFood(food); openSheet('detail', { food, hour }); }}
         onQuickLog={quickLog}
         onQuickAdd={() => openSheet('quickadd')}
@@ -249,6 +277,10 @@ function AppInner() {
         onApply={t => dispatch({ type: 'SET_TARGETS', targets: t })} />
 
       <PlannerSheet open={sheet?.id === 'planner'} onClose={closeSheet} onLogPlan={logPlan} />
+
+      {/* Globaler Kamera-Input: wird von den KI-Einstiegen synchron geklickt */}
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment"
+        style={{ display: 'none' }} aria-hidden="true" onChange={onCameraFile} />
 
       <Toast show={!!toast}>{toast}</Toast>
     </div>

@@ -7,7 +7,7 @@
    Fonts: Space Grotesk (UI) + IBM Plex Mono (Daten).
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+/* Fonts werden in index.html als <link> geladen (parallel statt @import-Kette). */
 
 :root {
   /* ---- Type families ------------------------------------- */
