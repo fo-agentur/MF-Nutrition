@@ -14,6 +14,10 @@ const FREE_VISION_MODELS = [
   'nvidia/nemotron-nano-12b-v2-vl:free',
   'openrouter/free',
 ];
+// Default when the request carries the user's OWN OpenRouter key: the user
+// pays per call, so pick strong paid vision quality — the free chain stays
+// right behind it in the same request in case the key has no credit.
+const BYOK_MODEL = 'google/gemini-2.5-flash';
 const MAX_IMAGE_CHARS = 5_500_000;
 
 function number(value) {
@@ -32,18 +36,29 @@ function allowedModel(model) {
   return DEFAULT_MODEL;
 }
 
+// The app can send the user's own OpenRouter key as a header ("Eigener Key"
+// under Mehr → Integrationen). It is stored only on the device, used for this
+// one upstream call, and never persisted or logged here. Only plausible keys
+// are accepted so junk can't reach the Authorization header.
+function clientKey(req) {
+  const k = text(req && req.headers && req.headers['x-openrouter-key']);
+  return /^sk-or-[\w-]{16,220}$/.test(k) ? k : '';
+}
+
 // Build an ordered fallback list of models. The server-side OPENROUTER_MODEL env
 // var is trusted and may name any (also paid) model — set it to e.g.
 // "google/gemini-2.5-flash" for far better food/portion recognition than the
-// free tier. A caller-supplied model is only honored if it is free (clients
-// must not be able to run up costs). The curated free vision list follows so a
-// single model outage or rate-limit doesn't break logging. OpenRouter walks
-// this list until one responds and rejects requests with more than 3 models,
-// so cap the chain there.
-function modelChain(clientModel) {
+// free tier. When the request runs on the user's own key, the paid BYOK
+// default leads instead (their key, their spend). A caller-supplied model is
+// only honored if it is free (clients must not be able to run up costs on the
+// server key). The curated free vision list follows so a single model outage
+// or rate-limit doesn't break logging. OpenRouter walks this list until one
+// responds and rejects requests with more than 3 models, so cap the chain there.
+function modelChain(clientModel, hasUserKey) {
   const chain = [];
   const envModel = text(process.env.OPENROUTER_MODEL);
   if (envModel) chain.push(envModel);
+  else if (hasUserKey) chain.push(BYOK_MODEL);
   const preferred = text(clientModel);
   if (preferred && (preferred === 'openrouter/free' || preferred.endsWith(':free')) && !chain.includes(preferred)) chain.push(preferred);
   for (const m of CANDIDATE_VISION_MODELS) if (!chain.includes(m)) chain.push(m);
@@ -237,10 +252,12 @@ async function requestChat({ models, content, apiKey }) {
   return extractJsonObject(data.choices?.[0]?.message?.content || '');
 }
 
-async function callOpenRouter({ task, text: userText, imageData, model }) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+async function callOpenRouter({ task, text: userText, imageData, model, userKey }) {
+  // Der mitgeschickte eigene Key gewinnt: bewusste Entscheidung des Nutzers,
+  // und die Abrechnung landet genau auf dem Account, den er gewählt hat.
+  const apiKey = userKey || process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    const err = new Error('OPENROUTER_API_KEY is not configured');
+    const err = new Error('Kein KI-Key konfiguriert. Eigenen OpenRouter-Key unter Mehr → Integrationen hinterlegen.');
     err.statusCode = 500;
     throw err;
   }
@@ -250,7 +267,7 @@ async function callOpenRouter({ task, text: userText, imageData, model }) {
 
   // Strong candidates first; if the whole request fails (retired model id,
   // rate limit across the chain, …) retry once with the verified chain.
-  const primary = modelChain(model);
+  const primary = modelChain(model, !!userKey);
   const fallback = fallbackChain();
   try {
     return await requestChat({ models: primary, content, apiKey });
@@ -275,7 +292,7 @@ async function handler(req, res) {
     if (!userText && !imageData) return res.status(400).json({ error: 'Text or image is required' });
     if (!validImageDataUrl(imageData)) return res.status(400).json({ error: 'Image must be a PNG, JPEG, WebP, or GIF data URL under 5.5MB' });
 
-    const json = await callOpenRouter({ task, text: userText, imageData, model: body.model });
+    const json = await callOpenRouter({ task, text: userText, imageData, model: body.model, userKey: clientKey(req) });
     const payload = task === 'recipe'
       ? { recipe: normalizeRecipe(json), raw: json }
       : task === 'plan'
@@ -289,11 +306,14 @@ async function handler(req, res) {
 }
 
 module.exports = {
+  BYOK_MODEL,
   DEFAULT_MODEL,
   allowedModel,
   callOpenRouter,
+  clientKey,
   extractJsonObject,
   handler,
+  modelChain,
   normalizeFood,
   normalizeRecipe,
   normalizePlan,

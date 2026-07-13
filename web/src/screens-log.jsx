@@ -749,9 +749,14 @@ function fileToImageData(file, maxSide = 1280, quality = 0.84) {
 }
 
 async function analyzeFoodViaApi({ task = 'meal', text = '', imageData = '' }) {
+  const headers = { 'Content-Type': 'application/json' };
+  // Eigener OpenRouter-Key (Mehr → Integrationen): liegt nur auf diesem Gerät
+  // und wird pro Anfrage mitgeschickt — der Server bevorzugt ihn dann.
+  const aiKey = typeof loadAiKey === 'function' ? loadAiKey() : '';
+  if (aiKey) headers['x-openrouter-key'] = aiKey;
   const res = await fetch('/api/analyze-food', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ task, text, imageData }),
   });
   const data = await res.json().catch(() => ({}));

@@ -4,8 +4,12 @@ import assert from 'node:assert/strict';
 import api from './analyze-food.js';
 
 const {
+  BYOK_MODEL,
   allowedModel,
+  callOpenRouter,
+  clientKey,
   extractJsonObject,
+  modelChain,
   normalizeFood,
   normalizeRecipe,
   promptFor,
@@ -140,4 +144,70 @@ test('validImageDataUrl accepts image data URLs and rejects oversized or non-ima
   assert.equal(validImageDataUrl('data:image/jpeg;base64,abcd'), true);
   assert.equal(validImageDataUrl('data:text/plain;base64,abcd'), false);
   assert.equal(validImageDataUrl('data:image/jpeg;base64,' + 'a'.repeat(6_000_000)), false);
+});
+
+const USER_KEY = 'sk-or-v1-' + 'a'.repeat(48);
+
+test('clientKey only accepts plausible OpenRouter keys from the header', () => {
+  const req = k => ({ headers: { 'x-openrouter-key': k } });
+  assert.equal(clientKey(req(USER_KEY)), USER_KEY);
+  assert.equal(clientKey(req('  ' + USER_KEY + '  ')), USER_KEY);
+  assert.equal(clientKey(req('nicht-mein-key')), '');
+  assert.equal(clientKey(req('sk-or-kurz')), '');
+  assert.equal(clientKey(req('sk-or-' + 'a'.repeat(300))), '');
+  assert.equal(clientKey(req('')), '');
+  assert.equal(clientKey({}), '');
+  assert.equal(clientKey(undefined), '');
+});
+
+test('modelChain leads with the paid BYOK model only when the user brings a key', () => {
+  const envModel = process.env.OPENROUTER_MODEL;
+  delete process.env.OPENROUTER_MODEL;
+  try {
+    assert.equal(modelChain('', true)[0], BYOK_MODEL);
+    assert.equal(modelChain('', true).length, 3);
+    assert.notEqual(modelChain('', false)[0], BYOK_MODEL);
+    // Ein explizit gesetztes Server-Modell bleibt auch mit User-Key vorn.
+    process.env.OPENROUTER_MODEL = 'google/gemini-3-pro';
+    assert.deepEqual(modelChain('', true)[0], 'google/gemini-3-pro');
+    assert.ok(!modelChain('', true).includes(BYOK_MODEL));
+  } finally {
+    if (envModel === undefined) delete process.env.OPENROUTER_MODEL;
+    else process.env.OPENROUTER_MODEL = envModel;
+  }
+});
+
+test('callOpenRouter bills the user key (not the server key) and upgrades the model', async () => {
+  const realFetch = global.fetch;
+  const envKey = process.env.OPENROUTER_API_KEY;
+  const envModel = process.env.OPENROUTER_MODEL;
+  process.env.OPENROUTER_API_KEY = 'sk-or-v1-server-key';
+  delete process.env.OPENROUTER_MODEL;
+  let seenAuth = '';
+  let seenModels = null;
+  global.fetch = async (url, opts) => {
+    seenAuth = opts.headers.Authorization;
+    seenModels = JSON.parse(opts.body).models;
+    return {
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"name":"Apfel","energy":52}' } }] }),
+    };
+  };
+  try {
+    const json = await callOpenRouter({ task: 'meal', text: '1 Apfel', imageData: '', model: '', userKey: USER_KEY });
+    assert.equal(seenAuth, `Bearer ${USER_KEY}`);
+    assert.equal(seenModels[0], BYOK_MODEL);
+    assert.equal(json.name, 'Apfel');
+
+    // Ohne User-Key: Server-Key + reine Free-Kette wie bisher.
+    await callOpenRouter({ task: 'meal', text: '1 Apfel', imageData: '', model: '' });
+    assert.equal(seenAuth, 'Bearer sk-or-v1-server-key');
+    assert.ok(!seenModels.includes(BYOK_MODEL));
+  } finally {
+    global.fetch = realFetch;
+    if (envKey === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = envKey;
+    if (envModel === undefined) delete process.env.OPENROUTER_MODEL;
+    else process.env.OPENROUTER_MODEL = envModel;
+  }
 });

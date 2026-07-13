@@ -186,6 +186,20 @@ function loadUnitsLocal() {
 function saveUnitsLocal(units) {
   try { localStorage.setItem(UNITS_KEY, JSON.stringify({ ...DEFAULT_UNITS, ...units })); } catch (e) {}
 }
+/* ---- KI: eigener OpenRouter-Key (bleibt nur auf diesem Gerät,
+        wandert pro Anfrage als Header an /api/analyze-food) ---- */
+const AI_KEY_KEY = 'mf_openrouter_key';
+function loadAiKey() {
+  try { return String(localStorage.getItem(AI_KEY_KEY) || '').trim(); } catch (e) { return ''; }
+}
+function saveAiKey(key) {
+  try {
+    const k = String(key || '').trim();
+    if (k) localStorage.setItem(AI_KEY_KEY, k);
+    else localStorage.removeItem(AI_KEY_KEY);
+  } catch (e) {}
+}
+
 function loadGoalHistoryLocal() {
   try {
     const s = localStorage.getItem(GOAL_HISTORY_KEY);
@@ -742,4 +756,5 @@ Object.assign(window, {
   currentTrendWeight, estimateExpenditure, checkInReadiness,
   computeCheckInRecommendation,
   patternEnergy, styleTargets, programDayTargets, programColsFor, targetsForDate,
+  loadAiKey, saveAiKey,
 });

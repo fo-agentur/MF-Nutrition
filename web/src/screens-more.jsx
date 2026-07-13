@@ -193,7 +193,7 @@ function SettingRow({ icon, label, value, last, onClick }) {
 
 function MoreScreen({ onGo }) {
   const { state } = useApp();
-  const unitMode = weightUnit(state) === 'lb' ? 'imperial' : 'metric';
+  const unitMode = weightUnit(state) === 'lb' ? 'imperial' : 'metrisch';
   return (
     <div className="mf-screen">
       <div className="mf-scroll">
@@ -210,7 +210,9 @@ function MoreScreen({ onGo }) {
         <div className="mf-setcard">
           <SettingRow icon="smile" label="Konto" onClick={() => onGo('account')} />
           <SettingRow icon="tag" label="Abo" value="Pro" onClick={() => onGo('subscription')} />
-          <SettingRow icon="refresh-cw" label="Integrationen" onClick={() => onGo('integrations')} />
+          <SettingRow icon="refresh-cw" label="Integrationen"
+            value={typeof loadAiKey === 'function' && loadAiKey() ? 'KI aktiv' : ''}
+            onClick={() => onGo('integrations')} />
           <SettingRow icon="ruler" label="Einheiten" value={unitMode} last onClick={() => onGo('units')} />
         </div>
         <div className="mf-group-label">Funktionen</div>

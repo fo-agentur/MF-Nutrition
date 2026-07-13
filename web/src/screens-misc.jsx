@@ -33,7 +33,7 @@ function InsightsScreen({ onBack }) {
   const exp = estimateExpenditure(state);
   return (
     <div className="mf-screen">
-      <SubHeader title="Insights & Analytics" onBack={onBack} />
+      <SubHeader title="Insights & Analysen" onBack={onBack} />
       <div className="mf-scroll">
         <div className="mf-card-lg">
           <div className="mf-h3">Expenditure</div>
@@ -76,7 +76,7 @@ function MetricsScreen({ onBack, onAddWeight }) {
   const latest = vals.length ? vals[vals.length-1].toFixed(1) : '–';
   return (
     <div className="mf-screen">
-      <SubHeader title="Metrics" onBack={onBack}
+      <SubHeader title="Messwerte" onBack={onBack}
         right={<button className="mf-iconbtn" onClick={onAddWeight}><Icon name="plus" size={24} /></button>} />
       <div className="mf-scroll">
         <div className="mf-card-lg">
@@ -131,7 +131,7 @@ function WeightSheet({ open, onClose, onSave, date = TODAY }) {
   const parsed = weightInputToKg(state, val);
   const canSave = Number.isFinite(parsed) && parsed > 0;
   return (
-    <Sheet open={open} onClose={onClose} title="Log Weight" headerRight={<Icon name="scale" size={20} />}>
+    <Sheet open={open} onClose={onClose} title="Gewicht loggen" headerRight={<Icon name="scale" size={20} />}>
       <div className="mf-weight">
         <div className="mf-weight-date">
           <button className="mf-iconbtn" onClick={() => shiftDate(-1)}><Icon name="chevron-left" size={22} /></button>
@@ -204,7 +204,7 @@ function RecipeNewScreen({ onBack, onSave }) {
   }), { energy: 0, protein: 0, fat: 0, carb: 0 });
   return (
     <div className="mf-screen">
-      <SubHeader title="New Recipe" onBack={onBack} />
+      <SubHeader title="Neues Rezept" onBack={onBack} />
       <div className="mf-scroll">
         <input className="mf-quick-name" placeholder="Rezeptname" value={name} onChange={e => setName(e.target.value)} />
         <div className="mf-recipe-totals mf-num">
@@ -399,12 +399,12 @@ function RecipeImportScreen({ onBack, onSave }) {
   const canImport = !!(url.trim() || text.trim());
   return (
     <div className="mf-screen">
-      <SubHeader title="Import Recipe" onBack={onBack} />
+      <SubHeader title="Rezept importieren" onBack={onBack} />
       <div className="mf-scroll">
         <div className="mf-ai-prompt" style={{ marginTop: 10 }}>Rezept-Link einfügen. Optional kannst du Zutaten und Makros als Text dazugeben.</div>
         <input className="mf-quick-name" placeholder="https://..." value={url} onChange={e => setUrl(e.target.value)} />
         <textarea className="mf-ai-input" rows="8"
-          placeholder={'Recipe text or nutrition info\nExample:\nProtein Pancakes\n- 60g oats\n- 2 eggs\nEnergy 520 kcal\nProtein 34g\nFat 18g\nCarbs 54g'}
+          placeholder={'Rezepttext oder Nährwerte\nBeispiel:\nProtein Pancakes\n- 60 g Haferflocken\n- 2 Eier\nEnergie 520 kcal\nProtein 34 g\nFett 18 g\nCarbs 54 g'}
           value={text} onChange={e => setText(e.target.value)} />
         {error && <div className="mf-ai-error">{error}</div>}
         <button className="mf-detail-log" disabled={!canImport || busy}
@@ -430,7 +430,7 @@ function SettingsPage({ title, onBack, children }) {
 function AccountScreen({ onBack }) {
   const { state } = useApp();
   return (
-    <SettingsPage title="Account" onBack={onBack}>
+    <SettingsPage title="Konto" onBack={onBack}>
       <div className="mf-profile" style={{ cursor: 'default' }}>
         <div className="mf-avatar">{state.profile.initials}</div>
         <div className="mf-profile-who">
@@ -441,8 +441,8 @@ function AccountScreen({ onBack }) {
       <div className="mf-setcard">
         <SettingRow icon="user" label="Name" value={state.profile.name} />
         <SettingRow icon="mail" label="Email" value="floriflei07@…" />
-        <SettingRow icon="lock" label="Password" />
-        <SettingRow icon="bell" label="Notifications" value="On" last />
+        <SettingRow icon="lock" label="Passwort" />
+        <SettingRow icon="bell" label="Mitteilungen" value="An" last />
       </div>
     </SettingsPage>
   );
@@ -451,7 +451,7 @@ function AccountScreen({ onBack }) {
 function SubscriptionScreen({ onBack }) {
   const [message, setMessage] = React.useState('');
   return (
-    <SettingsPage title="Subscription" onBack={onBack}>
+    <SettingsPage title="Abo" onBack={onBack}>
       <div className="mf-card-lg" style={{ textAlign: 'center' }}>
         <div className="mf-title" style={{ fontSize: 24 }}>MacroFactor Pro</div>
         <div className="mf-insight-sub" style={{ marginTop: 8 }}>Aktiv · verlängert am 6. Juli 2026</div>
@@ -464,10 +464,83 @@ function SubscriptionScreen({ onBack }) {
   );
 }
 
+/* Eigener OpenRouter-Key: schaltet die KI-Analyse (Foto/Text/Label/Planer)
+   ohne Server-Konfiguration frei. Der Key bleibt in localStorage auf diesem
+   Gerät und geht pro Anfrage als Header an die eigene /api/analyze-food. */
+function AiKeyCard() {
+  const [savedKey, setSavedKey] = React.useState(() => (typeof loadAiKey === 'function' ? loadAiKey() : ''));
+  const [key, setKey] = React.useState(savedKey);
+  const [note, setNote] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  const trimmed = key.trim();
+  const plausible = /^sk-or-/.test(trimmed);
+  const canSave = plausible && trimmed !== savedKey;
+
+  const save = () => {
+    saveAiKey(trimmed);
+    setSavedKey(trimmed);
+    setNote('Key gespeichert — die KI-Analyse läuft jetzt über deinen OpenRouter-Account.');
+  };
+  const remove = () => {
+    saveAiKey('');
+    setSavedKey('');
+    setKey('');
+    setNote('Key entfernt.');
+  };
+  const testKey = async () => {
+    setBusy(true);
+    setNote('');
+    try {
+      const data = await window.analyzeFoodViaApi({ task: 'meal', text: '1 Apfel' });
+      const name = (data && data.food && data.food.name) || 'KI';
+      setNote(`✓ Verbindung ok — „${name}" erkannt.`);
+    } catch (e) {
+      setNote('✗ ' + (e.message || 'Verbindung fehlgeschlagen.'));
+    }
+    setBusy(false);
+  };
+
+  return (
+    <>
+      <div className="mf-group-label" style={{ marginTop: 0 }}>KI-Analyse</div>
+      <div className="mf-setcard" style={{ padding: 14, marginBottom: 14 }}>
+        <div className="mf-ai-prompt" style={{ margin: '0 0 10px' }}>
+          Eigener OpenRouter-Key für Foto-, Text- und Label-Erkennung. Er bleibt nur auf diesem
+          Gerät gespeichert.{' '}
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer"
+            style={{ color: 'var(--mf-signal)' }}>openrouter.ai/keys</a>
+        </div>
+        <input className="mf-quick-name" type="password" autoComplete="off" spellCheck="false"
+          placeholder="sk-or-v1-…" value={key}
+          onChange={e => { setKey(e.target.value); setNote(''); }} style={{ marginBottom: 8 }} />
+        {savedKey && trimmed === savedKey && (
+          <div className="mf-insight-sub" style={{ marginBottom: 8 }}>
+            Aktiv: {savedKey.slice(0, 10)}…{savedKey.slice(-4)}
+          </div>
+        )}
+        {trimmed && !plausible && (
+          <div className="mf-ai-error" style={{ marginBottom: 8 }}>OpenRouter-Keys beginnen mit „sk-or-“.</div>
+        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="mf-detail-log" style={{ flex: 1, opacity: canSave ? 1 : 0.5 }}
+            disabled={!canSave} onClick={save}>Speichern</button>
+          {savedKey && (
+            <button className="mf-pill" onClick={testKey} disabled={busy}>{busy ? 'Teste…' : 'Testen'}</button>
+          )}
+          {savedKey && <button className="mf-pill" onClick={remove}>Entfernen</button>}
+        </div>
+        {note && <div className="mf-insight-sub" style={{ marginTop: 10 }}>{note}</div>}
+      </div>
+    </>
+  );
+}
+
 function IntegrationsScreen({ onBack }) {
   const apps = [['Apple Health', 'heart-pulse', true], ['Google Fit', 'activity', false], ['Garmin', 'watch', false], ['Withings', 'scale', true]];
   return (
-    <SettingsPage title="Integrations" onBack={onBack}>
+    <SettingsPage title="Integrationen" onBack={onBack}>
+      <AiKeyCard />
+      <div className="mf-group-label">Apps</div>
       <div className="mf-setcard">
         {apps.map(([n, ic, on], i) => (
           <div key={n} className={'mf-setrow' + (i === apps.length-1 ? ' last' : '')}>
@@ -483,13 +556,13 @@ function IntegrationsScreen({ onBack }) {
 
 function UnitsScreen({ onBack }) {
   const { state, dispatch } = useApp();
-  const u = weightUnit(state) === 'lb' ? 'imperial' : 'metric';
+  const u = weightUnit(state) === 'lb' ? 'imperial' : 'metrisch';
   const setU = next => dispatch({ type: 'SET_UNITS', units: { weight: next === 'imperial' ? 'lb' : 'kg' } });
   return (
-    <SettingsPage title="Units" onBack={onBack}>
-      <div className="mf-h3" style={{ margin: '4px 0 12px' }}>Body weight</div>
-      <Segmented options={['metric', 'imperial']} value={u} onChange={setU} />
-      <div className="mf-insight-sub" style={{ marginTop: 14 }}>{u === 'metric' ? 'Kilogramm (kg)' : 'Pounds (lb)'}</div>
+    <SettingsPage title="Einheiten" onBack={onBack}>
+      <div className="mf-h3" style={{ margin: '4px 0 12px' }}>Körpergewicht</div>
+      <Segmented options={['metrisch', 'imperial']} value={u} onChange={setU} />
+      <div className="mf-insight-sub" style={{ marginTop: 14 }}>{u === 'metrisch' ? 'Kilogramm (kg)' : 'Pounds (lb)'}</div>
     </SettingsPage>
   );
 }
