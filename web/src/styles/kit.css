@@ -1701,3 +1701,14 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 
 /* Dashboard-Slides bleiben randlos (Chart läuft frei) */
 .mf-dashboard-screen .mf-slide-card { background: transparent; border: 0; border-radius: 0; }
+
+/* Scroll-Enden: Inhalte laufen an der Unterkante weich aus statt hart
+   an der Suchleiste abgeschnitten zu werden ("Box nicht ganz im Bild").
+   Der Fußraum sorgt dafür, dass die letzte Karte ausgescrollt komplett
+   über der Fade-Zone steht. Kommt NACH den Screen-Regeln: das
+   padding-bottom gewinnt gegen deren padding-Shorthands. */
+.mf-screen .mf-scroll {
+  padding-bottom: 30px;
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 24px), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 24px), transparent);
+}
