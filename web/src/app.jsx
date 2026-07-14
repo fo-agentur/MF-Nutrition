@@ -62,6 +62,9 @@ function AppInner() {
   };
   const saveRecipe = r => { dispatch({ type: 'ADD_RECIPE', recipe: r }); replacePage('recipes', true); flash('Rezept gespeichert'); };
   const logRecipe = r => openSheet('detail', { food: window.planner.recipeToFood(r), hour: new Date().getHours() });
+  const [viewRecipe, setViewRecipe] = React.useState(null); // Rezept für die Detailseite
+  const openRecipe = r => { setViewRecipe(r); openPage('recipe-view'); };
+  const shopRecipe = r => dispatch({ type: 'SHOPPING_ADD', items: (r && r.ingredients) || [] });
   const logPlan = (items, mode) => {
     const hours = window.planner.planHours(items.length, mode);
     items.forEach((it, i) => {
@@ -180,9 +183,12 @@ function AppInner() {
     foodlogging:  <FoodLoggingScreen onBack={back} />,
     nutridata:    <NutritionDataScreen onBack={back} onAdd={() => openSheet('quickadd')} />,
     customize:    <CustomizeDashboardScreen onBack={back} />,
-    recipes:      <RecipesScreen onBack={back} onNew={() => openPage('recipe-new')} onImport={() => openPage('recipe-import')} onLog={logRecipe} />,
+    recipes:      <RecipesScreen onBack={back} onNew={() => openPage('recipe-new')} onImport={() => openPage('recipe-import')}
+                    onOpen={openRecipe} onShopping={() => openPage('shopping')} />,
     'recipe-new': <RecipeNewScreen onBack={back} onSave={saveRecipe} />,
     'recipe-import': <RecipeImportScreen onBack={back} onSave={saveRecipe} />,
+    'recipe-view': <RecipeViewScreen recipe={viewRecipe} onBack={back} onLog={logRecipe} onShop={shopRecipe} />,
+    shopping:     <ShoppingListScreen onBack={back} />,
     account:      <AccountScreen onBack={back} />,
     subscription: <SubscriptionScreen onBack={back} />,
     integrations: <IntegrationsScreen onBack={back} />,

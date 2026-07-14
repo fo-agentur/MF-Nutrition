@@ -136,8 +136,38 @@ test('meal prompt asks the model to estimate the visible portion in grams', () =
 test('normalizeRecipe returns recipe totals with item count', () => {
   assert.deepEqual(
     normalizeRecipe({ name: 'Protein pancakes', items: 4, kcal: 520, protein: 34, fat: 18, carb: 54 }),
-    { name: 'Protein pancakes', items: 4, energy: 520, protein: 34, fat: 18, carb: 54 },
+    { name: 'Protein pancakes', items: 4, energy: 520, protein: 34, fat: 18, carb: 54, ingredients: [], steps: [] },
   );
+});
+
+test('normalizeRecipe carries ingredients and steps through, cleaned and capped', () => {
+  const out = normalizeRecipe({
+    name: 'Schweinsleber mit Kartoffeln',
+    energy: 640, protein: 45, fat: 22, carb: 58,
+    ingredients: [
+      { name: 'Schweinsleber', qty: '300', unit: 'g' },
+      { name: 'Kartoffeln', qty: 400, unit: 'g' },
+      { name: 'Zwiebel', qty: '1,5', unit: 'Stück' },
+      { name: '', qty: 10, unit: 'g' },          // ohne Name → raus
+      { name: 'Salz', unit: '' },                 // ohne Menge → qty 0
+    ],
+    steps: ['Kartoffeln kochen.', '', 'Leber kurz scharf anbraten.', 42],
+  });
+  assert.equal(out.items, 4);
+  assert.deepEqual(out.ingredients, [
+    { name: 'Schweinsleber', qty: 300, unit: 'g' },
+    { name: 'Kartoffeln', qty: 400, unit: 'g' },
+    { name: 'Zwiebel', qty: 1.5, unit: 'Stück' },
+    { name: 'Salz', qty: 0, unit: '' },
+  ]);
+  assert.deepEqual(out.steps, ['Kartoffeln kochen.', 'Leber kurz scharf anbraten.']);
+});
+
+test('recipe prompt asks for ingredients with units and German steps', () => {
+  const prompt = promptFor('recipe', 'https://example.com/rezept');
+  assert.match(prompt, /ingredients/);
+  assert.match(prompt, /steps/);
+  assert.match(prompt, /German/);
 });
 
 test('validImageDataUrl accepts image data URLs and rejects oversized or non-images', () => {

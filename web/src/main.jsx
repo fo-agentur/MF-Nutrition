@@ -9,6 +9,7 @@ import './styles/app.css';
 import './food.js';
 import './scanner.js';
 import './planner.js'; // Tagesplaner-Engine (window.planner)
+import './shopping.js'; // Einkaufslisten-Parser/-Merge (window.shopping)
 
 // ported prototype modules (order matters: later defs override earlier ones)
 import './store.jsx';

@@ -127,13 +127,32 @@ function normalizeFood(json, task = 'meal') {
 }
 
 function normalizeRecipe(json) {
+  const ingredients = Array.isArray(json.ingredients)
+    ? json.ingredients
+        .slice(0, 30)
+        .map((it) => ({
+          name: text(it && it.name).slice(0, 60),
+          qty: Math.max(0, Number(String((it && (it.qty ?? it.amount)) ?? 0).replace(',', '.')) || 0),
+          unit: text(it && it.unit).slice(0, 12),
+        }))
+        .filter((it) => it.name)
+    : [];
+  const steps = Array.isArray(json.steps)
+    ? json.steps
+        .filter((s) => typeof s === 'string')
+        .map((s) => s.trim().slice(0, 300))
+        .filter(Boolean)
+        .slice(0, 15)
+    : [];
   return {
     name: text(json.name ?? json.recipe, 'Imported Recipe').slice(0, 80),
-    items: Math.max(1, number(json.items ?? json.ingredients ?? 1)),
+    items: Math.max(1, ingredients.length || number(json.items ?? 1)),
     energy: number(json.energy ?? json.kcal ?? json.calories),
     protein: number(json.protein ?? json.protein_g),
     fat: number(json.fat ?? json.fat_g),
     carb: number(json.carb ?? json.carbs ?? json.carbs_g ?? json.carbohydrates),
+    ingredients,
+    steps,
   };
 }
 
@@ -171,8 +190,11 @@ function promptFor(task, userText) {
 
   if (task === 'recipe') {
     return [
-      'Extract recipe nutrition totals from this URL/text content.',
-      'Return keys: name, items, energy, protein, fat, carb.',
+      'Extract the recipe from this URL/text content.',
+      'Return keys: name, energy, protein, fat, carb (nutrition totals),',
+      'ingredients (array of {"name","qty","unit"} — unit one of g, ml, EL, TL, Stück, Prise, Dose, Packung, Bund; qty 0 if unknown),',
+      'and steps (array of short German cooking instructions in order, max 12).',
+      'Keep ingredient names in German where the source is German.',
       'If only per-serving data is available, return that serving.',
       base,
       `Context: ${userText}`,

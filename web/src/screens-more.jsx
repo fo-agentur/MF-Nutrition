@@ -223,6 +223,9 @@ function MoreScreen({ onGo }) {
         <div className="mf-group-label">Tools</div>
         <div className="mf-setcard">
           <SettingRow icon="chef-hat" label="Rezepte" onClick={() => onGo('recipes')} />
+          <SettingRow icon="shopping-cart" label="Einkaufsliste"
+            value={(() => { const n = (state.shopping || []).filter(it => !it.done).length; return n ? String(n) : ''; })()}
+            onClick={() => onGo('shopping')} />
           <SettingRow icon="ruler" label="Gewicht & Messwerte" onClick={() => onGo('metrics')} last />
         </div>
         <button className="mf-reset" onClick={() => window.mfSignOut && window.mfSignOut()}>Abmelden</button>

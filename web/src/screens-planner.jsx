@@ -77,7 +77,13 @@ function PlannerItem({ item, onQty, onRemove }) {
 }
 
 function PlannerSheet({ open, onClose, onLogPlan }) {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
+  const [shopped, setShopped] = React.useState(false);
+  const shopPlan = () => {
+    dispatch({ type: 'SHOPPING_ADD', items: window.shopping.ingredientsFromPlan(items, state.recipes) });
+    setShopped(true);
+    setTimeout(() => setShopped(false), 1600);
+  };
   const [mode, setMode] = React.useState('rest');       // 'rest' | 'day'
   const [items, setItems] = React.useState([]);
   const [busy, setBusy] = React.useState(false);
@@ -199,6 +205,10 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
           <div className="mf-plan-actions">
             <button className="mf-plan-reroll" onClick={reroll}>
               <Icon name="dices" size={18} /> Neu würfeln
+            </button>
+            <button className="mf-plan-reroll mf-plan-shop" onClick={shopPlan}
+              aria-label="Zutaten auf die Einkaufsliste">
+              <Icon name={shopped ? 'check' : 'shopping-cart'} size={18} />
             </button>
             <button className="mf-detail-log mf-plan-log" onClick={() => onLogPlan(items, mode)}>
               Plan loggen ({items.length})

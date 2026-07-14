@@ -1702,6 +1702,99 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 /* Dashboard-Slides bleiben randlos (Chart läuft frei) */
 .mf-dashboard-screen .mf-slide-card { background: transparent; border: 0; border-radius: 0; }
 
+/* ---- Rezept-Detail: Zutaten + Zubereitung ------------------ */
+.mf-ing-row {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--mf-hairline);
+  font-size: 14px;
+}
+.mf-ing-qty {
+  flex: 0 0 74px;
+  font-size: 12.5px;
+  color: var(--mf-fg-2);
+}
+.mf-ing-name { flex: 1; }
+
+.mf-step-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 7px 2px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.mf-step-num {
+  flex: 0 0 22px; height: 22px;
+  display: grid; place-items: center;
+  border: 1px solid var(--mf-hairline);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--mf-fg-2);
+  margin-top: 1px;
+}
+.mf-step-text { flex: 1; }
+
+.mf-shop-cta {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--mf-hairline);
+  border-radius: 10px;
+  background: var(--mf-surface-2);
+  color: var(--mf-fg);
+  font-size: 14px; font-weight: 600;
+}
+
+/* ---- Einkaufsliste ---------------------------------------- */
+.mf-shop-addrow { display: flex; gap: 8px; align-items: stretch; margin-top: 10px; }
+.mf-shop-addrow .mf-quick-name { flex: 1; margin: 0; }
+.mf-shop-addbtn {
+  flex: 0 0 46px;
+  display: grid; place-items: center;
+  border: 1px solid var(--mf-hairline);
+  border-radius: 10px;
+  background: var(--mf-surface-2);
+  color: var(--mf-fg);
+}
+.mf-shop-addbtn:disabled { opacity: 0.4; }
+
+.mf-shop-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--mf-hairline);
+  font-size: 14px;
+}
+.mf-shop-check {
+  flex: 0 0 22px; height: 22px;
+  display: grid; place-items: center;
+  border: 1px solid var(--mf-fg-3);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mf-fg);
+}
+.mf-shop-name { flex: 1; text-align: left; }
+.mf-shop-qty { font-size: 12.5px; color: var(--mf-fg-2); }
+.mf-shop-x { color: var(--mf-fg-3); display: grid; place-items: center; padding: 4px; background: transparent; border: 0; }
+.mf-shop-row.done .mf-shop-name,
+.mf-shop-row.done .mf-shop-qty { text-decoration: line-through; color: var(--mf-fg-3); }
+.mf-shop-row.done .mf-shop-check { border-color: var(--mf-accent); color: var(--mf-accent); }
+
+/* Einkaufswagen-Einstieg im Rezepte-Header (mit Zähler) */
+.mf-shop-entry { position: relative; }
+.mf-shop-badge {
+  position: absolute; top: -3px; right: -5px;
+  min-width: 15px; height: 15px;
+  padding: 0 3px;
+  display: grid; place-items: center;
+  background: var(--mf-accent);
+  color: #14161A;
+  border-radius: 5px;
+  font-size: 9.5px; font-weight: 700;
+}
+
+/* Kompakter Einkaufswagen-Button in der Planner-Aktionszeile */
+.mf-plan-shop { flex: 0 0 46px; padding: 0; justify-content: center; }
+
 /* Build-Kennung im Mehr-Tab: zeigt, welcher Deploy auf dem Gerät läuft */
 .mf-build-tag {
   text-align: center;

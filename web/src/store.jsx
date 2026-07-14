@@ -41,9 +41,48 @@ const FOOD_DB = [
 ];
 
 const RECIPES_SEED = [
-  { id: 'r1', name: 'Protein Overnight Oats', items: 4, energy: 412, protein: 32, fat: 9,  carb: 52, icon: 'wheat',  color: '#B0A47E' },
-  { id: 'r2', name: 'Hähnchen Reis Bowl',     items: 5, energy: 560, protein: 48, fat: 12, carb: 62, icon: 'drumstick', color: '#B58F63' },
-  { id: 'r3', name: 'Skyr Beeren Bowl',       items: 3, energy: 240, protein: 22, fat: 3,  carb: 30, icon: 'milk',   color: '#C9C7BE' },
+  {
+    id: 'r1', name: 'Protein Overnight Oats', items: 4, energy: 412, protein: 32, fat: 9, carb: 52, icon: 'wheat', color: '#B0A47E',
+    ingredients: [
+      { name: 'Haferflocken', qty: 60, unit: 'g' },
+      { name: 'Proteinpulver Vanille', qty: 30, unit: 'g' },
+      { name: 'Skyr Natur', qty: 150, unit: 'g' },
+      { name: 'Milch 1,5 %', qty: 120, unit: 'ml' },
+    ],
+    steps: [
+      'Haferflocken, Proteinpulver und Skyr mit der Milch glatt verrühren.',
+      'Abgedeckt über Nacht (mindestens 4 Stunden) kaltstellen.',
+      'Vor dem Essen umrühren und nach Belieben mit Beeren toppen.',
+    ],
+  },
+  {
+    id: 'r2', name: 'Hähnchen Reis Bowl', items: 5, energy: 560, protein: 48, fat: 12, carb: 62, icon: 'drumstick', color: '#B58F63',
+    ingredients: [
+      { name: 'Hähnchenbrust', qty: 180, unit: 'g' },
+      { name: 'Reis (roh)', qty: 80, unit: 'g' },
+      { name: 'Brokkoli', qty: 150, unit: 'g' },
+      { name: 'Sojasauce', qty: 1, unit: 'EL' },
+      { name: 'Sesamöl', qty: 1, unit: 'TL' },
+    ],
+    steps: [
+      'Reis nach Packungsanleitung kochen.',
+      'Hähnchen würfeln, würzen und in wenig Öl 6–8 Minuten scharf anbraten.',
+      'Brokkoli in Röschen teilen und 4–5 Minuten dämpfen oder mitbraten.',
+      'Alles in einer Bowl anrichten, Sojasauce und Sesamöl darübergeben.',
+    ],
+  },
+  {
+    id: 'r3', name: 'Skyr Beeren Bowl', items: 3, energy: 240, protein: 22, fat: 3, carb: 30, icon: 'milk', color: '#C9C7BE',
+    ingredients: [
+      { name: 'Skyr Natur', qty: 250, unit: 'g' },
+      { name: 'Gemischte Beeren', qty: 100, unit: 'g' },
+      { name: 'Honig', qty: 15, unit: 'g' },
+    ],
+    steps: [
+      'Skyr cremig rühren und in eine Schüssel geben.',
+      'Beeren und Honig darüber verteilen.',
+    ],
+  },
 ];
 
 const DEFAULT_TARGETS = { energy: 2565, protein: 169, fat: 84, carb: 281 };
@@ -160,11 +199,32 @@ function entryToRow(entry, userId, loggedOn) {
 /* ---- recipes (local only; no nutrition recipes table) --- */
 const RECIPES_KEY = 'mf_recipes_v1';
 function loadRecipesLocal() {
-  try { const s = localStorage.getItem(RECIPES_KEY); if (s) return JSON.parse(s); } catch (e) {}
+  try {
+    const s = localStorage.getItem(RECIPES_KEY);
+    if (s) {
+      // Migration: früher gespeicherte Seed-Rezepte kannten noch keine
+      // Zutaten/Schritte — aus dem aktuellen Seed nachrüsten.
+      return JSON.parse(s).map(r => {
+        if (r.ingredients && r.ingredients.length) return r;
+        const seed = RECIPES_SEED.find(x => x.id === r.id);
+        return seed ? { ...r, ingredients: seed.ingredients, steps: seed.steps } : r;
+      });
+    }
+  } catch (e) {}
   return RECIPES_SEED;
 }
 function saveRecipesLocal(recipes) {
   try { localStorage.setItem(RECIPES_KEY, JSON.stringify(recipes)); } catch (e) {}
+}
+
+/* ---- Einkaufsliste (nur lokal auf dem Gerät) ------------- */
+const SHOPPING_KEY = 'mf_shopping_v1';
+function loadShoppingLocal() {
+  try { const s = localStorage.getItem(SHOPPING_KEY); if (s) return JSON.parse(s); } catch (e) {}
+  return [];
+}
+function saveShoppingLocal(items) {
+  try { localStorage.setItem(SHOPPING_KEY, JSON.stringify(items || [])); } catch (e) {}
 }
 function loadProgramLocal() {
   try {
@@ -225,6 +285,7 @@ function skeletonState() {
     days: {},
     weights: [],
     recipes: RECIPES_SEED,
+    shopping: loadShoppingLocal(),
   };
 }
 function defaultState() { return skeletonState(); }
@@ -335,6 +396,7 @@ async function loadState(user) {
     selectedDate: TODAY,
     days, weights,
     recipes: loadRecipesLocal(),
+    shopping: loadShoppingLocal(),
   };
 }
 
@@ -381,6 +443,15 @@ function reducer(state, action) {
       return { ...state, goal: previous, goalHistory: rest };
     }
     case 'ADD_RECIPE': return { ...state, recipes: [action.recipe, ...state.recipes] };
+    /* Einkaufsliste: Mengen-Merge macht window.shopping (Code, nicht KI) */
+    case 'SHOPPING_ADD':
+      return { ...state, shopping: window.shopping.mergeShopping(state.shopping || [], action.items) };
+    case 'SHOPPING_TOGGLE':
+      return { ...state, shopping: (state.shopping || []).map(it => it.id === action.id ? { ...it, done: !it.done } : it) };
+    case 'SHOPPING_REMOVE':
+      return { ...state, shopping: (state.shopping || []).filter(it => it.id !== action.id) };
+    case 'SHOPPING_CLEAR_DONE':
+      return { ...state, shopping: (state.shopping || []).filter(it => !it.done) };
     default: return state;
   }
 }
@@ -388,6 +459,7 @@ function reducer(state, action) {
 /* ---- persistence side-effects --------------------------- */
 async function persist(action, prev, next, uid) {
   if (action.type === 'ADD_RECIPE') saveRecipesLocal(next.recipes);
+  if (action.type.startsWith('SHOPPING_')) saveShoppingLocal(next.shopping);
   if (action.type === 'SET_PROGRAM') saveProgramLocal(next.program);
   if (action.type === 'SET_UNITS') saveUnitsLocal(next.units);
   if (action.type === 'ONBOARD') saveProgramLocal(next.program);

@@ -159,13 +159,18 @@ function WeightSheet({ open, onClose, onSave, date = TODAY }) {
 }
 
 /* ---- Recipes (subpage) ---------------------------------- */
-function RecipesScreen({ onBack, onNew, onImport, onLog }) {
+function RecipesScreen({ onBack, onNew, onImport, onOpen, onShopping }) {
   const { state } = useApp();
+  const openCount = (state.shopping || []).filter(it => !it.done).length;
   return (
     <div className="mf-screen">
       <SubHeader title="Rezepte" onBack={onBack}
         right={
           <div style={{ display: 'flex', gap: 12 }}>
+            <button className="mf-iconbtn mf-shop-entry" onClick={onShopping} aria-label="Einkaufsliste">
+              <Icon name="shopping-cart" size={22} />
+              {openCount > 0 && <span className="mf-shop-badge mf-num">{openCount}</span>}
+            </button>
             <button className="mf-iconbtn" onClick={onImport} aria-label="Rezept importieren"><Icon name="link" size={22} /></button>
             <button className="mf-iconbtn" onClick={onNew} aria-label="Neues Rezept"><Icon name="plus" size={24} /></button>
           </div>
@@ -177,8 +182,7 @@ function RecipesScreen({ onBack, onNew, onImport, onLog }) {
           <small>Link oder kopierten Rezepttext einlesen</small>
         </button>
         {state.recipes.map(r => (
-          <button key={r.id} className="mf-recipe" onClick={onLog ? () => onLog(r) : undefined}
-            style={{ cursor: onLog ? 'pointer' : 'default' }}>
+          <button key={r.id} className="mf-recipe" onClick={() => onOpen(r)}>
             <span className="mf-recipe-icon" style={{ background: r.color + '22' }}><Icon name={r.icon} size={22} color={r.color} /></span>
             <div className="mf-recipe-mid">
               <div className="mf-recipe-name">{r.name}</div>
@@ -193,10 +197,132 @@ function RecipesScreen({ onBack, onNew, onImport, onLog }) {
   );
 }
 
+/* ---- Recipe view: Zutaten + Zubereitung + Einkaufsliste --- */
+function RecipeViewScreen({ recipe, onBack, onLog, onShop }) {
+  // Immer den frischen Stand aus dem Store zeigen (z. B. nach Migration)
+  const { state } = useApp();
+  const r = state.recipes.find(x => x.id === (recipe && recipe.id)) || recipe;
+  const [shopped, setShopped] = React.useState(false);
+  if (!r) return null;
+  const ings = r.ingredients || [];
+  const steps = r.steps || [];
+  const shop = () => {
+    onShop(r);
+    setShopped(true);
+    setTimeout(() => setShopped(false), 1600);
+  };
+  return (
+    <div className="mf-screen">
+      <SubHeader title={r.name} onBack={onBack} />
+      <div className="mf-scroll">
+        <div className="mf-recipe-totals mf-num">
+          <b style={{ color: MF.energy }}>{r.energy}E</b>
+          <b style={{ color: MF.protein }}>{r.protein}P</b>
+          <b style={{ color: MF.fat }}>{r.fat}F</b>
+          <b style={{ color: MF.carb }}>{r.carb}C</b>
+        </div>
+
+        <div className="mf-h3" style={{ margin: '10px 0 8px' }}>Zutaten{ings.length ? <span className="mf-num"> · {ings.length}</span> : ''}</div>
+        {ings.length ? (
+          <React.Fragment>
+            {ings.map((it, i) => (
+              <div key={i} className="mf-ing-row">
+                <span className="mf-ing-qty mf-num">{window.shopping.formatQty(it) || '–'}</span>
+                <span className="mf-ing-name">{it.name}</span>
+              </div>
+            ))}
+            <button className="mf-shop-cta" onClick={shop}>
+              <Icon name={shopped ? 'check' : 'shopping-cart'} size={18} />
+              {shopped ? 'Auf der Einkaufsliste' : 'Zutaten auf die Einkaufsliste'}
+            </button>
+          </React.Fragment>
+        ) : (
+          <div className="mf-ai-prompt">
+            Für dieses Rezept sind noch keine Zutaten hinterlegt. Importiere es neu (Rezepte → Link-Symbol) —
+            dann kommen Zutaten und Zubereitung automatisch mit.
+          </div>
+        )}
+
+        {steps.length > 0 && (
+          <React.Fragment>
+            <div className="mf-h3" style={{ margin: '16px 0 8px' }}>Zubereitung</div>
+            {steps.map((s, i) => (
+              <div key={i} className="mf-step-row">
+                <span className="mf-step-num mf-num">{i + 1}</span>
+                <span className="mf-step-text">{s}</span>
+              </div>
+            ))}
+          </React.Fragment>
+        )}
+
+        <button className="mf-detail-log" style={{ margin: '18px 0' }} onClick={() => onLog(r)}>Als Mahlzeit loggen</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---- Einkaufsliste (subpage) ------------------------------ */
+function ShoppingListScreen({ onBack }) {
+  const { state, dispatch } = useApp();
+  const [draft, setDraft] = React.useState('');
+  const items = state.shopping || [];
+  const open = items.filter(it => !it.done);
+  const done = items.filter(it => it.done);
+  const addManual = () => {
+    const it = window.shopping.parseIngredient(draft);
+    if (!it) return;
+    dispatch({ type: 'SHOPPING_ADD', items: [it] });
+    setDraft('');
+  };
+  const Row = ({ it }) => (
+    <div className={'mf-shop-row' + (it.done ? ' done' : '')}>
+      <button className="mf-shop-check" onClick={() => dispatch({ type: 'SHOPPING_TOGGLE', id: it.id })}
+        aria-label={it.done ? 'Wieder auf offen setzen' : 'Abhaken'}>
+        {it.done && <Icon name="check" size={13} strokeWidth={3} />}
+      </button>
+      <span className="mf-shop-name">{it.name}</span>
+      <span className="mf-shop-qty mf-num">{window.shopping.formatQty(it)}</span>
+      <button className="mf-shop-x" onClick={() => dispatch({ type: 'SHOPPING_REMOVE', id: it.id })} aria-label="Entfernen">
+        <Icon name="x" size={15} />
+      </button>
+    </div>
+  );
+  return (
+    <div className="mf-screen">
+      <SubHeader title="Einkaufsliste" onBack={onBack} />
+      <div className="mf-scroll">
+        <div className="mf-shop-addrow">
+          <input className="mf-quick-name" placeholder="Hinzufügen, z. B. 300 g Kartoffeln" value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') addManual(); }} />
+          <button className="mf-shop-addbtn" onClick={addManual} disabled={!draft.trim()} aria-label="Hinzufügen">
+            <Icon name="plus" size={20} />
+          </button>
+        </div>
+        {items.length === 0 && (
+          <div className="mf-ai-prompt" style={{ marginTop: 12 }}>
+            Noch leer. Öffne ein Rezept und tippe „Zutaten auf die Einkaufsliste" — oder übernimm im Tagesplaner
+            den ganzen Plan mit dem Einkaufswagen-Symbol.
+          </div>
+        )}
+        {open.map(it => <Row key={it.id} it={it} />)}
+        {done.length > 0 && (
+          <React.Fragment>
+            <div className="mf-group-label" style={{ marginTop: 18 }}>Erledigt</div>
+            {done.map(it => <Row key={it.id} it={it} />)}
+            <button className="mf-reset" onClick={() => dispatch({ type: 'SHOPPING_CLEAR_DONE' })}>Erledigte entfernen</button>
+          </React.Fragment>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ---- New Recipe (subpage) ------------------------------- */
 function RecipeNewScreen({ onBack, onSave }) {
   const [name, setName] = React.useState('');
   const [items, setItems] = React.useState([]);
+  const [stepsText, setStepsText] = React.useState('');
   const add = f => setItems(s => [...s, f]);
   const remove = i => setItems(s => s.filter((_, j) => j !== i));
   const tot = items.reduce((t, f) => ({
@@ -226,9 +352,17 @@ function RecipeNewScreen({ onBack, onSave }) {
           <FoodRow key={f.id} food={f} onClick={() => add(f)}
             right={<span className="mf-add-plus"><Icon name="plus" size={18} /></span>} />
         ))}
+        <div className="mf-h3" style={{ margin: '14px 0 8px' }}>Zubereitung <span style={{ color: 'var(--mf-fg-3)', fontWeight: 400 }}>(optional, ein Schritt pro Zeile)</span></div>
+        <textarea className="mf-ai-input" rows="4"
+          placeholder={'Reis kochen.\nHähnchen anbraten.\nAlles anrichten.'}
+          value={stepsText} onChange={e => setStepsText(e.target.value)} />
         <button className="mf-detail-log" disabled={!name || !items.length}
           style={{ margin: '18px 0', opacity: (!name || !items.length) ? 0.5 : 1 }}
-          onClick={() => onSave({ id: 'r' + Date.now(), name, items: items.length, icon: 'chef-hat', color: MF.teal, ...tot })}>
+          onClick={() => onSave({
+            id: 'r' + Date.now(), name, items: items.length, icon: 'chef-hat', color: MF.teal, ...tot,
+            ingredients: items.map(f => ({ name: f.name, qty: f.per, unit: f.unit === 'g' || f.unit === 'ml' ? f.unit : 'Stück' })),
+            steps: stepsText.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 15),
+          })}>
           Rezept speichern
         </button>
       </div>
@@ -267,6 +401,20 @@ function RecipeImportScreen({ onBack, onSave }) {
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
+  /* JSON-LD recipeInstructions: String, Array aus Strings, HowToStep
+     ({text}) oder HowToSection ({itemListElement}) — alles flach ziehen. */
+  const stepsFromJsonLd = ins => {
+    const out = [];
+    const walk = v => {
+      if (!v || out.length >= 15) return;
+      if (typeof v === 'string') { const t = cleanText(v).replace(/\s+/g, ' ').trim(); if (t) out.push(t.slice(0, 300)); return; }
+      if (Array.isArray(v)) { v.forEach(walk); return; }
+      if (typeof v === 'object') { if (v.text) walk(String(v.text)); else if (v.itemListElement) walk(v.itemListElement); }
+    };
+    walk(ins);
+    return out;
+  };
+
   const recipeFromJsonLd = raw => {
     const matches = [...String(raw || '').matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
     const flatten = v => Array.isArray(v) ? v.flatMap(flatten) : v && typeof v === 'object' && Array.isArray(v['@graph']) ? flatten(v['@graph']) : [v];
@@ -279,14 +427,20 @@ function RecipeImportScreen({ onBack, onSave }) {
         });
         if (!recipe) continue;
         const n = recipe.nutrition || {};
+        const ingredients = (recipe.recipeIngredient || [])
+          .map(s => window.shopping.parseIngredient(String(s)))
+          .filter(Boolean)
+          .slice(0, 30);
         return {
           id: 'r' + Date.now(),
           name: String(recipe.name || nameFromUrl(url)).slice(0, 80),
-          items: Math.max(1, (recipe.recipeIngredient || []).length || 1),
+          items: Math.max(1, ingredients.length || (recipe.recipeIngredient || []).length || 1),
           energy: number(n.calories || n.energy || 0),
           protein: number(n.proteinContent || 0),
           fat: number(n.fatContent || 0),
           carb: number(n.carbohydrateContent || 0),
+          ingredients,
+          steps: stepsFromJsonLd(recipe.recipeInstructions),
           icon: 'chef-hat',
           color: MF.teal,
           sourceUrl: url.trim(),
@@ -316,14 +470,20 @@ function RecipeImportScreen({ onBack, onSave }) {
       }
       return 0;
     };
+    const ingredients = ingredientLines
+      .map(l => window.shopping.parseIngredient(l))
+      .filter(Boolean)
+      .slice(0, 30);
     return {
       id: 'r' + Date.now(),
       name,
-      items: Math.max(1, ingredientLines.length || lines.filter(l => !isMacro(l)).length || 1),
+      items: Math.max(1, ingredients.length || lines.filter(l => !isMacro(l)).length || 1),
       energy: findValue([/(?:energy|calories|kcal)\D{0,30}(\d+(?:\.\d+)?)/i, /(\d+(?:\.\d+)?)\s*kcal/i]),
       protein: findValue([/(?:protein|eiweiss|eiweiß)\D{0,30}(\d+(?:\.\d+)?)/i]),
       fat: findValue([/(?:fat|fett)\D{0,30}(\d+(?:\.\d+)?)/i]),
       carb: findValue([/(?:carb|carbs|kohlenhydrate)\D{0,30}(\d+(?:\.\d+)?)/i]),
+      ingredients,
+      steps: [],
       icon: 'chef-hat',
       color: MF.teal,
       sourceUrl: fallbackUrl.trim(),
@@ -350,14 +510,25 @@ function RecipeImportScreen({ onBack, onSave }) {
     if (!window.analyzeFoodViaApi) return null;
     const data = await window.analyzeFoodViaApi({ task: 'recipe', text: context.slice(0, 16000) });
     const json = data.recipe || {};
+    // toItem normalisiert nochmal clientseitig (kg→g, Namens-Cleanup)
+    const ingredients = (Array.isArray(json.ingredients) ? json.ingredients : [])
+      .map(it => window.shopping.toItem(it))
+      .filter(Boolean)
+      .slice(0, 30);
+    const steps = (Array.isArray(json.steps) ? json.steps : [])
+      .filter(s => typeof s === 'string' && s.trim())
+      .map(s => s.trim().slice(0, 300))
+      .slice(0, 15);
     return {
       id: 'r' + Date.now(),
       name: String(json.name || nameFromUrl(url)).slice(0, 80),
-      items: Math.max(1, number(json.items || 1)),
+      items: Math.max(1, ingredients.length || number(json.items || 1)),
       energy: number(json.energy || json.kcal || json.calories),
       protein: number(json.protein || json.protein_g),
       fat: number(json.fat || json.fat_g),
       carb: number(json.carb || json.carbs || json.carbs_g),
+      ingredients,
+      steps,
       icon: 'chef-hat',
       color: MF.teal,
       sourceUrl: url.trim(),
@@ -569,5 +740,6 @@ function UnitsScreen({ onBack }) {
 
 Object.assign(window, {
   LineChart, InsightsScreen, MetricsScreen, WeightSheet, RecipesScreen, RecipeNewScreen, RecipeImportScreen,
+  RecipeViewScreen, ShoppingListScreen,
   AccountScreen, SubscriptionScreen, IntegrationsScreen, UnitsScreen, SettingsPage,
 });
