@@ -226,6 +226,9 @@ function MoreScreen({ onGo }) {
           <SettingRow icon="ruler" label="Gewicht & Messwerte" onClick={() => onGo('metrics')} last />
         </div>
         <button className="mf-reset" onClick={() => window.mfSignOut && window.mfSignOut()}>Abmelden</button>
+        <div className="mf-build-tag">
+          Build {__BUILD_ID__} · {new Date(__BUILD_TIME__).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+        </div>
         <div style={{ height: 20 }} />
       </div>
     </div>

@@ -1,8 +1,25 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
+
+// Sichtbare Build-Kennung (Mehr-Tab): auf Vercel kommt der Commit aus der Env,
+// lokal aus git; ohne beides bleibt 'dev'.
+function buildId() {
+  const vercelSha = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7);
+  if (vercelSha) return vercelSha;
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch (e) {
+    return 'dev';
+  }
+}
 
 export default defineConfig({
+  define: {
+    __BUILD_ID__: JSON.stringify(buildId()),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     VitePWA({

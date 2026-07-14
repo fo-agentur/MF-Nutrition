@@ -30,6 +30,22 @@ import { AuthProvider, useAuth, LoginScreen, Splash, signOut } from './auth.jsx'
 window.mfSignOut = signOut;
 const App = window.App;
 
+// iOS startet die installierte PWA beim Öffnen meist nur aus dem Hintergrund
+// (Resume) — den Service-Worker-Update-Check gibt es aber nur bei echten
+// Navigationen. Ohne eigenen Check bleibt das Handy deshalb beliebig lange auf
+// einem alten Deploy hängen. Also: bei jedem Sichtbarwerden aktiv nachsehen
+// (+ alle 15 min als Fallback für lange offene Sessions).
+if ('serviceWorker' in navigator) {
+  const checkForUpdate = () => {
+    if (document.visibilityState !== 'visible') return;
+    navigator.serviceWorker.getRegistration()
+      .then(reg => { if (reg) reg.update().catch(() => {}); })
+      .catch(() => {});
+  };
+  document.addEventListener('visibilitychange', checkForUpdate);
+  setInterval(checkForUpdate, 15 * 60 * 1000);
+}
+
 function Root() {
   const { session } = useAuth();
   const demo = import.meta.env.DEV && new URLSearchParams(window.location.search).has('demo');
