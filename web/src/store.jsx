@@ -85,6 +85,33 @@ const RECIPES_SEED = [
   },
 ];
 
+/* Supermarkt-Fertigkram für den Planner-Modus „Supermarkt": alles direkt
+   essbar, nichts zu kochen. Makros pro Packung/Stück (per: 1), price in €.
+   ANNAHME: Richtpreise auf Discounter-Niveau (Stand Mitte 2026) — dem User
+   als „Richtpreise" ausgewiesen; nur der Code rechnet damit, nie die KI. */
+const SUPERMARKET_DB = [
+  { id: 'mkt-mozz',    name: 'Mozzarella Kugel',            brand: 'Supermarkt', pack: '125-g-Kugel',     icon: 'milk',      color: '#C9C7BE', per: 1, unit: 'Packung', energy: 300, protein: 23, fat: 23, carb: 2,  price: 1.09, fav: false },
+  { id: 'mkt-skyr',    name: 'Skyr Becher',                 brand: 'Supermarkt', pack: '450-g-Becher',    icon: 'milk',      color: '#C9C7BE', per: 1, unit: 'Becher',  energy: 284, protein: 50, fat: 1,  carb: 18, price: 1.19, fav: false },
+  { id: 'mkt-quark',   name: 'Magerquark',                  brand: 'Supermarkt', pack: '500-g-Packung',   icon: 'milk',      color: '#C9C7BE', per: 1, unit: 'Packung', energy: 335, protein: 60, fat: 1,  carb: 20, price: 0.99, fav: false },
+  { id: 'mkt-cottage', name: 'Körniger Frischkäse',         brand: 'Supermarkt', pack: '200-g-Becher',    icon: 'milk',      color: '#C9C7BE', per: 1, unit: 'Becher',  energy: 208, protein: 26, fat: 9,  carb: 4,  price: 1.19, fav: false },
+  { id: 'mkt-propud',  name: 'Proteinpudding',              brand: 'Supermarkt', pack: '200-g-Becher',    icon: 'candy',     color: '#96755A', per: 1, unit: 'Becher',  energy: 150, protein: 20, fat: 3,  carb: 12, price: 1.29, fav: false },
+  { id: 'mkt-harzer',  name: 'Harzer Käse',                 brand: 'Supermarkt', pack: '200-g-Rolle',     icon: 'circle',    color: '#B0A47E', per: 1, unit: 'Packung', energy: 254, protein: 54, fat: 1,  carb: 0,  price: 1.79, fav: false },
+  { id: 'mkt-thun',    name: 'Thunfisch in Wasser',         brand: 'Supermarkt', pack: '140-g-Dose',      icon: 'fish',      color: '#C08268', per: 1, unit: 'Dose',    energy: 150, protein: 33, fat: 1,  carb: 0,  price: 1.49, fav: false },
+  { id: 'mkt-eggs',    name: 'Gekochte Eier',               brand: 'Supermarkt', pack: '2er-Pack',        icon: 'egg',       color: '#B0A47E', per: 1, unit: 'Packung', energy: 156, protein: 13, fat: 11, carb: 1,  price: 0.89, fav: false },
+  { id: 'mkt-huhn',    name: 'Hähnchenbrust-Aufschnitt',    brand: 'Supermarkt', pack: '100-g-Packung',   icon: 'drumstick', color: '#B58F63', per: 1, unit: 'Packung', energy: 104, protein: 21, fat: 2,  carb: 1,  price: 1.99, fav: false },
+  { id: 'mkt-broet',   name: 'Vollkornbrötchen',            brand: 'Supermarkt', pack: '1 Stück',         icon: 'wheat',     color: '#B0A47E', per: 1, unit: 'Stück',   energy: 190, protein: 7,  fat: 2,  carb: 35, price: 0.59, fav: false },
+  { id: 'mkt-banane',  name: 'Banane',                      brand: 'Supermarkt', pack: '1 Stück',         icon: 'banana',    color: '#B0A47E', per: 1, unit: 'Stück',   energy: 105, protein: 1,  fat: 0,  carb: 27, price: 0.29, fav: false },
+  { id: 'mkt-apfel',   name: 'Apfel',                       brand: 'Supermarkt', pack: '1 Stück',         icon: 'apple',     color: '#7C9E85', per: 1, unit: 'Stück',   energy: 95,  protein: 0,  fat: 0,  carb: 25, price: 0.49, fav: false },
+  { id: 'mkt-nuss',    name: 'Studentenfutter',             brand: 'Supermarkt', pack: '50-g-Beutel',     icon: 'nut',       color: '#AE9070', per: 1, unit: 'Packung', energy: 240, protein: 7,  fat: 17, carb: 14, price: 0.99, fav: false },
+  { id: 'mkt-riegel',  name: 'Proteinriegel',               brand: 'Supermarkt', pack: '45-g-Riegel',     icon: 'candy',     color: '#96755A', per: 1, unit: 'Riegel',  energy: 160, protein: 18, fat: 5,  carb: 14, price: 1.49, fav: false },
+  { id: 'mkt-salat',   name: 'Fertigsalat mit Hähnchen',    brand: 'Supermarkt', pack: 'Salat-Bowl',      icon: 'salad',     color: '#7C9E85', per: 1, unit: 'Packung', energy: 320, protein: 28, fat: 14, carb: 20, price: 3.49, fav: false },
+  { id: 'mkt-sushi',   name: 'Sushi-Box klein',             brand: 'Supermarkt', pack: '8 Stück',         icon: 'fish',      color: '#C08268', per: 1, unit: 'Packung', energy: 350, protein: 12, fat: 5,  carb: 62, price: 4.49, fav: false },
+  { id: 'mkt-wrap',    name: 'Hähnchen-Wrap',               brand: 'Supermarkt', pack: '1 Wrap',          icon: 'sandwich',  color: '#B58F63', per: 1, unit: 'Stück',   energy: 420, protein: 24, fat: 14, carb: 46, price: 2.99, fav: false },
+  { id: 'mkt-milchr',  name: 'Milchreis Becher',            brand: 'Supermarkt', pack: '200-g-Becher',    icon: 'wheat',     color: '#B0A47E', per: 1, unit: 'Becher',  energy: 232, protein: 7,  fat: 6,  carb: 36, price: 0.89, fav: false },
+  { id: 'mkt-kefir',   name: 'Kefir',                       brand: 'Supermarkt', pack: '500-ml-Flasche',  icon: 'milk',      color: '#C9C7BE', per: 1, unit: 'Flasche', energy: 255, protein: 17, fat: 8,  carb: 25, price: 1.09, fav: false },
+  { id: 'mkt-joghurt', name: 'Griechischer Joghurt',        brand: 'Supermarkt', pack: '150-g-Becher',    icon: 'milk',      color: '#C9C7BE', per: 1, unit: 'Becher',  energy: 143, protein: 6,  fat: 11, carb: 5,  price: 0.79, fav: false },
+];
+
 const DEFAULT_TARGETS = { energy: 2565, protein: 169, fat: 84, carb: 281 };
 const PROGRAM_KEY = 'mf_program_v1';
 const UNITS_KEY = 'mf_units_v1';
@@ -819,7 +846,7 @@ function computeCheckInRecommendation(state, endKey = TODAY) {
 }
 
 Object.assign(window, {
-  MF, MACRO_META, FOOD_DB, RECIPES_SEED, TODAY,
+  MF, MACRO_META, FOOD_DB, SUPERMARKET_DB, RECIPES_SEED, TODAY,
   DEFAULT_PROGRAM,
   AppProvider, useApp, dayTotals, scaleFood, latestWeight, defaultState,
   addDaysISO, dateRangeBack, nutritionLoggedOn, latestLoggedNutritionDate, recentNutritionDays,

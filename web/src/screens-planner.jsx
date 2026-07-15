@@ -11,7 +11,9 @@ function plannerRest(state, mode) {
   return window.planner.remainingTargets(targets, totals, mode);
 }
 
-function PlannerSummary({ totals, rest }) {
+const eur = v => (Math.round(v * 100) / 100).toFixed(2).replace('.', ',') + ' €';
+
+function PlannerSummary({ totals, rest, budget = 0 }) {
   const checks = window.planner.planChecks(totals, rest);
   const cap = window.planner.energyCap(rest);
   const cells = [
@@ -29,6 +31,15 @@ function PlannerSummary({ totals, rest }) {
           <span className={'mf-plan-check' + (c.ok ? ' ok' : '')}>{c.ok ? '✓' : '⚠'}</span>
         </span>
       ))}
+      {totals.price > 0 && (
+        <span className="mf-plan-sumcell">
+          <span className="mf-plan-sumicon" style={{ color: MF.energy }}>€</span>
+          <b>{eur(totals.price).replace(' €', '')}</b>{budget > 0 ? `/${budget}` : ''}
+          <span className={'mf-plan-check' + (!budget || totals.price <= budget + 1e-9 ? ' ok' : '')}>
+            {!budget || totals.price <= budget + 1e-9 ? '✓' : '⚠'}
+          </span>
+        </span>
+      )}
     </div>
   );
 }
@@ -48,7 +59,10 @@ function PlannerItem({ item, onQty, onRemove }) {
   const { food, qty, macros } = item;
   const mass = food.unit === 'g' || food.unit === 'ml';
   const step = mass ? 25 : 1;
-  const sourceLabel = { recipe: food.brand, habit: food.brand, custom: 'Eigenes Food', db: food.brand }[food.source] || food.brand;
+  const sourceLabel = food.source === 'market'
+    ? [food.pack, food.price > 0 ? eur(food.price) : ''].filter(Boolean).join(' · ')
+    : { recipe: food.brand, habit: food.brand, custom: 'Eigenes Food', db: food.brand }[food.source] || food.brand;
+  const price = window.planner.priceOf(food, qty);
   return (
     <div className="mf-plan-item">
       <span className="mf-plan-itemicon" style={{ background: (food.color || MF.teal) + '22' }}>
@@ -62,6 +76,7 @@ function PlannerItem({ item, onQty, onRemove }) {
           <b style={{ color: MF.protein }}>{macros.protein}</b>P{' '}
           <b style={{ color: MF.fat }}>{macros.fat}</b>F{' '}
           <b style={{ color: MF.carb }}>{macros.carb}</b>C
+          {price > 0 ? <span className="mf-plan-itemprice"> · {eur(price)}</span> : null}
         </div>
         <div className="mf-plan-qty mf-num">
           <button onClick={() => onQty(Math.max(mass ? 25 : 1, qty - step))} aria-label="Weniger"><Icon name="minus" size={13} /></button>
@@ -84,43 +99,62 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
     setShopped(true);
     setTimeout(() => setShopped(false), 1600);
   };
-  const [mode, setMode] = React.useState('rest');       // 'rest' | 'day'
+  const [mode, setMode] = React.useState('now');        // 'now' | 'rest' | 'day'
+  const [source, setSource] = React.useState('any');    // 'any' | 'market' | 'cook'
+  const [budget, setBudget] = React.useState(0);        // € (0 = ohne Limit), nur Supermarkt
   const [items, setItems] = React.useState([]);
   const [busy, setBusy] = React.useState(false);
   const [aiUsed, setAiUsed] = React.useState(false);
   const seedRef = React.useRef(1);
   const runRef = React.useRef(0);
 
-  const rest = plannerRest(state, mode);
+  // 'now' zielt auf die NÄCHSTE Mahlzeit: Anteil des Resttags nach Uhrzeit.
+  const restDay = plannerRest(state, mode === 'now' ? 'rest' : mode);
+  const rest = mode === 'now' ? window.planner.nowTargets(restDay) : restDay;
   const totals = window.planner.planTotals(items);
-  const modeLabels = { 'Rest füllen': 'rest', 'Ganzen Tag planen': 'day' };
-  const modeLabel = mode === 'day' ? 'Ganzen Tag planen' : 'Rest füllen';
-  const done = mode === 'rest' && rest.energy <= 60;
+  const modeLabels = { 'Jetzt': 'now', 'Rest heute': 'rest', 'Ganzer Tag': 'day' };
+  const modeLabel = { now: 'Jetzt', rest: 'Rest heute', day: 'Ganzer Tag' }[mode];
+  const sourceLabels = { 'Egal': 'any', 'Supermarkt': 'market', 'Kochen': 'cook' };
+  const sourceLabel = { any: 'Egal', market: 'Supermarkt', cook: 'Kochen' }[source];
+  const budgetLabels = { 'Ohne Limit': 0, '5 €': 5, '10 €': 10, '15 €': 15 };
+  const budgetLabel = budget ? `${budget} €` : 'Ohne Limit';
+  const done = (mode === 'rest' || mode === 'now') && rest.energy <= 60;
 
-  const generate = React.useCallback(async (nextMode, { exclude } = {}) => {
+  const generate = React.useCallback(async (nextMode, nextSource, nextBudget, { exclude } = {}) => {
     const run = ++runRef.current;
-    const restNow = plannerRest(state, nextMode);
-    if (nextMode === 'rest' && restNow.energy <= 60) { setItems([]); setBusy(false); return; }
+    const restBase = plannerRest(state, nextMode === 'now' ? 'rest' : nextMode);
+    if ((nextMode === 'rest' || nextMode === 'now') && restBase.energy <= 60) { setItems([]); setBusy(false); return; }
+    const target = nextMode === 'now' ? window.planner.nowTargets(restBase) : restBase;
     setBusy(true);
     const candidates = window.planner.plannerCandidates(state, {
       foodDb: FOOD_DB,
       customFoods: window.getCustomFoods ? window.getCustomFoods() : [],
+      marketDb: SUPERMARKET_DB,
+      source: nextSource,
     });
     const avoid = exclude ? [...exclude] : [];
+    const budgetOpt = nextSource === 'market' ? nextBudget : 0;
+    const maxItems = nextMode === 'now' ? (nextSource === 'market' ? 3 : 2) : 4;
     let plan = null;
     let viaAi = false;
-    try {
-      plan = await window.planner.aiProposePlan(candidates, restNow, { mode: nextMode, avoid });
-      viaAi = true;
-    } catch (e) {
-      /* KI nicht erreichbar/unbrauchbar → lokaler Solver */
+    // „Jetzt" & Supermarkt laufen rein lokal: Ergebnis sofort da, und das
+    // Preis-Budget kann nur der Code hart garantieren — die KI kennt keine Preise.
+    const useAi = nextMode !== 'now' && nextSource !== 'market';
+    if (useAi) {
+      try {
+        plan = await window.planner.aiProposePlan(candidates, target, { mode: nextMode, avoid });
+        viaAi = true;
+      } catch (e) {
+        /* KI nicht erreichbar/unbrauchbar → lokaler Solver */
+      }
     }
     if (!plan || !plan.items.length) {
       seedRef.current += 1;
-      plan = window.planner.bestPlan(candidates, restNow, {
-        maxItems: 4,
+      plan = window.planner.bestPlan(candidates, target, {
+        maxItems,
         seed: seedRef.current,
         exclude,
+        budget: budgetOpt,
       });
       viaAi = false;
     }
@@ -131,19 +165,32 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
   }, [state]);
 
   React.useEffect(() => {
-    if (open) { setMode('rest'); seedRef.current = Date.now() % 100000; generate('rest'); }
-    else { runRef.current += 1; setItems([]); setBusy(false); }
+    if (open) {
+      setMode('now'); setSource('any'); setBudget(0);
+      seedRef.current = Date.now() % 100000;
+      generate('now', 'any', 0);
+    } else { runRef.current += 1; setItems([]); setBusy(false); }
   }, [open]);
 
   const switchMode = lbl => {
-    const next = modeLabels[lbl] || 'rest';
+    const next = modeLabels[lbl] || 'now';
     setMode(next);
-    generate(next);
+    generate(next, source, budget);
+  };
+  const switchSource = lbl => {
+    const next = sourceLabels[lbl] || 'any';
+    setSource(next);
+    generate(mode, next, budget);
+  };
+  const switchBudget = lbl => {
+    const next = budgetLabels[lbl] || 0;
+    setBudget(next);
+    generate(mode, source, next);
   };
 
   const reroll = () => {
     const exclude = new Set(items.map(it => String(it.food.name).toLowerCase()));
-    generate(mode, { exclude });
+    generate(mode, source, budget, { exclude });
   };
 
   const setQty = (idx, qty) => {
@@ -157,13 +204,29 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
     <Sheet open={open} onClose={onClose} title="Was soll ich noch essen?" headerRight={<Icon name="utensils-crossed" size={20} />} tall>
       <div className="mf-plan">
         <div className="mf-plan-modes">
-          <Segmented options={['Rest füllen', 'Ganzen Tag planen']} value={modeLabel} onChange={switchMode} />
+          <Segmented options={['Jetzt', 'Rest heute', 'Ganzer Tag']} value={modeLabel} onChange={switchMode} />
         </div>
+        <div className="mf-plan-modes mf-plan-sourcerow">
+          <Segmented options={['Egal', 'Supermarkt', 'Kochen']} value={sourceLabel} onChange={switchSource} />
+        </div>
+        {source === 'market' && (
+          <div className="mf-plan-modes mf-plan-budgetrow">
+            <Segmented options={['Ohne Limit', '5 €', '10 €', '15 €']} value={budgetLabel} onChange={switchBudget} />
+          </div>
+        )}
         <div className="mf-plan-rest mf-num">
           {mode === 'day'
             ? <span>Tagesziel: <b style={{ color: MF.energy }}>{rest.energy} kcal</b> · <b style={{ color: MF.protein }}>{Math.max(0, rest.protein)} g Protein</b></span>
-            : <span>Noch übrig: <b style={{ color: MF.energy }}>{Math.max(0, rest.energy)} kcal</b> · <b style={{ color: MF.protein }}>{Math.max(0, rest.protein)} g Protein</b></span>}
+            : mode === 'now'
+              ? <span>Nächste Mahlzeit: <b style={{ color: MF.energy }}>~{Math.max(0, rest.energy)} kcal</b> · <b style={{ color: MF.protein }}>{Math.max(0, rest.protein)} g Protein</b></span>
+              : <span>Noch übrig: <b style={{ color: MF.energy }}>{Math.max(0, rest.energy)} kcal</b> · <b style={{ color: MF.protein }}>{Math.max(0, rest.protein)} g Protein</b></span>}
         </div>
+        {mode === 'now' && !done && (
+          <div className="mf-plan-hint">Ein Vorschlag nur für jetzt — vom Resttag ({Math.max(0, restDay.energy)} kcal offen) bleibt genug für später.</div>
+        )}
+        {source === 'market' && (
+          <div className="mf-plan-hint">Fertig zum Essen, nichts zu kochen. Preise sind Richtwerte (Discounter).</div>
+        )}
         {mode === 'day' && (((state.days[state.selectedDate] || {}).entries || []).length > 0) && (
           <div className="mf-plan-hint">Plant den kompletten Tag — bereits Geloggtes wird dabei nicht abgezogen.</div>
         )}
@@ -184,7 +247,11 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
             <div className="mf-plan-done">
               <div className="mf-plan-doneicon"><Icon name="search-x" size={34} color="var(--mf-fg-3)" /></div>
               <b>Kein passender Vorschlag</b>
-              <span>Logge ein paar Mahlzeiten oder lege Rezepte an — daraus baut der Planer seine Vorschläge.</span>
+              <span>{source === 'cook'
+                ? 'Keine passenden Rezepte gefunden — lege Rezepte an oder importiere welche (Mehr → Rezepte).'
+                : source === 'market' && budget > 0
+                  ? 'Im Budget geht sich nichts Sinnvolles aus — Budget erhöhen oder neu würfeln.'
+                  : 'Logge ein paar Mahlzeiten oder lege Rezepte an — daraus baut der Planer seine Vorschläge.'}</span>
             </div>
           ) : (
             <React.Fragment>
@@ -201,7 +268,7 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
 
       {items.length > 0 && !busy && (
         <div className="mf-plan-footer">
-          <PlannerSummary totals={totals} rest={rest} />
+          <PlannerSummary totals={totals} rest={rest} budget={source === 'market' ? budget : 0} />
           <div className="mf-plan-actions">
             <button className="mf-plan-reroll" onClick={reroll}>
               <Icon name="dices" size={18} /> Neu würfeln
@@ -220,7 +287,7 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
         <div className="mf-plan-footer">
           <div className="mf-plan-actions">
             {done ? (
-              <button className="mf-plan-reroll" style={{ flex: 1 }} onClick={() => switchMode('Ganzen Tag planen')}>
+              <button className="mf-plan-reroll" style={{ flex: 1 }} onClick={() => switchMode('Ganzer Tag')}>
                 <Icon name="calendar-days" size={18} /> Ganzen Tag planen
               </button>
             ) : (

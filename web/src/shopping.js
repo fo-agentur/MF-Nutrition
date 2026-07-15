@@ -145,11 +145,9 @@ function ingredientsFromPlan(items, recipes = []) {
         });
       }
     } else {
-      out.push({
-        name: food.name,
-        qty,
-        unit: food.unit === 'g' || food.unit === 'ml' ? food.unit : 'Stück',
-      });
+      const mass = food.unit === 'g' || food.unit === 'ml';
+      const countUnit = food.unit && food.unit !== 'serving' && food.unit !== 'Portion' ? food.unit : 'Stück';
+      out.push({ name: food.name, qty, unit: mass ? food.unit : countUnit });
     }
   }
   return out;

@@ -93,17 +93,27 @@ function loggedHabitFoods(days, { limit = 14 } = {}) {
 }
 
 /* Pool: Rezepte > Gewohnheiten > Custom Foods > FOOD_DB (Favoriten zuerst).
-   Dedupe über den Namen; erste Quelle gewinnt. */
-function plannerCandidates(state, { foodDb = [], customFoods = [] } = {}) {
+   Dedupe über den Namen; erste Quelle gewinnt.
+   source-Filter: 'any' (alles), 'market' (nur Supermarkt-Fertigkram mit
+   Preisen — nichts zu kochen), 'cook' (nur Rezepte). */
+function plannerCandidates(state, { foodDb = [], customFoods = [], marketDb = [], source = 'any' } = {}) {
   const out = [];
   const seen = new Set();
-  const push = (food, source) => {
+  const push = (food, src) => {
     if (!food || !food.name || !(food.energy > 0)) return;
     const key = String(food.name).toLowerCase().replace(/\s+/g, ' ').trim();
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({ ...food, source });
+    out.push({ ...food, source: src });
   };
+  if (source === 'market') {
+    (marketDb || []).forEach(f => push(f, 'market'));
+    return out;
+  }
+  if (source === 'cook') {
+    (state.recipes || []).forEach(r => push(recipeToFood(r), 'recipe'));
+    return out;
+  }
   (state.recipes || []).forEach(r => push(recipeToFood(r), 'recipe'));
   loggedHabitFoods(state.days).forEach(f => push(f, 'habit'));
   (customFoods || []).forEach(f => push(f, 'custom'));
@@ -125,15 +135,49 @@ function remainingTargets(dayTargets, totals, mode = 'rest') {
   };
 }
 
+/* „Jetzt"-Modus: wie groß darf die NÄCHSTE Mahlzeit sein?
+   ANNAHME: grobe Mahlzeiten-Slots nach Uhrzeit — vor 10 Uhr sind noch
+   4 Essenszeiten übrig, bis 14 Uhr 3, bis 17 Uhr 2, danach 1. Der
+   Anteil wird auf den tatsächlichen Rest gedeckelt: nie mehr planen,
+   als heute noch offen ist. */
+function mealsLeftFor(hour) {
+  if (hour < 10) return 4;
+  if (hour < 14) return 3;
+  if (hour < 17) return 2;
+  return 1;
+}
+function nowTargets(rest, hour = new Date().getHours()) {
+  const share = 1 / Math.max(1, mealsLeftFor(hour));
+  const part = k => Math.round(Math.max(0, rest[k]) * share);
+  const t = { energy: part('energy'), protein: part('protein'), fat: part('fat'), carb: part('carb') };
+  // Untergrenze, damit früh am Tag eine echte Mahlzeit rauskommt —
+  // aber nie über den Rest hinaus.
+  t.energy = Math.min(Math.max(0, rest.energy), Math.max(t.energy, 250));
+  t.protein = Math.min(Math.max(0, rest.protein), Math.max(t.protein, 20));
+  return t;
+}
+
 /* ---- Bewertung -------------------------------------------- */
 
+/* Preis einer Portion: price gilt pro Packung (Count-Units) bzw. pro
+   `per`-Menge (Mass-Units). Nur Code rechnet Preise — Kandidaten ohne
+   price-Feld kosten 0 und tauchen in keiner Summe auf. */
+function priceOf(food, qty) {
+  if (!food || !(food.price > 0)) return 0;
+  const units = isMass(food) ? qty / (food.per || 1) : qty;
+  return food.price * units;
+}
+
 function planTotals(items) {
-  return items.reduce((t, it) => ({
-    energy: t.energy + it.macros.energy,
-    protein: t.protein + it.macros.protein,
-    fat: t.fat + it.macros.fat,
-    carb: t.carb + it.macros.carb,
-  }), { energy: 0, protein: 0, fat: 0, carb: 0 });
+  const t = items.reduce((acc, it) => ({
+    energy: acc.energy + it.macros.energy,
+    protein: acc.protein + it.macros.protein,
+    fat: acc.fat + it.macros.fat,
+    carb: acc.carb + it.macros.carb,
+    price: acc.price + priceOf(it.food, it.qty),
+  }), { energy: 0, protein: 0, fat: 0, carb: 0, price: 0 });
+  t.price = Math.round(t.price * 100) / 100;
+  return t;
 }
 
 function energyCap(rest) { return Math.round(Math.max(0, rest.energy) * ENERGY_TOLERANCE); }
@@ -176,7 +220,7 @@ function mulberry32(seed) {
    die den Score am stärksten senkt, ohne die kcal-Grenze zu reißen.
    `seed` randomisiert Tie-Breaks für „Neu würfeln";
    `exclude` (Set von Namen, lowercase) sperrt zuletzt gezeigte Items. */
-function buildPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, proteinWeight = 14 } = {}) {
+function buildPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, proteinWeight = 14, budget = 0 } = {}) {
   const rng = mulberry32(Math.floor(seed) || 1);
   const banned = exclude instanceof Set ? exclude : new Set(exclude || []);
   const pool = candidates.filter(c => c.energy > 0 && !banned.has(String(c.name).toLowerCase()));
@@ -200,6 +244,8 @@ function buildPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, proteinW
           carb: current.carb + macros.carb,
         };
         if (!fitsBudget(totals, rest)) continue;
+        // Budget ist eine HARTE Grenze (nur relevant, wenn Kandidaten Preise haben)
+        if (budget > 0 && current.price + priceOf(cand, qty) > budget + 1e-9) continue;
         const score = scorePlan(totals, rest, proteinWeight) + rng() * 1e-4; // seeded tie-break
         if (score < currentScore - 1 && (!best || score < best.score)) {
           best = { food: cand, qty, macros, score };
@@ -219,7 +265,7 @@ function buildPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, proteinW
    restliche kcal-Budget mit dem Standard-Greedy auffüllen. Findet die
    Kombis, die der Score-Greedy verpasst, wenn ein kalorienreicher
    Groß-Pick das Budget frisst. */
-function densityPlan(candidates, rest, { maxItems = 4, exclude } = {}) {
+function densityPlan(candidates, rest, { maxItems = 4, exclude, budget = 0 } = {}) {
   const banned = exclude instanceof Set ? exclude : new Set(exclude || []);
   const pool = candidates.filter(c => c.energy > 0 && !banned.has(String(c.name).toLowerCase()));
   const dense = [...pool]
@@ -242,6 +288,7 @@ function densityPlan(candidates, rest, { maxItems = 4, exclude } = {}) {
         carb: current.carb + macros.carb,
       };
       if (!fitsBudget(totals, rest)) continue;
+      if (budget > 0 && current.price + priceOf(cand, qty) > budget + 1e-9) continue;
       items.push({ food: cand, qty, macros });
       break;
     }
@@ -257,9 +304,11 @@ function densityPlan(candidates, rest, { maxItems = 4, exclude } = {}) {
     carb: Math.max(0, rest.carb - sub.carb),
   };
   if (items.length < maxItems && restLeft.energy > 60) {
+    const spent = planTotals(items).price;
     const filler = buildPlan(pool, restLeft, {
       maxItems: maxItems - items.length,
       exclude: new Set([...banned, ...used]),
+      budget: budget > 0 ? Math.max(0, budget - spent) : 0,
     });
     items.push(...filler.items);
   }
@@ -272,12 +321,12 @@ function densityPlan(candidates, rest, { maxItems = 4, exclude } = {}) {
    und die Protein-Lücke offen bleibt. Deshalb mehrere Strategien fahren
    (Standard, protein-first, mehr/kleinere Items, Protein-Dichte) und den
    Plan behalten, der nach der STANDARD-Gewichtung am besten abschneidet. */
-function bestPlan(candidates, rest, { maxItems = 4, seed = 1, exclude } = {}) {
+function bestPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, budget = 0 } = {}) {
   const plans = [
-    buildPlan(candidates, rest, { maxItems, seed, exclude, proteinWeight: 14 }),
-    buildPlan(candidates, rest, { maxItems, seed: seed + 1, exclude, proteinWeight: 45 }),
-    buildPlan(candidates, rest, { maxItems: maxItems + 1, seed: seed + 2, exclude, proteinWeight: 26 }),
-    densityPlan(candidates, rest, { maxItems, exclude }),
+    buildPlan(candidates, rest, { maxItems, seed, exclude, proteinWeight: 14, budget }),
+    buildPlan(candidates, rest, { maxItems, seed: seed + 1, exclude, proteinWeight: 45, budget }),
+    buildPlan(candidates, rest, { maxItems: maxItems + 1, seed: seed + 2, exclude, proteinWeight: 26, budget }),
+    densityPlan(candidates, rest, { maxItems, exclude, budget }),
   ];
   let best = null;
   for (const plan of plans) {
@@ -357,7 +406,9 @@ async function aiProposePlan(candidates, rest, { mode = 'rest', avoid = [], anal
       fat_target: Math.max(0, rest.fat),
       carb_target: Math.max(0, rest.carb),
     },
-    mode: mode === 'day' ? 'plan whole day (3-4 meals)' : 'fill rest of day (1-3 meals)',
+    mode: mode === 'day' ? 'plan whole day (3-4 meals)'
+      : mode === 'now' ? 'single next meal right now (1-2 items)'
+        : 'fill rest of day (1-3 meals)',
     avoid,
     candidates: candidatePromptLines(candidates),
   };
@@ -392,6 +443,11 @@ async function aiProposePlan(candidates, rest, { mode = 'rest', avoid = [], anal
 /* ---- Uhrzeiten fürs Loggen -------------------------------- */
 function planHours(count, mode, nowHour) {
   const now = Number.isFinite(nowHour) ? nowHour : new Date().getHours();
+  if (mode === 'now') {
+    // Eine Mahlzeit für jetzt — alles auf die aktuelle Stunde.
+    const h = Math.min(22, Math.max(6, now));
+    return Array.from({ length: count }, () => h);
+  }
   if (mode === 'day') {
     const slots = [8, 12, 16, 19];
     return Array.from({ length: count }, (_, i) => slots[Math.min(i, slots.length - 1)]);
@@ -411,15 +467,15 @@ function planChecks(totals, rest) {
 }
 
 const planner = {
-  recipeToFood, loggedHabitFoods, plannerCandidates, remainingTargets,
-  planTotals, scorePlan, fitsBudget, energyCap, buildPlan, bestPlan, adjustPortions,
+  recipeToFood, loggedHabitFoods, plannerCandidates, remainingTargets, nowTargets, mealsLeftFor,
+  planTotals, priceOf, scorePlan, fitsBudget, energyCap, buildPlan, bestPlan, adjustPortions,
   aiProposePlan, planHours, planChecks,
 };
 
 if (typeof window !== 'undefined') Object.assign(window, { planner });
 
 export {
-  recipeToFood, loggedHabitFoods, plannerCandidates, remainingTargets,
-  planTotals, scorePlan, fitsBudget, energyCap, buildPlan, bestPlan, adjustPortions,
+  recipeToFood, loggedHabitFoods, plannerCandidates, remainingTargets, nowTargets, mealsLeftFor,
+  planTotals, priceOf, scorePlan, fitsBudget, energyCap, buildPlan, bestPlan, adjustPortions,
   aiProposePlan, planHours, planChecks,
 };

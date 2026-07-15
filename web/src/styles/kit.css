@@ -1795,6 +1795,20 @@ button:focus-visible { outline: 2px solid rgba(255,255,255,.38); outline-offset:
 /* Kompakter Einkaufswagen-Button in der Planner-Aktionszeile */
 .mf-plan-shop { flex: 0 0 46px; padding: 0; justify-content: center; }
 
+/* Planner: Quelle- und Budget-Reihen unter der Modus-Wahl.
+   Kompakter als die Hauptreihe, damit drei Reihen nicht auftragen.
+   Volle Breite + gleiche Spalten sind Pflicht: der aktive Pill-Indikator
+   rechnet mit (100% − 8px) / Spaltenzahl. */
+.mf-plan-modes .mf-segmented { display: flex; width: 100%; }
+.mf-plan-modes .mf-seg { min-width: 0; white-space: nowrap; font-size: 13px; }
+.mf-plan-sourcerow, .mf-plan-budgetrow { margin-top: 6px; }
+.mf-plan-sourcerow .mf-seg, .mf-plan-budgetrow .mf-seg {
+  font-size: 12px;
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+.mf-plan-itemprice { color: var(--mf-fg-2); }
+
 /* Build-Kennung im Mehr-Tab: zeigt, welcher Deploy auf dem Gerät läuft */
 .mf-build-tag {
   text-align: center;

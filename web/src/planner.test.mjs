@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   recipeToFood, loggedHabitFoods, plannerCandidates, remainingTargets,
   planTotals, energyCap, fitsBudget, buildPlan, bestPlan, adjustPortions,
-  aiProposePlan, planHours, planChecks, scorePlan,
+  aiProposePlan, planHours, planChecks, scorePlan, nowTargets, mealsLeftFor, priceOf,
 } from './planner.js';
 
 const DB = [
@@ -157,4 +157,69 @@ test('planChecks flags energy over cap and protein misses', () => {
   const bad = planChecks({ energy: 1200, protein: 60, fat: 70, carb: 200 }, rest);
   assert.equal(bad.energy, false);
   assert.equal(bad.protein, false);
+});
+
+/* ---- „Jetzt"-Modus, Quelle, Budget ------------------------ */
+
+const MARKET = [
+  { id: 'mkt-skyr',   name: 'Skyr Becher',       per: 1, unit: 'Becher',  energy: 284, protein: 50, fat: 1,  carb: 18, price: 1.19, fav: false },
+  { id: 'mkt-wrap',   name: 'Hähnchen-Wrap',     per: 1, unit: 'Stück',   energy: 420, protein: 24, fat: 14, carb: 46, price: 2.99, fav: false },
+  { id: 'mkt-salat',  name: 'Fertigsalat',       per: 1, unit: 'Packung', energy: 320, protein: 28, fat: 14, carb: 20, price: 3.49, fav: false },
+  { id: 'mkt-banane', name: 'Banane',            per: 1, unit: 'Stück',   energy: 105, protein: 1,  fat: 0,  carb: 27, price: 0.29, fav: false },
+];
+
+test('mealsLeftFor: Uhrzeit-Slots (Annahme 4/3/2/1)', () => {
+  assert.equal(mealsLeftFor(8), 4);
+  assert.equal(mealsLeftFor(11), 3);
+  assert.equal(mealsLeftFor(15), 2);
+  assert.equal(mealsLeftFor(19), 1);
+});
+
+test('nowTargets: skaliert den Rest auf die nächste Mahlzeit und deckelt am Rest', () => {
+  const rest = { energy: 2000, protein: 160, fat: 70, carb: 220 };
+  const morgens = nowTargets(rest, 8);       // 1/4
+  assert.equal(morgens.energy, 500);
+  assert.equal(morgens.protein, 40);
+  const abends = nowTargets(rest, 20);       // 1/1 → voller Rest
+  assert.equal(abends.energy, 2000);
+  // Untergrenzen greifen, aber nie über den Rest hinaus
+  const wenig = nowTargets({ energy: 180, protein: 12, fat: 10, carb: 20 }, 8);
+  assert.equal(wenig.energy, 180);
+  assert.equal(wenig.protein, 12);
+});
+
+test('plannerCandidates: source market/cook filtert den Pool', () => {
+  const state = { recipes: [{ id: 'r1', name: 'Bowl', items: 3, energy: 500, protein: 40, fat: 15, carb: 50 }], days: {} };
+  const market = plannerCandidates(state, { foodDb: DB, marketDb: MARKET, source: 'market' });
+  assert.ok(market.length === MARKET.length);
+  assert.ok(market.every(c => c.source === 'market' && c.price > 0));
+  const cook = plannerCandidates(state, { foodDb: DB, marketDb: MARKET, source: 'cook' });
+  assert.equal(cook.length, 1);
+  assert.equal(cook[0].source, 'recipe');
+  assert.ok(cook[0].isRecipe);
+});
+
+test('priceOf und planTotals.price: Code rechnet Preise', () => {
+  assert.equal(priceOf(MARKET[0], 2), 2.38);
+  assert.equal(priceOf({ name: 'Reis', per: 100, unit: 'g' }, 200), 0);
+  const items = [
+    { food: MARKET[0], qty: 2, macros: { energy: 568, protein: 100, fat: 2, carb: 36 } },
+    { food: MARKET[3], qty: 1, macros: { energy: 105, protein: 1, fat: 0, carb: 27 } },
+  ];
+  assert.equal(planTotals(items).price, 2.67);
+});
+
+test('buildPlan/bestPlan: Budget ist eine harte Grenze', () => {
+  const rest = { energy: 900, protein: 70, fat: 25, carb: 90 };
+  for (const seed of [1, 7, 42]) {
+    const plan = bestPlan(MARKET, rest, { maxItems: 3, seed, budget: 5 });
+    assert.ok(plan.items.length > 0, 'Budget-Plan darf nicht leer sein');
+    assert.ok(plan.totals.price <= 5 + 1e-9, `Preis ${plan.totals.price} über Budget`);
+    assert.ok(plan.totals.energy <= energyCap(rest));
+  }
+});
+
+test('planHours: now-Modus loggt alles auf die aktuelle Stunde', () => {
+  assert.deepEqual(planHours(2, 'now', 10), [10, 10]);
+  assert.deepEqual(planHours(1, 'now', 23), [22]);
 });
