@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   recipeToFood, loggedHabitFoods, plannerCandidates, remainingTargets,
   planTotals, energyCap, fitsBudget, buildPlan, bestPlan, adjustPortions,
-  aiProposePlan, planHours, planChecks, scorePlan, nowTargets, mealsLeftFor, priceOf,
+  aiProposePlan, planHours, planChecks, scorePlan, nowTargets, mealsLeftFor, priceOf, varietyExcess,
 } from './planner.js';
 
 const DB = [
@@ -162,10 +162,10 @@ test('planChecks flags energy over cap and protein misses', () => {
 /* ---- „Jetzt"-Modus, Quelle, Budget ------------------------ */
 
 const MARKET = [
-  { id: 'mkt-skyr',   name: 'Skyr Becher',       per: 1, unit: 'Becher',  energy: 284, protein: 50, fat: 1,  carb: 18, price: 1.19, fav: false },
-  { id: 'mkt-wrap',   name: 'Hähnchen-Wrap',     per: 1, unit: 'Stück',   energy: 420, protein: 24, fat: 14, carb: 46, price: 2.99, fav: false },
-  { id: 'mkt-salat',  name: 'Fertigsalat',       per: 1, unit: 'Packung', energy: 320, protein: 28, fat: 14, carb: 20, price: 3.49, fav: false },
-  { id: 'mkt-banane', name: 'Banane',            per: 1, unit: 'Stück',   energy: 105, protein: 1,  fat: 0,  carb: 27, price: 0.29, fav: false },
+  { id: 'mkt-skyr',   name: 'Skyr Becher',       cat: 'kuehl', per: 1, unit: 'Becher',  energy: 284, protein: 50, fat: 1,  carb: 18, price: 1.19, fav: false },
+  { id: 'mkt-wrap',   name: 'Hähnchen-Wrap',     cat: 'fresh', per: 1, unit: 'Stück',   energy: 420, protein: 24, fat: 14, carb: 46, price: 2.99, fav: false },
+  { id: 'mkt-salat',  name: 'Fertigsalat',       cat: 'fresh', per: 1, unit: 'Packung', energy: 320, protein: 28, fat: 14, carb: 20, price: 3.49, fav: false },
+  { id: 'mkt-banane', name: 'Banane',            cat: 'obst',  per: 1, unit: 'Stück',   energy: 105, protein: 1,  fat: 0,  carb: 27, price: 0.29, fav: false },
 ];
 
 test('mealsLeftFor: Uhrzeit-Slots (Annahme 4/3/2/1)', () => {
@@ -222,4 +222,27 @@ test('buildPlan/bestPlan: Budget ist eine harte Grenze', () => {
 test('planHours: now-Modus loggt alles auf die aktuelle Stunde', () => {
   assert.deepEqual(planHours(2, 'now', 10), [10, 10]);
   assert.deepEqual(planHours(1, 'now', 23), [22]);
+});
+
+test('Supermarkt: genau eine Packung pro Artikel im Vorschlag', () => {
+  const rest = { energy: 900, protein: 70, fat: 25, carb: 90 };
+  for (const seed of [1, 3, 9]) {
+    const plan = bestPlan(MARKET, rest, { maxItems: 4, seed });
+    assert.ok(plan.items.length > 0);
+    for (const it of plan.items) assert.equal(it.qty, 1, `${it.food.name} sollte 1 Packung sein`);
+  }
+});
+
+test('varietyPenalty: Abwechslung schlägt Doppel-Kategorie', () => {
+  const pool = [
+    { id: 'a', name: 'Skyr', cat: 'kuehl', per: 1, unit: 'Becher', energy: 284, protein: 50, fat: 1, carb: 18, price: 1.19 },
+    { id: 'b', name: 'Magerquark', cat: 'kuehl', per: 1, unit: 'Packung', energy: 335, protein: 60, fat: 1, carb: 20, price: 0.99 },
+    { id: 'c', name: 'Grillschenkel', cat: 'fresh', per: 1, unit: 'Stück', energy: 290, protein: 28, fat: 20, carb: 0, price: 2.49 },
+  ];
+  const rest = { energy: 650, protein: 80, fat: 5, carb: 40 };
+  const ohne = bestPlan(pool, rest, { seed: 1 });
+  assert.ok(varietyExcess(ohne.items) > 0, 'ohne Malus wählt der Score den eintönigen Plan (Alt-Verhalten)');
+  const mit = bestPlan(pool, rest, { seed: 1, varietyPenalty: 60 });
+  assert.ok(mit.items.length >= 2);
+  assert.equal(varietyExcess(mit.items), 0, 'mit Malus: keine doppelte Kategorie');
 });

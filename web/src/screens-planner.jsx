@@ -134,7 +134,11 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
     });
     const avoid = exclude ? [...exclude] : [];
     const budgetOpt = nextSource === 'market' ? nextBudget : 0;
-    const maxItems = nextMode === 'now' ? (nextSource === 'market' ? 3 : 2) : 4;
+    // Supermarkt: 1 Packung pro Artikel (portionOptions) → für Rest/Tag
+    // dürfen mehr verschiedene Produkte in den Korb.
+    const maxItems = nextMode === 'now'
+      ? (nextSource === 'market' ? 3 : 2)
+      : (nextSource === 'market' ? 7 : 4);
     let plan = null;
     let viaAi = false;
     // „Jetzt" & Supermarkt laufen rein lokal: Ergebnis sofort da, und das
@@ -155,6 +159,8 @@ function PlannerSheet({ open, onClose, onLogPlan }) {
         seed: seedRef.current,
         exclude,
         budget: budgetOpt,
+        // Abwechslung im Supermarkt: gleiche Kategorie doppelt kostet Malus
+        varietyPenalty: nextSource === 'market' ? 60 : 0,
       });
       viaAi = false;
     }

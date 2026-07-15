@@ -200,10 +200,27 @@ function fitsBudget(totals, rest) { return totals.energy <= energyCap(rest); }
 /* ---- Greedy-Solver ---------------------------------------- */
 
 function portionOptions(food) {
+  // Supermarkt-Artikel (haben einen Preis): genau EINE Packung pro
+  // Vorschlag. „2× Magerquark" kann der User selbst per Stepper —
+  // der Planer soll Abwechslung liefern, nicht Doppelpacks.
+  if (food.price > 0) return [food.per || 1];
   const base = food.per || 1;
   const factors = isMass(food) ? MASS_FACTORS : COUNT_FACTORS;
   const qtys = new Set(factors.map(f => roundQty(food, base * f)));
   return [...qtys];
+}
+
+/* Wie viele Items doppeln eine bereits vertretene Kategorie? */
+function varietyExcess(items) {
+  const seen = new Set();
+  let dup = 0;
+  for (const it of items) {
+    const cat = it.food && it.food.cat;
+    if (!cat) continue;
+    if (seen.has(cat)) dup += 1;
+    seen.add(cat);
+  }
+  return dup;
 }
 
 function mulberry32(seed) {
@@ -220,7 +237,7 @@ function mulberry32(seed) {
    die den Score am stärksten senkt, ohne die kcal-Grenze zu reißen.
    `seed` randomisiert Tie-Breaks für „Neu würfeln";
    `exclude` (Set von Namen, lowercase) sperrt zuletzt gezeigte Items. */
-function buildPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, proteinWeight = 14, budget = 0 } = {}) {
+function buildPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, proteinWeight = 14, budget = 0, varietyPenalty = 0 } = {}) {
   const rng = mulberry32(Math.floor(seed) || 1);
   const banned = exclude instanceof Set ? exclude : new Set(exclude || []);
   const pool = candidates.filter(c => c.energy > 0 && !banned.has(String(c.name).toLowerCase()));
@@ -246,7 +263,10 @@ function buildPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, proteinW
         if (!fitsBudget(totals, rest)) continue;
         // Budget ist eine HARTE Grenze (nur relevant, wenn Kandidaten Preise haben)
         if (budget > 0 && current.price + priceOf(cand, qty) > budget + 1e-9) continue;
-        const score = scorePlan(totals, rest, proteinWeight) + rng() * 1e-4; // seeded tie-break
+        // Abwechslung: gleiche Kategorie nochmal kostet einen Malus
+        const dupCat = varietyPenalty > 0 && cand.cat && items.some(it => it.food.cat === cand.cat);
+        const score = scorePlan(totals, rest, proteinWeight) + rng() * 1e-4 // seeded tie-break
+          + (dupCat ? varietyPenalty : 0);
         if (score < currentScore - 1 && (!best || score < best.score)) {
           best = { food: cand, qty, macros, score };
         }
@@ -265,7 +285,7 @@ function buildPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, proteinW
    restliche kcal-Budget mit dem Standard-Greedy auffüllen. Findet die
    Kombis, die der Score-Greedy verpasst, wenn ein kalorienreicher
    Groß-Pick das Budget frisst. */
-function densityPlan(candidates, rest, { maxItems = 4, exclude, budget = 0 } = {}) {
+function densityPlan(candidates, rest, { maxItems = 4, exclude, budget = 0, varietyPenalty = 0 } = {}) {
   const banned = exclude instanceof Set ? exclude : new Set(exclude || []);
   const pool = candidates.filter(c => c.energy > 0 && !banned.has(String(c.name).toLowerCase()));
   const dense = [...pool]
@@ -279,6 +299,9 @@ function densityPlan(candidates, rest, { maxItems = 4, exclude, budget = 0 } = {
     if (items.length >= maxItems) break;
     const current = planTotals(items);
     if (current.protein >= rest.protein) break;
+    // Abwechslung: dieselbe Kategorie überspringen — der Filler unten
+    // darf sie zur Not (mit Malus) wieder reinnehmen.
+    if (varietyPenalty > 0 && cand.cat && items.some(it => it.food.cat === cand.cat)) continue;
     for (const qty of portionOptions(cand).sort((a, b) => b - a)) {
       const macros = scaleFoodLocal(cand, qty);
       const totals = {
@@ -309,6 +332,7 @@ function densityPlan(candidates, rest, { maxItems = 4, exclude, budget = 0 } = {
       maxItems: maxItems - items.length,
       exclude: new Set([...banned, ...used]),
       budget: budget > 0 ? Math.max(0, budget - spent) : 0,
+      varietyPenalty,
     });
     items.push(...filler.items);
   }
@@ -321,17 +345,19 @@ function densityPlan(candidates, rest, { maxItems = 4, exclude, budget = 0 } = {
    und die Protein-Lücke offen bleibt. Deshalb mehrere Strategien fahren
    (Standard, protein-first, mehr/kleinere Items, Protein-Dichte) und den
    Plan behalten, der nach der STANDARD-Gewichtung am besten abschneidet. */
-function bestPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, budget = 0 } = {}) {
+function bestPlan(candidates, rest, { maxItems = 4, seed = 1, exclude, budget = 0, varietyPenalty = 0 } = {}) {
   const plans = [
-    buildPlan(candidates, rest, { maxItems, seed, exclude, proteinWeight: 14, budget }),
-    buildPlan(candidates, rest, { maxItems, seed: seed + 1, exclude, proteinWeight: 45, budget }),
-    buildPlan(candidates, rest, { maxItems: maxItems + 1, seed: seed + 2, exclude, proteinWeight: 26, budget }),
-    densityPlan(candidates, rest, { maxItems, exclude, budget }),
+    buildPlan(candidates, rest, { maxItems, seed, exclude, proteinWeight: 14, budget, varietyPenalty }),
+    buildPlan(candidates, rest, { maxItems, seed: seed + 1, exclude, proteinWeight: 45, budget, varietyPenalty }),
+    buildPlan(candidates, rest, { maxItems: maxItems + 1, seed: seed + 2, exclude, proteinWeight: 26, budget, varietyPenalty }),
+    densityPlan(candidates, rest, { maxItems, exclude, budget, varietyPenalty }),
   ];
   let best = null;
   for (const plan of plans) {
     if (!plan.items.length) continue;
-    const score = scorePlan(plan.totals, rest);
+    // Endvergleich mit demselben Abwechslungs-Malus, damit ein bunter Plan
+    // einen gleich guten eintönigen schlägt.
+    const score = scorePlan(plan.totals, rest) + varietyExcess(plan.items) * varietyPenalty;
     if (!best || score < best.score - 1e-9
       || (Math.abs(score - best.score) <= 1e-9 && plan.items.length < best.plan.items.length)) {
       best = { plan, score };
@@ -468,7 +494,7 @@ function planChecks(totals, rest) {
 
 const planner = {
   recipeToFood, loggedHabitFoods, plannerCandidates, remainingTargets, nowTargets, mealsLeftFor,
-  planTotals, priceOf, scorePlan, fitsBudget, energyCap, buildPlan, bestPlan, adjustPortions,
+  planTotals, priceOf, varietyExcess, scorePlan, fitsBudget, energyCap, buildPlan, bestPlan, adjustPortions,
   aiProposePlan, planHours, planChecks,
 };
 
@@ -476,6 +502,6 @@ if (typeof window !== 'undefined') Object.assign(window, { planner });
 
 export {
   recipeToFood, loggedHabitFoods, plannerCandidates, remainingTargets, nowTargets, mealsLeftFor,
-  planTotals, priceOf, scorePlan, fitsBudget, energyCap, buildPlan, bestPlan, adjustPortions,
+  planTotals, priceOf, varietyExcess, scorePlan, fitsBudget, energyCap, buildPlan, bestPlan, adjustPortions,
   aiProposePlan, planHours, planChecks,
 };

@@ -158,13 +158,27 @@ function AddSheet({ open, onClose, hour, initialTab, aiImage, aiAuto, onPick, on
   }, [open, initialTab]);
 
   // Sofort-Treffer aus der lokalen Datenbank — ohne Debounce, bei jedem
-  // Tastendruck. Die Remote-Suche füllt danach auf.
+  // Tastendruck. Die Remote-Suche füllt danach auf. Ranking: Namens-Anfang
+  // vor Wort-Anfang vor Enthält; Favoriten nach vorn. Der Supermarkt-Katalog
+  // sucht mit (Packungs-Makros, direkt loggbar).
   const localHits = React.useMemo(() => {
     const query = q.trim().toLowerCase();
     if (query.length < 2) return [];
-    return [...customFoods, ...FOOD_DB]
-      .filter(f => `${f.name} ${f.brand || ''}`.toLowerCase().includes(query))
-      .slice(0, 6);
+    const seen = new Set();
+    const scored = [];
+    for (const f of [...customFoods, ...FOOD_DB, ...SUPERMARKET_DB]) {
+      const name = String(f.name).toLowerCase();
+      if (seen.has(name)) continue;
+      const hay = `${name} ${String(f.brand || '').toLowerCase()}`;
+      if (!hay.includes(query)) continue;
+      seen.add(name);
+      const rank = name.startsWith(query) ? 0
+        : name.split(/\s+/).some(w => w.startsWith(query)) ? 1
+          : 2;
+      scored.push([rank - (f.fav ? 0.5 : 0), scored.length, f]);
+    }
+    scored.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    return scored.slice(0, 8).map(s => s[2]);
   }, [q, customFoods]);
 
   // Live OpenFoodFacts search (debounced)
